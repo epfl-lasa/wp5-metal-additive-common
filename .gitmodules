@@ -1,0 +1,3 @@
+[submodule "src/ros-modbus-device-driver"]
+	path = src/ros-modbus-device-driver
+	url = https://github.com/bitmeal/ros-modbus-device-driver.git

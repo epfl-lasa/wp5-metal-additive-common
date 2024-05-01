@@ -98,8 +98,8 @@ RUN mkdir -p ${HOME}/catkin_ws/src
 RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
 
 USER ${USER}
-RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && cd ${HOME}/catkin_ws && catkin build"
-RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
-RUN echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
-
 WORKDIR ${HOME}/catkin_ws
+RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && catkin build"
+RUN echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
+
