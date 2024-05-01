@@ -1,0 +1,26 @@
+services:
+  ros:
+    user: ${ROS_USER}
+    env_file:
+      - .env
+    network_mode: host
+    build:
+      context: .
+      network: host
+      dockerfile: ./docker/Dockerfile
+      args:
+        UBUNTU_DISTRO: focal
+        ROS_DISTRO: noetic
+        USER: ${ROS_USER}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./src:/home/${ROS_USER}/catkin_ws/src
+    stdin_open: true
+    tty: true
