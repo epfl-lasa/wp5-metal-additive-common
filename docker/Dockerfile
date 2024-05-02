@@ -45,7 +45,9 @@ RUN sh -c \
 
 RUN wget http://packages.ros.org/ros.key -O - | apt-key add -
 RUN apt update --fix-missing && apt upgrade -y && apt clean
-RUN apt install -y python3-catkin-tools
+RUN apt install -y \
+    python3-catkin-tools \
+    python3-osrf-pycommon
 
 # Add GitHub's host key
 RUN apt update --fix-missing && apt upgrade -y && apt clean
@@ -58,9 +60,13 @@ FROM ros-ws as libraries
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     python3-vcstool \
-    ros-noetic-rqt-joint-trajectory-controller \
-    ros-noetic-moveit-commander \
-    ros-noetic-teleop-twist-keyboard
+    ros-${ROS_DISTRO}-rqt-joint-trajectory-controller \
+    ros-${ROS_DISTRO}-moveit-commander \
+    ros-${ROS_DISTRO}-teleop-twist-keyboard \
+    ros-${ROS_DISTRO}-moveit-visual-tools \
+    ros-${ROS_DISTRO}-joint-state-publisher \
+    ros-${ROS_DISTRO}-robot-state-publisher \
+    ros-${ROS_DISTRO}-pcl-ros
 
 # Install trac ik
 RUN apt update --fix-missing && apt upgrade -y && apt clean
@@ -68,6 +74,11 @@ RUN apt install -y \
     ros-${ROS_DISTRO}-trac-ik \
     ros-${ROS_DISTRO}-trac-ik-kinematics-plugin \
     ros-${ROS_DISTRO}-diagnostic-updater
+
+# Install ANiMA's dependencies
+RUN apt update --fix-missing && apt upgrade -y && apt clean
+RUN apt install -y \
+    ros-${ROS_DISTRO}-catkin-virtualenv
 
 FROM libraries as cmake-options
 
