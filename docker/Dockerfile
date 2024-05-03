@@ -83,6 +83,9 @@ RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     ros-${ROS_DISTRO}-catkin-virtualenv
 
+WORKDIR ${HOME}/catkin_ws/src
+RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
+
 FROM libraries as cmake-options
 
 # Handle SIMD option
@@ -107,13 +110,10 @@ FROM simulation-tools as finalisation
 WORKDIR ${HOME}
 RUN chown -R ${USER}:${HOST_GID} .bashrc
 
-# Create catkin workspace
-RUN mkdir -p ${HOME}/catkin_ws/src
-RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
-
+# Build the workspace and source the devel/setup.bash
 USER ${USER}
 WORKDIR ${HOME}/catkin_ws
-RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && catkin build"
-RUN echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
+RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin build"
+RUN echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
 
