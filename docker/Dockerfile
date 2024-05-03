@@ -22,19 +22,16 @@ RUN useradd -m ${USER} && echo "${USER}:${USER}passwd" | chpasswd && adduser ${U
 
 ### Add a few essential tools
 RUN apt update --fix-missing && apt upgrade -y && apt clean
-RUN apt install -y git openssh-client python3 net-tools build-essential cmake git
 RUN apt install -y \
-    bash-completion \
-    silversearcher-ag \
-    apt-transport-https \
-    less \
-    alsa-utils \
-    ros-${ROS_DISTRO}-vrpn-client-ros \
-    ros-${ROS_DISTRO}-ros-control \
-    ros-${ROS_DISTRO}-ros-controllers \
-    ros-${ROS_DISTRO}-moveit \
-    ros-${ROS_DISTRO}-rosparam-shortcuts \
-    libcgal-dev
+    git \
+    openssh-client \
+    python3 \
+    python3-pip \
+    net-tools \
+    build-essential \
+    cmake
+
+RUN pip3 install --upgrade pip
 
 # Install catkin tools
 RUN apt update --fix-missing && apt upgrade -y && apt clean
@@ -49,18 +46,24 @@ RUN apt install -y \
     python3-catkin-tools \
     python3-osrf-pycommon
 
-# Add GitHub's host key
-RUN apt update --fix-missing && apt upgrade -y && apt clean
-RUN apt install -y python3-pip
-RUN pip install matplotlib
-
 FROM ros-ws as libraries
+
+# Install waypoints tools
+RUN apt update --fix-missing && apt upgrade -y && apt clean
+RUN apt install -y \
+    libcgal-dev
+
+RUN pip3 install \
+    opencv-python
 
 # Install moveit tools
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     python3-vcstool \
     ros-${ROS_DISTRO}-rqt-joint-trajectory-controller \
+    ros-${ROS_DISTRO}-ros-control \
+    ros-${ROS_DISTRO}-ros-controllers \
+    ros-${ROS_DISTRO}-moveit \
     ros-${ROS_DISTRO}-moveit-commander \
     ros-${ROS_DISTRO}-teleop-twist-keyboard \
     ros-${ROS_DISTRO}-moveit-visual-tools \
