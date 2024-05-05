@@ -1,7 +1,7 @@
 # Handle ros distro
 ARG ROS_DISTRO=noetic
 
-FROM ros:${ROS_DISTRO} as ros-ws
+FROM osrf/ros:${ROS_DISTRO}-desktop-full-focal as ros-ws
 
 ARG ROS_DISTRO
 ARG USER=root
@@ -117,3 +117,4 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
 RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin build"
 RUN echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
 
+CMD [ "bash" ]
