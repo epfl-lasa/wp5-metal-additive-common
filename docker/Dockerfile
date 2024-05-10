@@ -46,6 +46,9 @@ RUN apt install -y \
     python3-catkin-tools \
     python3-osrf-pycommon
 
+WORKDIR ${HOME}/catkin_ws/src
+RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
+
 FROM ros-ws as libraries
 
 # Install waypoints tools
@@ -65,8 +68,10 @@ RUN apt install -y \
     ros-${ROS_DISTRO}-ros-controllers \
     ros-${ROS_DISTRO}-moveit \
     ros-${ROS_DISTRO}-moveit-commander \
-    ros-${ROS_DISTRO}-teleop-twist-keyboard \
+    ros-${ROS_DISTRO}-moveit-ros-planning-interface \
+    ros-${ROS_DISTRO}-moveit-ros-move-group \
     ros-${ROS_DISTRO}-moveit-visual-tools \
+    ros-${ROS_DISTRO}-teleop-twist-keyboard \
     ros-${ROS_DISTRO}-joint-state-publisher \
     ros-${ROS_DISTRO}-robot-state-publisher \
     ros-${ROS_DISTRO}-pcl-ros
