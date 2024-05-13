@@ -86,7 +86,10 @@ RUN apt install -y \
 # Install ANiMA's dependencies
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
-    ros-${ROS_DISTRO}-catkin-virtualenv
+    ros-${ROS_DISTRO}-catkin-virtualenv \
+    ros-${ROS_DISTRO}-joint-state-publisher-gui \
+    ros-${ROS_DISTRO}-pilz-industrial-motion-planner \
+    ros-${ROS_DISTRO}-industrial-core
 
 WORKDIR ${HOME}/catkin_ws/src
 RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
