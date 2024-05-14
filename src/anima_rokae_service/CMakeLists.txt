@@ -6,13 +6,26 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+add_service_files(
+  DIRECTORY srv
+  FILES MAMControl.srv
+)
+
+generate_messages(
+  DEPENDENCIES std_msgs
+)
+
 catkin_package(
   CATKIN_DEPENDS message_runtime std_msgs
 )
+
+# include_directories(
+#   ${catkin_INCLUDE_DIRS}
+# )
 
 # catkin_install_python(
 #   PROGRAMS
 #   scripts/client.py
 #   scripts/server.py
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/anima_rokae_service
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )

@@ -1,8 +1,18 @@
 # Specifications needed to perform laser tasks
 welding:
   power: 1400 # [Watt]
-  power_topic: 'A0'
+  power_topic: 'AO3'
+  laser_out_state_topic: 'DO7'
+  laser_in_state_topic: 'DI7'
 
   wire_feed_speed: 20 # [mm/s]
-  wire_feed_speed_topic: 'A1'
+  wire_feed_speed_topic: 'AO2'
 
+  gas_state_topic: 'DO6'
+
+  # Order is important here, the number is the
+  # seconds to wait before going next
+  start:
+    gas: 1
+    laser: 5
+    wire_feeder: 0
