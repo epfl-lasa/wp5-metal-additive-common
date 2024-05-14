@@ -115,7 +115,8 @@ RUN apt install -y \
 # Install realsense camera dependencies
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
-    ros-${ROS_DISTRO}-realsense2-camera
+    ros-${ROS_DISTRO}-realsense2-camera \
+    ros-${ROS_DISTRO}-realsense2-description
 
 FROM simulation-tools as finalisation
 
