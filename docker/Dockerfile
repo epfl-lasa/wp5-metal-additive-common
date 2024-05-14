@@ -112,6 +112,11 @@ RUN apt install -y \
     ros-${ROS_DISTRO}-gazebo-ros-pkgs \
     ros-${ROS_DISTRO}-gazebo-ros-control
 
+# Install realsense camera dependencies
+RUN apt update --fix-missing && apt upgrade -y && apt clean
+RUN apt install -y \
+    ros-${ROS_DISTRO}-realsense2-camera
+
 FROM simulation-tools as finalisation
 
 # Give bashrc back to user

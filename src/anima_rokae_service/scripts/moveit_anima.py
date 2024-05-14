@@ -44,14 +44,16 @@ class AnimaMoveit:
         self.LST_TARGET_OFFSETt = None
         self.EE_OFFSET = None
         self.ID_SCENARIO = None
-        self.SAFE_WAIT = safe_wait
 
         signal.signal(signal.SIGINT, self.signal_handler)
 
         try:
-            self.init_moveit()
+            self.init_moveit(safe_wait)
             self.get_information()
-            self.add_obstacles(robot_platform=True, welding_boxe=False)
+
+            # Add obstacles
+            self.add_obstacle([-0.3, 0.0, -0.25, 0.0, 0.0, 0.0, 1.0], (1.3, 0.77, 0.54), "robot_platform")
+            #self.add_obstacle([-0.2, 0.0, 0.2, 0.0, 0.0, 0.0, 1.0], (0.2, 0.77, 0.6), "welding_boxe")
 
             # Setup move group options
             self.move_group.allow_replanning(True)
@@ -76,9 +78,9 @@ class AnimaMoveit:
 
         self.display_trajectory(plan_init_pose[1])
 
-        if STEP_BY_STEP:
+        if rospy.get_param('anima_step_by_step'):
             input(
-                "============ Press `Enter` to move to the initial pose ... ============"
+                "============ Press `Enter` to execute the trajectory ... ============"
             )
 
         self.move_group.execute(plan_init_pose[1], wait=True)
@@ -131,42 +133,27 @@ class AnimaMoveit:
             rospy.logerr("Invalid scenario ID.")
             sys.exit(0)
 
-    def add_obstacles(self, **kwargs):
+    def add_obstacle(self, pose: list, size: tuple, name: str):
         """
         Function to add obstacles to the planning scene.
 
         Args:
-            kwargs: Additional keyword arguments.
-                robot_platform: If True, add the robot platform obstacle.
-                welding_boxe: If True, add the welding box obstacle.
+            pose: Position and Orientation of the obstacle
+            size: Size of the obstacle
+            name: Name of the obstacle
         """
         frame_id = "xMateCR7_base"
 
-        if kwargs.get('robot_platform', False):
-            obs_platform = PoseStamped()
-            obs_platform.header.frame_id = frame_id
-            obs_platform.pose = self.generate_pose(
-                [-0.3, 0.0, -0.25, 0.0, 0.0, 0.0, 1.0]
-            )
+        if len(pose) != 7:
+            rospy.logerr("Pose should be size 7 : pose - xyz, orientation - xyzw.")
 
-            self.scene.add_box(
-                "robot_platform",
-                obs_platform,
-                size=(1.3, 0.77, 0.54)
-            )
+        if len(size) != 3:
+            rospy.logerr("Size should be size 3 - xyz.")
 
-        if kwargs.get('welding_boxe', False):
-            obs_welder = PoseStamped()
-            obs_welder.header.frame_id = frame_id
-            obs_welder.pose = self.generate_pose(
-                [-0.2, 0.0, 0.2, 0.0, 0.0, 0.0, 1.0]
-            )
-
-            self.scene.add_box(
-                "welding_boxe",
-                obs_welder,
-                size=(0.2, 0.77, 0.6)
-            )
+        new_obstacle = PoseStamped()
+        new_obstacle.header.frame_id = frame_id
+        new_obstacle.pose = self.generate_pose(pose)
+        self.scene.add_box(name, new_obstacle, size=size)
 
     def plan_execute_trajectory(self):
         """
@@ -212,7 +199,7 @@ class AnimaMoveit:
 
                         self.display_trajectory(new_plan[1])
                         input(
-                            "============ Press `Enter` to move to the initial pose ... ============"
+                            "============ Press `Enter` to execute the trajectory ... ============"
                         )
 
                         self.move_group.execute(new_plan[1], wait=True)
@@ -227,7 +214,7 @@ class AnimaMoveit:
                 # Display the trajectory
                 self.display_trajectory(plan_trajectory)
 
-                if STEP_BY_STEP:
+                if rospy.get_param('anima_step_by_step'):
                     input(
                         "============ Press `Enter` to execute the trajectory ... ============")
 
@@ -236,9 +223,7 @@ class AnimaMoveit:
 
                 # Execute the plan in a separate thread
                 execute_thread = threading.Thread(
-                    target=self.move_group.execute, args=(
-                        plan_trajectory, True
-                    )
+                    target=self.move_group.execute, args=(plan_trajectory, True)
                 )
                 execute_thread.start()
 
@@ -258,9 +243,13 @@ class AnimaMoveit:
 
         self.move_group.stop()
 
-    def init_moveit(self):
+    def init_moveit(self, safe_wait):
         """
         Function to initialize MoveIt and the ROS node.
+
+        Args:
+            - safe_wait: Parameter to wait before each movement, can be adapted
+                         using rosparam functions
         """
         roscpp_initialize(sys.argv)
         rospy.init_node('move_group_python_interface', anonymous=True)
@@ -286,7 +275,8 @@ class AnimaMoveit:
         )
 
         # Set ros params
-        rospy.set_param('moveit_safe_wait', self.SAFE_WAIT)
+        rospy.set_param('anima_safe_wait', safe_wait)
+        rospy.set_param('anima_step_by_step', STEP_BY_STEP)
 
         # Wait for the scene to get ready
         rospy.sleep(1)
@@ -508,4 +498,6 @@ class AnimaMoveit:
         display.trajectory.append(plan)
 
         self.pub_display_trajectory.publish(display)
-        rospy.sleep(rospy.get_param('moveit_safe_wait'))
+
+        if not rospy.get_param('anima_step_by_step'):
+            rospy.sleep(rospy.get_param('anima_safe_wait'))
