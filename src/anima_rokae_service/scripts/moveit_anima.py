@@ -13,14 +13,13 @@ import sys
 import tf
 import threading
 import time
-import numpy as np
+import tf.transformations
 
 from geometry_msgs.msg import Pose, PoseStamped
 from math import pi, radians
 from moveit_commander import MoveGroupCommander, PlanningSceneInterface, roscpp_initialize, RobotCommander
 from moveit_msgs.msg import DisplayTrajectory
 from std_msgs.msg import Bool
-import tf.transformations
 
 
 # Parameters to be set
@@ -52,8 +51,9 @@ class AnimaMoveit:
             self.get_information()
 
             # Add obstacles
-            self.add_obstacle([-0.3, 0.0, -0.25, 0.0, 0.0, 0.0, 1.0], (1.3, 0.77, 0.54), "robot_platform")
-            #self.add_obstacle([-0.2, 0.0, 0.2, 0.0, 0.0, 0.0, 1.0], (0.2, 0.77, 0.6), "welding_boxe")
+            self.add_obstacle([-0.3, 0.0, -0.25, 0.0, 0.0,
+                              0.0, 1.0], (1.3, 0.77, 0.54), "robot_platform")
+            # self.add_obstacle([-0.2, 0.0, 0.2, 0.0, 0.0, 0.0, 1.0], (0.2, 0.77, 0.6), "welding_boxe")
 
             # Setup move group options
             self.move_group.allow_replanning(True)
@@ -145,7 +145,8 @@ class AnimaMoveit:
         frame_id = "xMateCR7_base"
 
         if len(pose) != 7:
-            rospy.logerr("Pose should be size 7 : pose - xyz, orientation - xyzw.")
+            rospy.logerr(
+                "Pose should be size 7 : pose - xyz, orientation - xyzw.")
 
         if len(size) != 3:
             rospy.logerr("Size should be size 3 - xyz.")
@@ -223,7 +224,8 @@ class AnimaMoveit:
 
                 # Execute the plan in a separate thread
                 execute_thread = threading.Thread(
-                    target=self.move_group.execute, args=(plan_trajectory, True)
+                    target=self.move_group.execute, args=(
+                        plan_trajectory, True)
                 )
                 execute_thread.start()
 

@@ -1,0 +1,8 @@
+# Specifications needed to perform laser tasks
+welding:
+  power: 1400 # [Watt]
+  power_topic: 'A0'
+
+  wire_feed_speed: 20 # [mm/s]
+  wire_feed_speed_topic: 'A1'
+

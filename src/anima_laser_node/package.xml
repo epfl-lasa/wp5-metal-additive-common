@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+    <name>anima_laser_node</name>
+    <version>0.0.1</version>
+    <description>
+        This package provides a node to use the laser from ANiMA.
+    </description>
+    <maintainer email="lmunier@protonmail.com">Louis Munier</maintainer>
+    <license>TODO</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <build_depend>std_msgs</build_depend>
+    <build_depend>rospkg</build_depend>
+    <build_depend>rospy</build_depend>
+    <build_depend>yaml</build_depend>
+
+    <run_depend>std_msgs</run_depend>
+    <run_depend>rospkg</run_depend>
+    <run_depend>rospy</run_depend>
+    <run_depend>yaml</run_depend>
+</package>
