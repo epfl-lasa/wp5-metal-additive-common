@@ -5,9 +5,9 @@ services:
       - .env
     network_mode: host
     build:
-      context: .
+      context: ./docker
       network: host
-      dockerfile: ./docker/Dockerfile
+      dockerfile: Dockerfile
       args:
         UBUNTU_DISTRO: focal
         ROS_DISTRO: noetic
@@ -20,8 +20,12 @@ services:
               count: 1
               capabilities: [ gpu ]
     volumes:
+      - /dev:/dev
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ./src:/home/${ROS_USER}/catkin_ws/src
       - ./scripts:/home/${ROS_USER}/scripts
+    device_cgroup_rules:
+      - "c 81:* rmw"
+      - "c 189:* rmw"
     stdin_open: true
     tty: true
