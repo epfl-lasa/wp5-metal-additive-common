@@ -24,7 +24,7 @@ from std_msgs.msg import Bool
 
 # Parameters to be set
 # ======================== ANIMA : Please set the following parameters ========================
-INIT_POSE = [0.0, -0.35, 0.8, pi / 2, 0, 0]
+INIT_POSE = [0.178, 0.209, 0.846, -pi / 2, 0, -pi / 2]
 NB_ITERATIONS = 3  # Number of iterations of the path to be executed
 STEP_BY_STEP = False  # If True, the robot will ask for enter to move to the next step
 MAX_PATH_TRIAL = 10  # Maximum number of trials to generate a cartesian path
@@ -51,9 +51,16 @@ class AnimaMoveit:
             self.get_information()
 
             # Add obstacles
-            self.add_obstacle([-0.3, 0.0, -0.25, 0.0, 0.0,
-                              0.0, 1.0], (1.3, 0.77, 0.54), "robot_platform")
-            # self.add_obstacle([-0.2, 0.0, 0.2, 0.0, 0.0, 0.0, 1.0], (0.2, 0.77, 0.6), "welding_boxe")
+            self.add_obstacle(
+                [-0.3, 0.0, -0.25, 0.0, 0.0, 0.0, 1.0],
+                (1.3, 0.77, 0.54),
+                "robot_platform"
+            )
+            # self.add_obstacle(
+            #    [-0.2, 0.0, 0.2, 0.0, 0.0, 0.0, 1.0],
+            #    (0.2, 0.77, 0.6),
+            #    "welding_boxe"
+            # )
 
             # Setup move group options
             self.move_group.allow_replanning(True)
@@ -85,6 +92,7 @@ class AnimaMoveit:
 
         self.move_group.execute(plan_init_pose[1], wait=True)
         self.move_group.stop()
+        self.move_group.clear_pose_targets()
 
     def set_scenario(self, id_scenario):
         """
@@ -112,8 +120,8 @@ class AnimaMoveit:
 
             # End effector offset
             self.EE_OFFSET = {
-                'pos': [0, 0.2, 0],
-                'angle': [0, 20, 0]
+                'pos': [0, 0, 0],
+                'angle': [0, 0, 0]
             }
         elif id_scenario == 2:
             # Multiples lines on top of each other
@@ -236,6 +244,7 @@ class AnimaMoveit:
                     if self.FLAG_STOP:
                         print('Stopping...')
                         self.move_group.stop()
+                        self.move_group.clear_pose_targets()
                         execute_thread.join()
                         return
 
@@ -244,6 +253,7 @@ class AnimaMoveit:
                 self.FLAG_THREAD = False
 
         self.move_group.stop()
+        self.move_group.clear_pose_targets()
 
     def init_moveit(self, safe_wait):
         """
