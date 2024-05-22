@@ -84,15 +84,24 @@ RUN apt install -y \
     ros-${ROS_DISTRO}-diagnostic-updater
 
 # Install ANiMA's dependencies
-RUN apt update --fix-missing && apt upgrade -y && apt clean
+RUN apt update --fix-missing
+RUN apt upgrade -y && apt clean
 RUN apt install -y \
     ros-${ROS_DISTRO}-catkin-virtualenv \
     ros-${ROS_DISTRO}-joint-state-publisher-gui \
     ros-${ROS_DISTRO}-pilz-industrial-motion-planner \
-    ros-${ROS_DISTRO}-industrial-core
+    ros-${ROS_DISTRO}-industrial-core \
+    ros-${ROS_DISTRO}-industrial-robot-status-interface
 
 WORKDIR ${HOME}/catkin_ws/src
 RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
+
+# Install UR dependencies
+RUN apt update --fix-missing && apt upgrade -y && apt clean
+RUN apt install -y \
+    ros-${ROS_DISTRO}-ur-msgs \
+    ros-${ROS_DISTRO}-ur-robot-driver \
+    ros-${ROS_DISTRO}-universal-robots
 
 FROM libraries as cmake-options
 

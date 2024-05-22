@@ -84,10 +84,7 @@ def go_home():
     global ANIMA_MOVEIT
 
     CURRENT_STATE = State.HOMING
-    ANIMA_MOVEIT.move_group.set_joint_value_target(
-        [0, 0, 0, 0, 0, 0]
-    )
-    ANIMA_MOVEIT.plan_display_move()
+    ANIMA_MOVEIT.go_home()
 
 
 def go_work():

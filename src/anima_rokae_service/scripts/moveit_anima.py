@@ -22,15 +22,6 @@ from moveit_msgs.msg import DisplayTrajectory
 from std_msgs.msg import Bool
 
 
-# Parameters to be set
-# ======================== ANIMA : Please set the following parameters ========================
-INIT_POSE = [0.178, 0.209, 0.846, -pi / 2, 0, -pi / 2]
-NB_ITERATIONS = 3  # Number of iterations of the path to be executed
-STEP_BY_STEP = False  # If True, the robot will ask for enter to move to the next step
-MAX_PATH_TRIAL = 10  # Maximum number of trials to generate a cartesian path
-# ======================== ANIMA : END of parameter region ========================
-
-
 class AnimaMoveit:
     def __init__(self, safe_wait=3):
         """
@@ -150,7 +141,7 @@ class AnimaMoveit:
             size: Size of the obstacle
             name: Name of the obstacle
         """
-        frame_id = "xMateCR7_base"
+        frame_id = self.robot_base
 
         if len(pose) != 7:
             rospy.logerr(
@@ -171,13 +162,13 @@ class AnimaMoveit:
         waypoints = []
         waypoints.append(self.move_group.get_current_pose().pose)
 
-        for i in range(NB_ITERATIONS):
+        for i in range(rospy.get_param('~nb_iterations')):
             for to in self.LST_TARGET_OFFSET:
                 waypoints = self.generate_waypoints(
                     waypoints[-1], [to], self.EE_OFFSET
                 )
 
-                if i == NB_ITERATIONS - 1 and to == self.LST_TARGET_OFFSET[-1]:
+                if i == rospy.get_param('~nb_iterations') - 1 and to == self.LST_TARGET_OFFSET[-1]:
                     break
 
                 # Compute the Cartesian path
@@ -186,7 +177,7 @@ class AnimaMoveit:
                 while fraction < 1.0:
                     iter += 1
 
-                    if iter > MAX_PATH_TRIAL:
+                    if iter > rospy.get_param('~max_path_trial'):
                         print(
                             f"Path planning was not successful, fraction: {fraction}, iteration {i}."
                         )
@@ -266,11 +257,22 @@ class AnimaMoveit:
         roscpp_initialize(sys.argv)
         rospy.init_node('move_group_python_interface', anonymous=True)
 
+        self.robot_type = rospy.get_param('~robot_type')
+        self.robot_group = rospy.get_param(
+            '~' + self.robot_type + '/group'
+        )
+        self.robot_base = rospy.get_param(
+            '~' + self.robot_type + '/base'
+        )
+        self.robot_end_effector = rospy.get_param(
+            '~' + self.robot_type + '/end_effector'
+        )
+
         self.robot = RobotCommander()
         self.scene = PlanningSceneInterface()
 
-        self.move_group = MoveGroupCommander("rokae_arm")
-        self.move_group.set_pose_reference_frame("xMateCR7_base")
+        self.move_group = MoveGroupCommander(self.robot_group)
+        self.move_group.set_pose_reference_frame(self.robot_base)
 
         self.pub_welding_state = rospy.Publisher(
             "welding_state", Bool, queue_size=1
@@ -283,12 +285,12 @@ class AnimaMoveit:
 
         self.LISTENER = tf.TransformListener()
         self.LISTENER.waitForTransform(
-            "xMateCR7_base", "xMateCR7_ee_tooltip", rospy.Time(), rospy.Duration(4.0)
+            self.robot_base, self.robot_end_effector, rospy.Time(), rospy.Duration(4.0)
         )
 
         # Set ros params
         rospy.set_param('anima_safe_wait', safe_wait)
-        rospy.set_param('anima_step_by_step', STEP_BY_STEP)
+        rospy.set_param('anima_step_by_step', rospy.get_param('~step_by_step'))
 
         # Wait for the scene to get ready
         rospy.sleep(1)
@@ -334,16 +336,20 @@ class AnimaMoveit:
         Returns:
             The initial pose as a Pose object.
         """
+        init_pose = rospy.get_param(
+            '~' + self.robot_type + '/init_pose'
+        )
+
         # Define the initial pose of the robot
         self.init_pose = Pose()
-        self.init_pose.position.x = INIT_POSE[0]
-        self.init_pose.position.y = INIT_POSE[1]
-        self.init_pose.position.z = INIT_POSE[2]
+        self.init_pose.position.x = init_pose[0]
+        self.init_pose.position.y = init_pose[1]
+        self.init_pose.position.z = init_pose[2]
 
         # Orientation
-        roll = INIT_POSE[3]
-        pitch = INIT_POSE[4]
-        yaw = INIT_POSE[5]
+        roll = init_pose[3]
+        pitch = init_pose[4]
+        yaw = init_pose[5]
         q = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
 
         self.init_pose.orientation.x = q[0]
@@ -355,7 +361,7 @@ class AnimaMoveit:
             print("Invalid quaternion.")
             exit(0)
 
-    def get_pose_from_ref(self, pose, base_ref="xMateCR7_base", end_ref="xMateCR7_ee_tooltip", angle_rad=True):
+    def get_pose_from_ref(self, pose, base_ref, end_ref, angle_rad=True):
         position_pose = pose['pos']
 
         # Convert Euler angles to quaternion
@@ -497,6 +503,14 @@ class AnimaMoveit:
         new_pose.orientation.w = quat_new[3]
 
         return new_pose
+
+    def go_home(self):
+        """
+        Function to move the robot to the home position.
+        """
+        homing_pose = rospy.get_param('~' + self.robot_type + '/home_pose')
+        self.move_group.set_joint_value_target(homing_pose)
+        self.plan_display_move()
 
     def display_trajectory(self, plan):
         """
