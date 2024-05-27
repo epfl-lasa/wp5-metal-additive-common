@@ -8,6 +8,6 @@ xMateCR7:
 ur5:
   group: manipulator
   base: base_link
-  end_effector: tool0
+  end_effector: tool0_controller
   home_pose: [0, -1.57, 0, -1.57, 0, 0]
   init_pose: [0.178, 0.209, 0.846, -1.57, 0, -1.57]
