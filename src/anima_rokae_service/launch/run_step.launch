@@ -1,9 +1,10 @@
 <launch>
-    <!-- <param name="robot_type" value="$(arg robot_type)" /> -->
-    <arg name="robot_type" default="ur5" />
+    <arg name="robot_type" doc="Robot bringup : [xMateCR7, ur5]" default="ur5" />
+
+    <param name="robot_type" value="$(arg robot_type)" />
 
     <group ns="$(arg robot_type)">
-        <node name="anima_rokae_service" pkg="anima_rokae_service" type="server.py"
+        <node name="anima_rokae_service" pkg="anima_rokae_service" type="client.py"
             output="screen">
             <rosparam file="$(find anima_rokae_service)/config/robots.yaml" command="load" />
             <rosparam file="$(find anima_rokae_service)/config/task.yaml" command="load" />

@@ -257,7 +257,7 @@ class AnimaMoveit:
         roscpp_initialize(sys.argv)
         rospy.init_node('move_group_python_interface', anonymous=True)
 
-        self.robot_type = rospy.get_param('~robot_type')
+        self.robot_type = rospy.get_param('/robot_type')
         self.robot_group = rospy.get_param(
             '~' + self.robot_type + '/group'
         )

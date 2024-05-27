@@ -1,3 +1,6 @@
 [submodule "src/ros-modbus-device-driver"]
 	path = src/ros-modbus-device-driver
 	url = https://github.com/epfl-lasa/ros-modbus-device-driver.git
+[submodule "src/ur5_lasa"]
+	path = src/ur5_lasa
+	url = git@github.com:epfl-lasa/ur5_lasa.git

@@ -100,8 +100,7 @@ RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     ros-${ROS_DISTRO}-ur-msgs \
-    ros-${ROS_DISTRO}-ur-robot-driver \
-    ros-${ROS_DISTRO}-universal-robots
+    ros-${ROS_DISTRO}-ur-robot-driver
 
 FROM libraries as cmake-options
 
