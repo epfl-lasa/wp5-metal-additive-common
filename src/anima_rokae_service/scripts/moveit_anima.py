@@ -268,7 +268,9 @@ class AnimaMoveit:
             '~' + self.robot_type + '/end_effector'
         )
 
-        self.robot = RobotCommander()
+        self.robot = RobotCommander(
+            '/' + self.robot_type + "/robot_description"
+        )
         self.scene = PlanningSceneInterface()
 
         self.move_group = MoveGroupCommander(self.robot_group)

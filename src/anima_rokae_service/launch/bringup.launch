@@ -1,6 +1,7 @@
+<?xml version="1.0"?>
 <launch>
     <!-- <param name="robot_type" value="$(arg robot_type)" /> -->
-    <arg name="robot_type" default="ur5" />
+    <arg name="robot_type" doc="Which robot to use : [ur5, xMateCR7]" default="ur5" />
 
     <group ns="$(arg robot_type)">
         <node name="anima_rokae_service" pkg="anima_rokae_service" type="server.py"
