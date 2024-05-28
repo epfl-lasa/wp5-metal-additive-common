@@ -31,7 +31,7 @@ class AnimaMoveit:
         self.FLAG_THREAD = False
         self.LISTENER = None
 
-        self.LST_TARGET_OFFSETt = None
+        self.LST_TARGET_OFFSET = None
         self.EE_OFFSET = None
         self.ID_SCENARIO = None
 
@@ -71,7 +71,7 @@ class AnimaMoveit:
         else:
             sys.exit(0)
 
-    def plan_display_move(self, time_wait=2):
+    def plan_display_move(self):
         plan_init_pose = self.move_group.plan()
 
         self.display_trajectory(plan_init_pose[1])
@@ -102,35 +102,18 @@ class AnimaMoveit:
 
         if id_scenario == 1:
             # Multiples lines side by side with an offset
-            self.LST_TARGET_OFFSET = [
-                {'pos': [0, -0.05, 0], 'speed': 0.1, 'weld': False},
-                {'pos': [-0.1, 0, 0], 'speed': 0.01, 'weld': True},
-                {'pos': [0, 0.05, 0], 'speed': 0.5, 'weld': False},
-                {'pos': [0.1, 0, -0.05], 'speed': 0.1, 'weld': False}
-            ]
-
-            # End effector offset
-            self.EE_OFFSET = {
-                'pos': [0, 0, 0],
-                'angle': [0, 0, 0]
-            }
+            str_lst_offsets = '~scenario/side_side'
         elif id_scenario == 2:
             # Multiples lines on top of each other
-            self.LST_TARGET_OFFSET = [
-                {'pos': [0, -0.05, 0], 'speed': 0.01, 'weld': False},
-                {'pos': [-0.1, 0, 0], 'speed': 0.001, 'weld': True},
-                {'pos': [0, 0.052, 0], 'speed': 0.05, 'weld': False},
-                {'pos': [0.1, 0, 0], 'speed': 0.1, 'weld': False}
-            ]
-
-            # End effector offset
-            self.EE_OFFSET = {
-                'pos': [0, 0, 0],
-                'angle': [0, 0, 0]
-            }
+            str_lst_offsets = '~scenario/top_top'
         else:
             rospy.logerr("Invalid scenario ID.")
             sys.exit(0)
+
+        self.LST_TARGET_OFFSET = rospy.get_param(str_lst_offsets)
+
+        # End effector offset
+        self.EE_OFFSET = rospy.get_param('~ee_offset')
 
     def add_obstacle(self, pose: list, size: tuple, name: str):
         """

@@ -1,3 +1,43 @@
 nb_iterations: 3 # Number of iterations of the path to be executed
 step_by_step: false # If True, the robot will ask for enter to move to the next step
 max_path_trial: 10 # Maximum number of trials to generate a cartesian path
+
+ee_offset:
+    pos: [0, 0, 0.1]
+    angle: [0, 0, 0]
+
+scenario:
+  side_side:
+    - pos: [0, -0.05, 0]
+      angle: [0, 0, 0]
+      speed: 0.1
+      weld: false
+    - pos: [-0.1, 0, 0]
+      angle: [0, 0, 0]
+      speed: 0.01
+      weld: true
+    - pos: [0, 0.05, 0]
+      angle: [0, 0, 0]
+      speed: 0.5
+      weld: false
+    - pos: [0.1, 0, -0.05]
+      angle: [0, 0, 0]
+      speed: 0.1
+      weld: false
+  top_top:
+    - pos: [0, -0.05, 0]
+      angle: [0, 0, 0]
+      speed: 0.1
+      weld: false
+    - pos: [-0.1, 0, 0]
+      angle: [0, 0, 0]
+      speed: 0.01
+      weld: true
+    - pos: [0, 0.052, 0]
+      angle: [0, 0, 0]
+      speed: 0.01
+      weld: false
+    - pos: [0.1, 0, 0]
+      angle: [0, 0, 0]
+      speed: 0.01
+      weld: false
