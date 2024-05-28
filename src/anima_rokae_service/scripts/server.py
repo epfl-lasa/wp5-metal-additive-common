@@ -135,7 +135,7 @@ def init_scenario():
 
     # Generate and move to initial pose
     ANIMA_MOVEIT.generate_init_pose()
-    ANIMA_MOVEIT.init_pose = ANIMA_MOVEIT.apply_offset_to_pose(
+    ANIMA_MOVEIT.init_pose = ANIMA_MOVEIT.apply_pose_offset(
         ANIMA_MOVEIT.init_pose, ANIMA_MOVEIT.EE_OFFSET, angle_rad=False
     )
     ANIMA_MOVEIT.move_group.set_pose_target(ANIMA_MOVEIT.init_pose)

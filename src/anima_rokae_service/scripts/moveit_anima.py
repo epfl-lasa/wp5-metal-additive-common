@@ -29,7 +29,7 @@ class AnimaMoveit:
         """
         self.FLAG_STOP = False
         self.FLAG_THREAD = False
-        self.LISTENER = None
+        self.listener = None
 
         self.LST_TARGET_OFFSET = None
         self.EE_OFFSET = None
@@ -148,7 +148,7 @@ class AnimaMoveit:
         for i in range(rospy.get_param('~nb_iterations')):
             for to in self.LST_TARGET_OFFSET:
                 waypoints = self.generate_waypoints(
-                    waypoints[-1], [to], self.EE_OFFSET
+                    waypoints[-1], [to], bool_pos=True
                 )
 
                 if i == rospy.get_param('~nb_iterations') - 1 and to == self.LST_TARGET_OFFSET[-1]:
@@ -268,8 +268,8 @@ class AnimaMoveit:
             queue_size=20,
         )
 
-        self.LISTENER = tf.TransformListener()
-        self.LISTENER.waitForTransform(
+        self.listener = tf.TransformListener()
+        self.listener.waitForTransform(
             self.robot_base, self.robot_end_effector, rospy.Time(), rospy.Duration(4.0)
         )
 
@@ -365,7 +365,7 @@ class AnimaMoveit:
         )
 
         # Get the transform from the base frame to the end effector frame
-        (trans, rot) = self.LISTENER.lookupTransform(
+        (trans, rot) = self.listener.lookupTransform(
             base_ref, end_ref, rospy.Time(0)
         )
 
@@ -411,14 +411,13 @@ class AnimaMoveit:
 
         return new_pose
 
-    def generate_waypoints(self, orig_pose: Pose, target_offset: list, end_effector_offset: dict) -> list:
+    def generate_waypoints(self, orig_pose: Pose, target_offset: list, bool_pos=False, bool_angle=False) -> list:
         """
         Function to generate the waypoints for the trajectory.
 
         Args:
             orig_pose: The original pose of the robot.
             target_offset: The target offset for the waypoints.
-            end_effector_offset: The offset of the end effector.
 
         Returns:
             The waypoints as a list of Pose objects.
@@ -433,26 +432,28 @@ class AnimaMoveit:
             rot_offset = [0, 0, 0]
 
             for k, v in target.items():
-                if k == 'pos':
+                if k == 'pos' and bool_pos:
                     pos_offset = v
 
-                if k == 'angle':
+                if k == 'angle' and bool_angle:
                     rot_offset = v
 
-        waypoints.append(self.apply_offset_to_pose(new_pose, {
-            'pos': pos_offset,
-            'angle': rot_offset
-        }))
+        if bool_pos:
+            new_pose = self.apply_position_offset(new_pose, pos_offset)
 
+        if bool_angle:
+            new_pose = self.apply_orientation_offset(new_pose, rot_offset)
+
+        waypoints.append(new_pose)
         return waypoints
 
-    def apply_offset_to_pose(self, orig_pose: Pose, offset: dict, angle_rad=True) -> Pose:
+    def apply_pose_offset(self, orig_pose: Pose, pose_offset: dict, angle_rad=True) -> Pose:
         """
         Function to apply an offset to a pose.
 
         Args:
             orig_pose: The original pose.
-            offset: The offset to be applied.
+            position_offset: The offset to be applied.
 
         Returns:
             The new pose with the offset applied.
@@ -460,22 +461,60 @@ class AnimaMoveit:
         new_pose = copy.deepcopy(orig_pose)
 
         # Apply position offset
-        new_pose.position.x += offset['pos'][0]
-        new_pose.position.y += offset['pos'][1]
-        new_pose.position.z += offset['pos'][2]
+        new_pose = self.apply_position_offset(new_pose, pose_offset["pos"])
 
         # Apply orientation offset
-        orientation_pose = offset['angle']
-        if not angle_rad:
-            orientation_pose = [radians(x) for x in orientation_pose]
+        new_pose = self.apply_orientation_offset(
+            new_pose, pose_offset["angle"], angle_rad=angle_rad
+        )
+
+        return new_pose
+
+    def apply_position_offset(self, orig_pose: Pose, position_offset: list) -> Pose:
+        """
+        Function to apply an offset to a pose.
+
+        Args:
+            orig_pose: The original pose.
+            position_offset: The offset to be applied.
+
+        Returns:
+            The new pose with the offset applied.
+        """
+        new_pose = copy.deepcopy(orig_pose)
+
+        # Apply position offset
+        new_pose.position.x += position_offset[0]
+        new_pose.position.y += position_offset[1]
+        new_pose.position.z += position_offset[2]
+
+        return new_pose
+
+    def apply_orientation_offset(self, orig_pose: Pose, orientation_offset: list, angle_rad=True) -> Pose:
+        """
+        Function to apply an offset to a pose.
+
+        Args:
+            orig_pose: The original pose.
+            orientation_offset: The offset to be applied.
+
+        Returns:
+            The new pose with the offset applied.
+        """
+        new_pose = copy.deepcopy(orig_pose)
+
+        # Apply orientation offset
+        orientation_pose = [
+            radians(x) for x in orientation_offset
+        ] if not angle_rad else orientation_offset
 
         q_trans = tf.transformations.quaternion_from_euler(
             orientation_pose[0], orientation_pose[1], orientation_pose[2]
         )
 
         q_orig = [
-            new_pose.orientation.x, new_pose.orientation.y,
-            new_pose.orientation.z, new_pose.orientation.w
+            orig_pose.orientation.x, orig_pose.orientation.y,
+            orig_pose.orientation.z, orig_pose.orientation.w
         ]
 
         quat_new = tf.transformations.quaternion_multiply(
