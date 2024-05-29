@@ -2,12 +2,19 @@
 <launch>
     <!-- <param name="robot_type" value="$(arg robot_type)" /> -->
     <arg name="robot_type" doc="Which robot to use : [ur5, xMateCR7]" default="ur5" />
+    <param name="robot_type" value="$(arg robot_type)" />
 
-    <group ns="$(arg robot_type)">
+    <!-- Define which is the environment is it running on to run the corresponding launchfiles -->
+    <arg name="environment"
+        doc="Which environment is it running on : [ridgeback, navigation, desktop_pc]" />
+
+    <group if="$(eval arg('environment') == 'navigation' or arg('environment') == 'desktop_pc')">
+        <!-- <group ns="$(arg robot_type)"> -->
         <node name="anima_rokae_service" pkg="anima_rokae_service" type="server.py"
             output="screen">
             <rosparam file="$(find anima_rokae_service)/config/robots.yaml" command="load" />
             <rosparam file="$(find anima_rokae_service)/config/task.yaml" command="load" />
         </node>
+        <!-- </group> -->
     </group>
 </launch>

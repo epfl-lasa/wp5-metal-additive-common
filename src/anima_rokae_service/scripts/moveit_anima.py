@@ -234,11 +234,10 @@ class AnimaMoveit:
         Function to initialize MoveIt and the ROS node.
 
         Args:
-            - safe_wait: Parameter to wait before each movement, can be adapted
-                         using rosparam functions
+            safe_wait: Parameter to wait before each movement, can be adapted
+                       using rosparam functions
         """
-        roscpp_initialize(sys.argv)
-        rospy.init_node('move_group_python_interface', anonymous=True)
+        rospy.init_node('move_group_python_interface')
 
         self.robot_type = rospy.get_param('/robot_type')
         self.robot_group = rospy.get_param(
@@ -252,7 +251,7 @@ class AnimaMoveit:
         )
 
         self.robot = RobotCommander(
-            '/' + self.robot_type + "/robot_description"
+            "/robot_description"
         )
         self.scene = PlanningSceneInterface()
 
@@ -263,7 +262,7 @@ class AnimaMoveit:
             "welding_state", Bool, queue_size=1
         )
         self.pub_display_trajectory = rospy.Publisher(
-            "/move_group/display_planned_path",
+            "/ur5/move_group/display_planned_path",
             DisplayTrajectory,
             queue_size=20,
         )
