@@ -45,12 +45,12 @@ class AnimaMoveit:
             self.add_obstacle(
                 [-0.3, 0.0, -0.25, 0.0, 0.0, 0.0, 1.0],
                 (1.3, 0.77, 0.54),
-                "robot_platform"
+                'robot_platform'
             )
             # self.add_obstacle(
             #    [-0.2, 0.0, 0.2, 0.0, 0.0, 0.0, 1.0],
             #    (0.2, 0.77, 0.6),
-            #    "welding_boxe"
+            #    'welding_boxe'
             # )
 
             # Setup move group options
@@ -76,9 +76,9 @@ class AnimaMoveit:
 
         self.display_trajectory(plan_init_pose[1])
 
-        if rospy.get_param('anima_step_by_step'):
+        if rospy.get_param('step_by_step'):
             input(
-                "============ Press `Enter` to execute the trajectory ... ============"
+                '============ Press `Enter` to execute the trajectory ... ============'
             )
 
         self.move_group.execute(plan_init_pose[1], wait=True)
@@ -102,18 +102,18 @@ class AnimaMoveit:
 
         if id_scenario == 1:
             # Multiples lines side by side with an offset
-            str_lst_offsets = '~scenario/side_side'
+            str_lst_offsets = 'scenario/side_side'
         elif id_scenario == 2:
             # Multiples lines on top of each other
-            str_lst_offsets = '~scenario/top_top'
+            str_lst_offsets = 'scenario/top_top'
         else:
-            rospy.logerr("Invalid scenario ID.")
+            rospy.logerr('Invalid scenario ID.')
             sys.exit(0)
 
         self.LST_TARGET_OFFSET = rospy.get_param(str_lst_offsets)
 
         # End effector offset
-        self.EE_OFFSET = rospy.get_param('~ee_offset')
+        self.EE_OFFSET = rospy.get_param('ee_offset')
 
     def add_obstacle(self, pose: list, size: tuple, name: str):
         """
@@ -128,10 +128,10 @@ class AnimaMoveit:
 
         if len(pose) != 7:
             rospy.logerr(
-                "Pose should be size 7 : pose - xyz, orientation - xyzw.")
+                'Pose should be size 7 : pose - xyz, orientation - xyzw.')
 
         if len(size) != 3:
-            rospy.logerr("Size should be size 3 - xyz.")
+            rospy.logerr('Size should be size 3 - xyz.')
 
         new_obstacle = PoseStamped()
         new_obstacle.header.frame_id = frame_id
@@ -145,13 +145,13 @@ class AnimaMoveit:
         waypoints = []
         waypoints.append(self.move_group.get_current_pose().pose)
 
-        for i in range(rospy.get_param('~nb_iterations')):
+        for i in range(rospy.get_param('nb_iterations')):
             for to in self.LST_TARGET_OFFSET:
                 waypoints = self.generate_waypoints(
                     waypoints[-1], [to], bool_pos=True
                 )
 
-                if i == rospy.get_param('~nb_iterations') - 1 and to == self.LST_TARGET_OFFSET[-1]:
+                if i == rospy.get_param('nb_iterations') - 1 and to == self.LST_TARGET_OFFSET[-1]:
                     break
 
                 # Compute the Cartesian path
@@ -160,9 +160,9 @@ class AnimaMoveit:
                 while fraction < 1.0:
                     iter += 1
 
-                    if iter > rospy.get_param('~max_path_trial'):
+                    if iter > rospy.get_param('max_path_trial'):
                         print(
-                            f"Path planning was not successful, fraction: {fraction}, iteration {i}."
+                            f'Path planning was not successful, fraction: {fraction}, iteration {i}.'
                         )
                         return
 
@@ -172,17 +172,17 @@ class AnimaMoveit:
                         0.0,         # jump_threshold
                         True)        # avoid_collisions
 
-                    print("Fraction of cartesian path well computed: ", fraction)
+                    print('Fraction of cartesian path well computed: ', fraction)
 
                     # If path not possible, reconfigure robot to a new joint position
                     if fraction < 1.0:
-                        print("Retrying path planning...")
+                        print('Retrying path planning...')
                         self.move_group.set_pose_target(waypoints[-1])
                         new_plan = self.move_group.plan()
 
                         self.display_trajectory(new_plan[1])
                         input(
-                            "============ Press `Enter` to execute the trajectory ... ============"
+                            '============ Press `Enter` to execute the trajectory ... ============'
                         )
 
                         self.move_group.execute(new_plan[1], wait=True)
@@ -197,9 +197,9 @@ class AnimaMoveit:
                 # Display the trajectory
                 self.display_trajectory(plan_trajectory)
 
-                if rospy.get_param('anima_step_by_step'):
+                if rospy.get_param('step_by_step'):
                     input(
-                        "============ Press `Enter` to execute the trajectory ... ============")
+                        '============ Press `Enter` to execute the trajectory ... ============')
 
                 # Publish the welding state
                 self.pub_welding_state.publish(to['weld'])
@@ -240,29 +240,21 @@ class AnimaMoveit:
         rospy.init_node('move_group_python_interface')
 
         self.robot_type = rospy.get_param('/robot_type')
-        self.robot_group = rospy.get_param(
-            '~' + self.robot_type + '/group'
-        )
-        self.robot_base = rospy.get_param(
-            '~' + self.robot_type + '/base'
-        )
-        self.robot_end_effector = rospy.get_param(
-            '~' + self.robot_type + '/end_effector'
-        )
+        self.robot_group = rospy.get_param('group')
+        self.robot_base = rospy.get_param('base')
+        self.robot_end_effector = rospy.get_param('end_effector')
 
-        self.robot = RobotCommander(
-            "/robot_description"
-        )
+        self.robot = RobotCommander('robot_description')
         self.scene = PlanningSceneInterface()
 
         self.move_group = MoveGroupCommander(self.robot_group)
         self.move_group.set_pose_reference_frame(self.robot_base)
 
         self.pub_welding_state = rospy.Publisher(
-            "welding_state", Bool, queue_size=1
+            'welding_state', Bool, queue_size=1
         )
         self.pub_display_trajectory = rospy.Publisher(
-            "/ur5/move_group/display_planned_path",
+            'move_group/display_planned_path',
             DisplayTrajectory,
             queue_size=20,
         )
@@ -273,8 +265,7 @@ class AnimaMoveit:
         )
 
         # Set ros params
-        rospy.set_param('anima_safe_wait', safe_wait)
-        rospy.set_param('anima_step_by_step', rospy.get_param('~step_by_step'))
+        rospy.set_param('safe_wait', safe_wait)
 
         # Wait for the scene to get ready
         rospy.sleep(1)
@@ -285,21 +276,21 @@ class AnimaMoveit:
         """
         # We can get the name of the reference frame for this robot:
         planning_frame = self.move_group.get_planning_frame()
-        print(f"============ Reference frame: {planning_frame}")
+        print(f'============ Reference frame: {planning_frame}')
 
         # We can also print the name of the end-effector link for this group:
         eef_link = self.move_group.get_end_effector_link()
-        print(f"============ End effector: {eef_link}")
+        print(f'============ End effector: {eef_link}')
 
         # We can get a list of all the groups in the robot:
         group_names = self.robot.get_group_names()
-        print(f"============ Robot Groups: {group_names}")
+        print(f'============ Robot Groups: {group_names}')
 
         # Sometimes for debugging it is useful to print the entire state of the
         # robot:
-        print("============ Printing robot state:")
+        print('============ Printing robot state:')
         print(self.robot.get_current_state())
-        print("")
+        print('')
 
     def is_valid_quaternion(self, q):
         """
@@ -320,9 +311,7 @@ class AnimaMoveit:
         Returns:
             The initial pose as a Pose object.
         """
-        init_pose = rospy.get_param(
-            '~' + self.robot_type + '/init_pose'
-        )
+        init_pose = rospy.get_param('init_pose')
 
         # Define the initial pose of the robot
         self.init_pose = Pose()
@@ -342,7 +331,7 @@ class AnimaMoveit:
         self.init_pose.orientation.w = q[3]
 
         if not self.is_valid_quaternion(self.init_pose.orientation):
-            print("Invalid quaternion.")
+            print('Invalid quaternion.')
             exit(0)
 
     def get_pose_from_ref(self, pose, base_ref, end_ref, angle_rad=True):
@@ -460,11 +449,11 @@ class AnimaMoveit:
         new_pose = copy.deepcopy(orig_pose)
 
         # Apply position offset
-        new_pose = self.apply_position_offset(new_pose, pose_offset["pos"])
+        new_pose = self.apply_position_offset(new_pose, pose_offset['pos'])
 
         # Apply orientation offset
         new_pose = self.apply_orientation_offset(
-            new_pose, pose_offset["angle"], angle_rad=angle_rad
+            new_pose, pose_offset['angle'], angle_rad=angle_rad
         )
 
         return new_pose
@@ -531,7 +520,7 @@ class AnimaMoveit:
         """
         Function to move the robot to the home position.
         """
-        homing_pose = rospy.get_param('~' + self.robot_type + '/home_pose')
+        homing_pose = rospy.get_param('home_pose')
         self.move_group.set_joint_value_target(homing_pose)
         self.plan_display_move()
 
@@ -548,5 +537,5 @@ class AnimaMoveit:
 
         self.pub_display_trajectory.publish(display)
 
-        if not rospy.get_param('anima_step_by_step'):
-            rospy.sleep(rospy.get_param('anima_safe_wait'))
+        if not rospy.get_param('step_by_step'):
+            rospy.sleep(rospy.get_param('safe_wait'))

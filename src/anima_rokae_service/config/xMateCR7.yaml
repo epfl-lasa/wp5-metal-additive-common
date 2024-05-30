@@ -1,0 +1,5 @@
+group: rokae_arm
+base: xMateCR7_base
+end_effector: xMateCR7_ee_tooltip
+home_pose: [0, 0, 0, 0, 0, 0]
+init_pose: [0.178, 0.209, 0.846, -1.57, 0, -1.57]

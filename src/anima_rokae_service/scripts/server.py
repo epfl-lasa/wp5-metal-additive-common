@@ -12,7 +12,7 @@ from enum import Enum
 from moveit_anima import AnimaMoveit
 from anima_rokae_service.srv import *
 
-NAME = 'mam_control_server'
+NAME = 'mam_control'
 
 
 class State(Enum):

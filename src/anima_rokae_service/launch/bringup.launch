@@ -9,12 +9,14 @@
         doc="Which environment is it running on : [ridgeback, navigation, desktop_pc]" />
 
     <group if="$(eval arg('environment') == 'navigation' or arg('environment') == 'desktop_pc')">
-        <!-- <group ns="$(arg robot_type)"> -->
-        <node name="anima_rokae_service" pkg="anima_rokae_service" type="server.py"
-            output="screen">
-            <rosparam file="$(find anima_rokae_service)/config/robots.yaml" command="load" />
+        <group ns="$(arg robot_type)">
             <rosparam file="$(find anima_rokae_service)/config/task.yaml" command="load" />
-        </node>
-        <!-- </group> -->
+            <rosparam file="$(find anima_rokae_service)/config/$(arg robot_type).yaml"
+                command="load" />
+
+            <node name="anima_rokae_service" pkg="anima_rokae_service" type="server.py"
+                output="screen">
+            </node>
+        </group>
     </group>
 </launch>

@@ -12,12 +12,12 @@ from anima_rokae_service.srv import *
 
 
 def mam_control_client(request):
-    rospy.wait_for_service('/mam_control')
+    rospy.wait_for_service('mam_control')
 
     try:
         # Create a handle to the service
         mam_control = rospy.ServiceProxy(
-            '/mam_control', MAMControl
+            'mam_control', MAMControl
         )
 
         # Call service
