@@ -193,6 +193,7 @@ class AnimaMoveit:
                     plan_trajectory,
                     to['speed']
                 )
+                print(plan_trajectory)
 
                 # Display the trajectory
                 self.display_trajectory(plan_trajectory)
@@ -249,6 +250,12 @@ class AnimaMoveit:
 
         self.move_group = MoveGroupCommander(self.robot_group)
         self.move_group.set_pose_reference_frame(self.robot_base)
+        joint_goal = self.move_group.get_current_joint_values()
+        print('Current joint values: ', joint_goal)
+
+        self.move_group.set_joint_value_target(
+            rospy.get_param('null_space_config')
+        )
 
         self.pub_welding_state = rospy.Publisher(
             'welding_state', Bool, queue_size=1
