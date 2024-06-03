@@ -337,6 +337,11 @@ class AnimaMoveit:
         self.init_pose.orientation.z = q[2]
         self.init_pose.orientation.w = q[3]
 
+        # Apply offset
+        self.init_pose = self.apply_pose_offset(
+            self.init_pose, rospy.get_param('ee_offset'), angle_rad=False
+        )
+
         if not self.is_valid_quaternion(self.init_pose.orientation):
             print('Invalid quaternion.')
             exit(0)
