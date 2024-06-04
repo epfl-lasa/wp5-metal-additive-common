@@ -1,6 +1,0 @@
-group: manipulator
-base: base_link
-end_effector: tool0
-home_pose: [0, -1.57, 0, -1.57, 0, 0]
-init_pose: [0.3, 0.209, 0.6, -1.57, 0, -1.57]
-null_space_config: [0, -1.57, 0, 0, 0, 0]
