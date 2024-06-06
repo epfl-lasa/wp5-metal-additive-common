@@ -99,8 +99,7 @@ RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
 # Install UR dependencies
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
-    ros-${ROS_DISTRO}-ur-msgs \
-    ros-${ROS_DISTRO}-ur-robot-driver
+    ros-${ROS_DISTRO}-ur-msgs
 
 FROM libraries as cmake-options
 
@@ -133,10 +132,32 @@ WORKDIR ${HOME}
 RUN chown -R ${USER}:${HOST_GID} .bashrc
 
 # Build the workspace and source the devel/setup.bash
-USER ${USER}
 WORKDIR ${HOME}/catkin_ws
+COPY src/ /home/${USER}/catkin_ws/src/
+#-------------------------------------------------------------------------------
+
+USER ${USER}
+RUN rosdep update
+
+USER root
+RUN rosdep install --from-paths ${HOME}/catkin_ws/src --ignore-src -r -y
+
+USER ${USER}
+# ------------------------------------------------------------------------------
+# catkin build ROS noetic packages
+RUN cd /home/${USER}/catkin_ws                                              && \
+    source /opt/ros/noetic/setup.bash                                       && \
+    catkin build                                                            && \
+    source /home/${USER}/catkin_ws/devel/setup.bash
+# ------------------------------------------------------------------------------
+
+# Add the workspace to the bashrc
+RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && cd ${HOME}/catkin_ws && catkin build"
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
-RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash; catkin build"
 RUN echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
+
+# Remove copied files
+USER root
+RUN rm -rf ${HOME}/catkin_ws/src
 
 CMD [ "bash" ]

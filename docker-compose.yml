@@ -5,9 +5,9 @@ services:
       - .env
     network_mode: host
     build:
-      context: ./docker
+      context: .
       network: host
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
       args:
         UBUNTU_DISTRO: focal
         ROS_DISTRO: noetic
