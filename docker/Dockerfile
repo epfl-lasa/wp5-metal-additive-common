@@ -15,12 +15,19 @@ ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 # Tell docker we want to use bash instead of sh in general
 SHELL ["/bin/bash", "-c"]
 
-# create and configure a new user
+# Create and configure a new user
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y sudo
 RUN useradd -m ${USER} && echo "${USER}:${USER}passwd" | chpasswd && adduser ${USER} sudo
 
-### Add a few essential tools
+# Set up default ROS_IP and ROS_MASTER_URI if the provided ones are not set
+RUN if [ -z "${ROS_IP}" ] ; \
+    then echo "export ROS_IP=127.0.0.1" >> ${HOME}/.bashrc ; fi
+
+RUN if [ -z "${ROS_MASTER_URI}" ] ; \
+    then echo "export ROS_MASTER_URI=http://127.0.0.1:11311" >> ${HOME}/.bashrc ; fi
+
+# Add a few essential tools
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     git \
@@ -34,13 +41,6 @@ RUN apt install -y \
 RUN pip3 install --upgrade pip
 
 # Install catkin tools
-RUN apt update --fix-missing && apt upgrade -y && apt clean
-RUN apt install -y wget
-RUN sh -c \
-    'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" \
-    > /etc/apt/sources.list.d/ros-latest.list'
-
-RUN wget http://packages.ros.org/ros.key -O - | apt-key add -
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     python3-catkin-tools \
