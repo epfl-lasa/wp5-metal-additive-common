@@ -1,7 +1,7 @@
 # Handle ros distro
 ARG ROS_DISTRO=noetic
 
-FROM osrf/ros:${ROS_DISTRO}-desktop-full-focal as ros-ws
+FROM osrf/ros:${ROS_DISTRO}-desktop-full-focal AS ros-ws
 
 ARG ROS_DISTRO
 ARG USER=root
@@ -49,7 +49,7 @@ RUN apt install -y \
 WORKDIR ${HOME}/catkin_ws/src
 RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
 
-FROM ros-ws as libraries
+FROM ros-ws AS libraries
 
 # Install waypoints tools
 RUN apt update --fix-missing && apt upgrade -y && apt clean
@@ -101,7 +101,7 @@ RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     ros-${ROS_DISTRO}-ur-msgs
 
-FROM libraries as cmake-options
+FROM libraries AS cmake-options
 
 # Handle SIMD option
 RUN if [ "${USE_SIMD}" = "ON" ] ; \
@@ -111,7 +111,7 @@ RUN if [ "${USE_SIMD}" = "ON" ] ; \
 RUN if [ "${USE_SIMD}" = "ON" ] ; \
     then echo "export ENABLE_SIMD=ON" >> ${HOME}/.bashrc ; fi
 
-FROM cmake-options as simulation-tools
+FROM cmake-options AS simulation-tools
 
 # Install gazebo
 RUN apt update --fix-missing && apt upgrade -y && apt clean
@@ -125,7 +125,23 @@ RUN apt install -y \
     ros-${ROS_DISTRO}-realsense2-camera \
     ros-${ROS_DISTRO}-realsense2-description
 
-FROM simulation-tools as finalisation
+# Install IKFast as python package
+WORKDIR ${HOME}/tmp
+RUN apt update --fix-missing && apt upgrade -y && apt clean
+RUN apt install -y \
+    libblas-dev \
+    liblapack-dev
+RUN pip3 install \
+    numpy \
+    Cython
+RUN git clone https://github.com/cambel/ur_ikfast.git
+WORKDIR ${HOME}/tmp/ur_ikfast
+RUN pip3 install .
+
+WORKDIR ${HOME}
+RUN rm -rf ${HOME}/tmp
+
+FROM simulation-tools AS finalisation
 
 # Give bashrc back to user
 WORKDIR ${HOME}
