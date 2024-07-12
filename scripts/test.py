@@ -21,7 +21,7 @@ ik_solver = IK(
     "tool0",
     solve_type="Distance",
     urdf_string=rospy.get_param('/ur5/robot_description'),
-    timeout=0.01
+    timeout=1
 )
 
 nb_trials = 100

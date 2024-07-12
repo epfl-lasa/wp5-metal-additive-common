@@ -6,6 +6,7 @@ FROM osrf/ros:${ROS_DISTRO}-desktop-full-focal AS ros-ws
 ARG ROS_DISTRO
 ARG USER=root
 ARG HOME=/home/${USER}
+ARG DOCKER_GID
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -19,13 +20,6 @@ SHELL ["/bin/bash", "-c"]
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y sudo
 RUN useradd -m ${USER} && echo "${USER}:${USER}passwd" | chpasswd && adduser ${USER} sudo
-
-# Set up default ROS_IP and ROS_MASTER_URI if the provided ones are not set
-RUN if [ -z "${ROS_IP}" ] ; \
-    then echo "export ROS_IP=127.0.0.1" >> ${HOME}/.bashrc ; fi
-
-RUN if [ -z "${ROS_MASTER_URI}" ] ; \
-    then echo "export ROS_MASTER_URI=http://127.0.0.1:11311" >> ${HOME}/.bashrc ; fi
 
 # Add a few essential tools
 RUN apt update --fix-missing && apt upgrade -y && apt clean
@@ -140,6 +134,14 @@ RUN pip3 install .
 
 WORKDIR ${HOME}
 RUN rm -rf ${HOME}/tmp
+
+# Install docker
+RUN apt update --fix-missing && apt upgrade -y && apt clean
+RUN apt install -y curl
+RUN curl -sSL https://get.docker.com/ | sh
+
+RUN groupmod -g ${DOCKER_GID} docker
+RUN usermod -aG docker ${USER}
 
 FROM simulation-tools AS finalisation
 

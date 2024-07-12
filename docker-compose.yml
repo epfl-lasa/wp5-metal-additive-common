@@ -1,8 +1,7 @@
 services:
   ros:
     user: ${ROS_USER}
-    env_file:
-      - .env
+    env_file: .env
     network_mode: host
     build:
       context: .
@@ -12,6 +11,7 @@ services:
         UBUNTU_DISTRO: focal
         ROS_DISTRO: noetic
         USER: ${ROS_USER}
+        DOCKER_GID: ${DOCKER_GID}
     deploy:
       resources:
         reservations:
@@ -19,8 +19,10 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
+    privileged: true
     volumes:
       - /dev:/dev
+      - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ./src:/home/${ROS_USER}/catkin_ws/src
       - ./scripts:/home/${ROS_USER}/scripts
