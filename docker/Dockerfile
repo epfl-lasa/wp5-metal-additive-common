@@ -125,12 +125,6 @@ RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     libblas-dev \
     liblapack-dev
-RUN pip3 install \
-    numpy \
-    Cython
-RUN git clone https://github.com/cambel/ur_ikfast.git
-WORKDIR ${HOME}/tmp/ur_ikfast
-RUN pip3 install .
 
 WORKDIR ${HOME}
 RUN rm -rf ${HOME}/tmp
