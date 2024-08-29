@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="wp5_mam_tasks_action" type="wp5_mam_tasks_action_server_node"
+        name="wp5_mam_tasks_action_server_node"
+        output="screen" />
+</launch>

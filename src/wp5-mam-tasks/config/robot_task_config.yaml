@@ -1,0 +1,10 @@
+# Configuration to be used for the different tasks.
+# Possible robot_name to set, depending on the task :
+# - Ur5
+# - Cr7
+# Louis Munier : 2024-08-29
+
+welding:
+  robot_name: "ur5"
+cleaning:
+  robot_name: "ur5"
