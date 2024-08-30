@@ -16,8 +16,6 @@
 
 #include <fstream>
 
-using namespace controllers;
-using namespace state_representation;
 using namespace std;
 
 RoboticArmUr5::RoboticArmUr5() {
@@ -46,7 +44,6 @@ RoboticArmUr5::RoboticArmUr5() {
   referenceFrame_ = robotNode["reference_frame"].as<string>();
   nJoint_ = robotNode["numberJoint"].as<int>();
   originalHomeJoint = {0.0, -1.57, 0.0, -1.57, 0.0, 0.0};
-  model_ = make_unique<robot_model::Model>(robotName_, pathUrdf_);
 
   double damp = 1e-6;
   double alpha = 0.5;
@@ -54,5 +51,4 @@ RoboticArmUr5::RoboticArmUr5() {
   double margin = 0.07;
   double tolerance = 1e-3;
   unsigned int maxNumberOfIterations = 1000;
-  paramsIK_ = {damp, alpha, gamma, margin, tolerance, maxNumberOfIterations};
 }

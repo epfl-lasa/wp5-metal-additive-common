@@ -7,7 +7,6 @@
 
 #include "IRoboticArmBase.h"
 #include "ITaskBase.h"
-#include "PathPlanner.h"
 #include "RosInterfaceNoetic.h"
 
 class TaskWelding : public ITaskBase {
@@ -18,6 +17,4 @@ public:
   bool execute();
 
 private:
-  // Create an unique pointer for the instance of PathPlanner
-  std::unique_ptr<PathPlanner> pathPlanner_ = nullptr;
 };

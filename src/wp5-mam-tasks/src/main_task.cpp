@@ -7,7 +7,6 @@
 #include <tuple>
 
 #include "IRoboticArmBase.h"
-#include "PathPlanner.h"
 #include "RoboticArmUr5.h"
 #include "RosInterfaceNoetic.h"
 #include "TaskCleaning.h"

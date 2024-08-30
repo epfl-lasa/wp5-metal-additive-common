@@ -7,7 +7,6 @@
 
 #include "IRoboticArmBase.h"
 #include "ITaskBase.h"
-#include "PathPlanner.h"
 #include "RosInterfaceNoetic.h"
 
 class TaskCleaning : public ITaskBase {
@@ -20,6 +19,4 @@ public:
   std::vector<double> homeJoint_;
 
 private:
-  // Create an unique pointer for the instance of PathPlanner
-  std::unique_ptr<PathPlanner> pathPlanner_ = nullptr;
 };

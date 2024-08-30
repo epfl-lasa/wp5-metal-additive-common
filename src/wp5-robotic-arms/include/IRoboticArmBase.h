@@ -53,7 +53,6 @@ protected:
   /**
    * @brief Initialization function for inverse kinematics.
    */
-  // Protected members
   std::string robotName_ = "";
   std::vector<std::string> jointNames_;
   std::string baseLink_ = "";
@@ -61,7 +60,6 @@ protected:
   std::string tipJoint_ = "";
   std::string referenceFrame_ = "";
   std::string pathUrdf_ = "";
-  std::unique_ptr<robot_model::Model> model_;
 
   std::string paramURDFnJoint_ = "";
   int nJoint_ = 0;

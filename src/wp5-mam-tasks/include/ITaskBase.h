@@ -12,7 +12,6 @@
 #include <memory>
 
 #include "IRoboticArmBase.h"
-#include "PathPlanner.h"
 #include "RoboticArmUr5.h"
 #include "RosInterfaceNoetic.h"
 #include "visualization_msgs/Marker.h"

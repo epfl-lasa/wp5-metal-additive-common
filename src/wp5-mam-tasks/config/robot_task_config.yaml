@@ -5,6 +5,6 @@
 # Louis Munier : 2024-08-29
 
 welding:
-  robot_name: "ur5"
+  robot_name: "ur5_robot"
 cleaning:
-  robot_name: "ur5"
+  robot_name: "ur5_robot"

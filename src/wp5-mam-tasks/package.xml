@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>wp5_tasks</name>
+  <name>wp5_mam_tasks</name>
   <version>0.0.0</version>
   <description>The wp5-mam-main-task package</description>
 

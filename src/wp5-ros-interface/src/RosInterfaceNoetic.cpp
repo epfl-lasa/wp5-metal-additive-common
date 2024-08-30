@@ -17,6 +17,7 @@
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Float64MultiArray.h>
 #include <yaml-cpp/yaml.h>
+
 #include <fstream>
 
 using namespace std;
@@ -25,7 +26,7 @@ RosInterfaceNoetic::RosInterfaceNoetic(ros::NodeHandle& n, string robotName) : n
   // Try to load parameters from YAML file
   try {
 
-      // Load parameters from YAML file
+    // Load parameters from YAML file
     string alternativeYamlPath = string(WP5_ROS_INTERFACE_DIR) + "/config/ros_interface_config.yaml";
     string yamlPath = string(WP5_ROS_INTERFACE_DIR) + "/../../config/ros_interface_config.yaml";
 
@@ -40,6 +41,8 @@ RosInterfaceNoetic::RosInterfaceNoetic(ros::NodeHandle& n, string robotName) : n
 
     // Load parameters from YAML file
     YAML::Node config = YAML::LoadFile(yamlPath);
+    cout << "Loaded YAML file: " << yamlPath << endl;
+    cout << "Robot name: " << robotName_ << endl;
 
     // Print information about robotName_ field
     YAML::Node robotNode = config[robotName_];
@@ -60,7 +63,6 @@ RosInterfaceNoetic::RosInterfaceNoetic(ros::NodeHandle& n, string robotName) : n
     subFTsensor_ = nh_.subscribe(FTTopic, 10, &RosInterfaceNoetic::FTCallback, this);
     subState_ = nh_.subscribe(actualStateTopic, 10, &RosInterfaceNoetic::jointStateCallback, this);
     pubState_ = nh_.advertise<std_msgs::Float64MultiArray>(commandStateTopic, 1000);
-
 
     pubStateDS_ = nh_.advertise<std_msgs::Float64MultiArray>("desiredDsTwist", 1000);
     pubStateCartesianTwistEEF_ = nh_.advertise<std_msgs::Float64MultiArray>("actualCartesianTwistEEF", 1000);
@@ -91,7 +93,7 @@ void RosInterfaceNoetic::jointStateCallback(const sensor_msgs::JointState::Const
     jointsTorque_ = msg->effort;     // Update the torque vector
 
     if (robotName_ == "ur5_robot") {
-      // swap the position to have each joint in the kinematic order, ONLY FOR UR%
+      // swap the position to have each joint in the kinematic order, ONLY FOR UR
       swap(jointsPosition_[0], jointsPosition_[2]);
       swap(jointsSpeed_[0], jointsSpeed_[2]);
     }
@@ -166,7 +168,7 @@ void RosInterfaceNoetic::setCartesianPose(pair<Eigen::Quaterniond, Eigen::Vector
   actualPoseMsg.pose.orientation.y = pairActualQuatPos.first.y();
   actualPoseMsg.pose.orientation.z = pairActualQuatPos.first.z();
   actualPoseMsg.pose.orientation.w = pairActualQuatPos.first.w();
-  
+
   // Populate the position part
   actualPoseMsg.pose.position.x = pairActualQuatPos.second.x();
   actualPoseMsg.pose.position.y = pairActualQuatPos.second.y();
@@ -174,11 +176,8 @@ void RosInterfaceNoetic::setCartesianPose(pair<Eigen::Quaterniond, Eigen::Vector
 
   // Set the header information (optional)
   actualPoseMsg.header.stamp = ros::Time::now(); // Set the current time as the timestamp
-  actualPoseMsg.header.frame_id = "base_link"; // Set the frame ID as needed
+  actualPoseMsg.header.frame_id = "base_link";   // Set the frame ID as needed
 
   // Publish the message
   pubStateCartesianPoseEEF_.publish(actualPoseMsg);
 }
-
-
-
