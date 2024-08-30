@@ -43,45 +43,11 @@ private:
   // List of FSM states
   class Initializing;
   class Planning;
-
-  /**
-   * @brief The Ready class represents a state in the TaskFSM.
-   *
-   * This state is responsible for managing the share mode of the TaskFSM.
-   * It provides methods to get and set the share mode.
-   */
-  class Ready : public msmf::state<> {
-  public:
-    /**
-     * @brief Called when entering the Ready state.
-     * @tparam Event The type of the event.
-     * @tparam FSM The type of the finite state machine.
-     * @param event The event that triggered the transition.
-     * @param fsm The finite state machine.
-     */
-    template <class Event, class FSM>
-    void on_entry(Event const& event, FSM& fsm) {
-      std::cout << "Entering: TaskFSM - Ready" << std::endl;
-    }
-
-    /**
-     * @brief Called when exiting the Ready state.
-     * @tparam Event The type of the event.
-     * @tparam FSM The type of the finite state machine.
-     * @param event The event that triggered the transition.
-     * @param fsm The finite state machine.
-     */
-    template <class Event, class FSM>
-    void on_exit(Event const& event, FSM& fsm) {
-      std::cout << "Leaving: TaskFSM - Ready" << std::endl;
-    }
-  };
-
+  class Ready;
   class Executing;
   class Homing;
   class Exit;
 
-  class Safe;
   class AllOk;
   class ErrorMode;
 
@@ -297,6 +263,41 @@ public:
 };
 
 /**
+ * @brief The Planning state of the TaskFSM class.
+ */
+class TaskFSM::Ready : public msmf::state<> {
+public:
+  /**
+   * @brief Called when entering the Ready state.
+   *
+   * This state is responsible for managing the share mode of the TaskFSM.
+   * It provides methods to get and set the share mode.
+   *
+   * @tparam Event The type of the event.
+   * @tparam FSM The type of the finite state machine.
+   * @param event The event that triggered the transition.
+   * @param fsm The finite state machine.
+   */
+  template <class Event, class FSM>
+  void on_entry(Event const& event, FSM& fsm) {
+    std::cout << "Entering: TaskFSM - Ready" << std::endl;
+  }
+
+  /**
+     * @brief Called when exiting the Ready state.
+     *
+     * @tparam Event The type of the event.
+     * @tparam FSM The type of the finite state machine.
+     * @param event The event that triggered the transition.
+     * @param fsm The finite state machine.
+     */
+  template <class Event, class FSM>
+  void on_exit(Event const& event, FSM& fsm) {
+    std::cout << "Leaving: TaskFSM - Ready" << std::endl;
+  }
+};
+
+/**
   * @brief The Executing state of the TaskFSM class.
   */
 class TaskFSM::Executing : public msmf::state<> {
@@ -348,7 +349,9 @@ public:
   void on_entry(Event const& event, FSM& fsm) {
     bool feedback = fsm.getCurrentTask()->goHomingPosition();
 
-    if (!feedback) {
+    if (feedback) {
+      fsm.setHome(true);
+    } else {
       fsm.setError("Error: Task homing failed");
       fsm.process_event(ErrorTrigger());
     }
@@ -374,7 +377,7 @@ public:
 /**
   * @brief Represents the Exit state of the TaskFSM.
   */
-class TaskFSM::Exit : public msmf::state<> {
+class TaskFSM::Exit : public msm::front::terminate_state<> {
 public:
   /**
    * @brief Called when entering the Exit state.
@@ -387,6 +390,8 @@ public:
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
     std::cout << "Entering: TaskFSM - Exit" << std::endl;
+
+    ros::shutdown(); // Signal ROS to shut down
   }
 
   /**
@@ -400,38 +405,6 @@ public:
   template <class Event, class FSM>
   void on_exit(Event const& event, FSM& fsm) {
     std::cout << "Leaving: TaskFSM - Exit" << std::endl;
-  }
-};
-
-/**
- * @brief The Safe state of the TaskFSM class.
- */
-class TaskFSM::Safe : public msmf::state<> {
-public:
-  /**
-   * @brief Function called when entering the Safe state.
-   *
-   * @tparam Event The type of the event triggering the transition.
-   * @tparam FSM The type of the finite state machine.
-   * @param event The event triggering the transition.
-   * @param fsm The finite state machine.
-   */
-  template <class Event, class FSM>
-  void on_entry(Event const& event, FSM& fsm) {
-    std::cout << "Entering: TaskFSM - Safe" << std::endl;
-  }
-
-  /**
-   * @brief Function called when exiting the Safe state.
-   *
-   * @tparam Event The type of the event triggering the transition.
-   * @tparam FSM The type of the finite state machine.
-   * @param event The event triggering the transition.
-   * @param fsm The finite state machine.
-   */
-  template <class Event, class FSM>
-  void on_exit(Event const& event, FSM& fsm) {
-    std::cout << "Leaving: TaskFSM - Safe" << std::endl;
   }
 };
 

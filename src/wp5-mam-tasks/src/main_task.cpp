@@ -71,6 +71,8 @@ int main(int argc, char** argv) {
   // Initialize and test the FSM
   internalFSM_.start();
   internalFSM_.process_event(Start());
+  internalFSM_.stop();
+  cout << "TaskFSM is stopped" << endl;
 
   return 0;
 }
