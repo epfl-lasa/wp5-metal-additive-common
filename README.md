@@ -4,6 +4,24 @@
 
 The repository comprises multiple packages written in python first, for development purpose. Currently, it is designed to work with ROS Noetic and MoveIt, but plans are underway to transition it to ROS2.
 
+There are two main FSM built for that project, as follow :
+
+Error Handling FSM:
+
+- **AllOk** This state is here to claim that the robot is safe to use and there are no errors.
+- **ErrorMode**  Here an error occurs and needs to be acknowledged. It can be a safety error or simply an error in the execution of the task. After the error is acknowledged, it goes back to AllOk mode and the main FSM is resumed from where it was.
+
+Main FSM:
+
+- **Initializing** This is where every objects are initialized. It creates an object for the MoveIt planning scene, it initializes the known static obstacles and so on.
+- **Planning** Here is the planning for the entire task. It will extract a path from the different waypoints and save it for later use.
+- **Ready** As soon as the path is computed, the Robot enters in a Ready state where a Start signal is waiting to move to Executing state.
+- **Executing** The path is executed with welding or cleaning execution when needed. If the robot is asked to exit, then it goes to Homing state otherwise it goes back to Planning.
+- **Homing** The robot goes back to its initial position when the task is finished, it means it will just exit the FSM and be ready for another run when needed.
+- **Exit** Here the task is finished, the FSM exited and all the unnecessary Cpp objects destroyed.
+
+![Two main FSM](docs/240830_mam_deliverable_architecture.svg)
+
 ## Clone
 
 This repository contains submodules :
