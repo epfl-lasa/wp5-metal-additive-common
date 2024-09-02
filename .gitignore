@@ -4,6 +4,10 @@ __pycache__/
 *$py.class
 .vscode/
 
+# Big files
+*.bag
+*.mp4
+
 # C extensions
 *.so
 
