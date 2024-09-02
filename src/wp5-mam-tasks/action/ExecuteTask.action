@@ -1,0 +1,14 @@
+# Action to perform a given task using one of the available robot and version of ROS
+#
+# Louis Munier - lmunier@protonmail.com
+# Update 2024-03-08
+# Copyright (c) 2024 - EPFL
+
+# Define the goal
+uint32 task_id
+---
+# Define the result
+uint32 success
+---
+# Define a feedback message
+float32 percent_complete
