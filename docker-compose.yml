@@ -8,7 +8,6 @@ services:
       network: host
       dockerfile: docker/Dockerfile
       args:
-        UBUNTU_DISTRO: focal
         ROS_DISTRO: noetic
         USER: ${ROS_USER}
         DOCKER_GID: ${DOCKER_GID}
@@ -19,15 +18,35 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    privileged: true
     volumes:
-      - /dev:/dev
-      - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ./src:/home/${ROS_USER}/catkin_ws/src
       - ./scripts:/home/${ROS_USER}/scripts
-    device_cgroup_rules:
-      - "c 81:* rmw"
-      - "c 189:* rmw"
+    stdin_open: true
+    tty: true
+  simulation:
+    user: ${SIMU_USER}
+    env_file: .env
+    network_mode: host
+    build:
+      context: .
+      network: host
+      dockerfile: tools/docker_ros_coppeliasim/docker/Dockerfile
+      args:
+        ROS_DISTRO: noetic
+        USER: ${SIMU_USER}
+        DOCKER_GID: ${DOCKER_GID}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./src:/home/${ROS_USER}/catkin_ws/src
+      - ./simulation:/home/${SIMU_USER}/simulation
+      - ./tools/docker_ros_coppeliasim/scripts:/home/${SIMU_USER}/scripts
     stdin_open: true
     tty: true
