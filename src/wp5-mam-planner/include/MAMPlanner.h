@@ -7,6 +7,10 @@
 
 #pragma once
 
+#include <ros/ros.h>
+
+#include <trac_ik/trac_ik.hpp>
+
 #include "ik_geo.h"
 
 class MAMPlanner {
@@ -25,4 +29,10 @@ public:
    * @brief Executes the trajectory of the robot.
    */
   void executeTrajectory();
+
+private:
+  ros::NodeHandle nh_;        ///< ROS node handle
+  ros::AsyncSpinner spinner_; ///< ROS spinner to handle callbacks asynchronously
+
+  void initMoveit_();
 };

@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   wp5_robotic_arms_drivers
 )
 
+find_package(NLopt REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(yaml-cpp REQUIRED)
 
@@ -35,6 +36,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIR}
+  ${NLopt_INCLUDE_DIRS}
 )
 
 add_library(wp5_mam_planner_node STATIC
@@ -46,4 +48,5 @@ target_link_libraries(wp5_mam_planner_node
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
+  ${NLopt_LIBRARIES}
 )

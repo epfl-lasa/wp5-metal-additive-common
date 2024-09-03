@@ -69,6 +69,12 @@ RUN apt install -y \
     ros-${ROS_DISTRO}-trac-ik-kinematics-plugin \
     ros-${ROS_DISTRO}-diagnostic-updater
 
+# Install NLopt library
+RUN apt update --fix-missing && apt upgrade -y && apt clean
+RUN apt install -y \
+    libnlopt-dev \
+    libnlopt-cxx-dev
+
 # Install ANiMA's dependencies
 RUN apt update --fix-missing
 RUN apt upgrade -y && apt clean
