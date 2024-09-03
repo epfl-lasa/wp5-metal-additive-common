@@ -7,3 +7,6 @@
 [submodule "tools/docker_ros_coppeliasim"]
 	path = tools/docker_ros_coppeliasim
 	url = git@github.com:epfl-lasa/docker_ros_coppeliasim.git
+[submodule "src/wp5-mam-planner/libs/ik-geo-cpp"]
+	path = src/wp5-mam-planner/libs/ik-geo-cpp
+	url = git@github.com:epfl-lasa/ik-geo-cpp.git

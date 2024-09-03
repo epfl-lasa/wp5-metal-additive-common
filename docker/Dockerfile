@@ -45,14 +45,6 @@ RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
 
 FROM ros-ws AS libraries
 
-# Install waypoints tools
-RUN apt update --fix-missing && apt upgrade -y && apt clean
-RUN apt install -y \
-    libcgal-dev
-
-RUN pip3 install \
-    opencv-python
-
 # Install moveit tools
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
@@ -119,23 +111,13 @@ RUN apt install -y \
     ros-${ROS_DISTRO}-realsense2-camera \
     ros-${ROS_DISTRO}-realsense2-description
 
-# Install IKFast as python package
-WORKDIR ${HOME}/tmp
+# Install Rust
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
-    libblas-dev \
-    liblapack-dev
-
-WORKDIR ${HOME}
-RUN rm -rf ${HOME}/tmp
-
-# Install docker
-RUN apt update --fix-missing && apt upgrade -y && apt clean
-RUN apt install -y curl
-RUN curl -sSL https://get.docker.com/ | sh
-
-RUN groupmod -g ${DOCKER_GID} docker
-RUN usermod -aG docker ${USER}
+    curl
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+ENV CARGO_HOME="/home/ros/cargo"
 
 FROM simulation-tools AS finalisation
 
