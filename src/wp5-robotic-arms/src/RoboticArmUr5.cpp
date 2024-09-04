@@ -12,9 +12,14 @@
 
 #include "RoboticArmUr5.h"
 
+#include <ros/duration.h>
+
 using namespace std;
 
-RoboticArmUr5::RoboticArmUr5() : IRoboticArmBase(string("ur5_robot")) {}
+RoboticArmUr5::RoboticArmUr5() : IRoboticArmBase(string("ur5_robot")) {
+  trackIkSolver_ = make_unique<TRAC_IK::TRAC_IK>("base_link_inertia", "virual_target", "Distance", ros::Duration(0.01));
+  ikGeoSolver_ = make_unique<ik_geo::Robot>(ik_geo::Robot::ur5());
+}
 
 vector<double> RoboticArmUr5::getFK(vector<double> jointPositions) {
   //TODO(lmunier): Implement the forward kinematics of the UR5 robotic arm
