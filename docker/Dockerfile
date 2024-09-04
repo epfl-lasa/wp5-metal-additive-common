@@ -121,9 +121,11 @@ RUN apt install -y \
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     curl
+
+USER ${USER}
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-ENV CARGO_HOME="/home/ros/cargo"
+ENV PATH="${HOME}/.cargo/bin:${PATH}"
+ENV CARGO_HOME="${HOME}/.cargo"
 
 FROM simulation-tools AS finalisation
 
@@ -152,7 +154,6 @@ RUN cd /home/${USER}/catkin_ws                                              && \
 # ------------------------------------------------------------------------------
 
 # Add the workspace to the bashrc
-RUN bash -c "source /opt/ros/${ROS_DISTRO}/setup.bash && cd ${HOME}/catkin_ws && catkin build"
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
 RUN echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
 
