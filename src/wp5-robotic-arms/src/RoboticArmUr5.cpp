@@ -12,12 +12,13 @@
 
 #include "RoboticArmUr5.h"
 
-#include <ros/duration.h>
-
 using namespace std;
 
 RoboticArmUr5::RoboticArmUr5() : IRoboticArmBase(string("ur5_robot")) {
-  trackIkSolver_ = make_unique<TRAC_IK::TRAC_IK>("base_link_inertia", "virual_target", "Distance", ros::Duration(0.01));
+  TRAC_IK::SolveType solverType = TRAC_IK::Distance;
+
+  trackIkSolver_ =
+      make_unique<TRAC_IK::TRAC_IK>("base_link_inertia", "virtual_link", pathUrdf_, 0.01, 0.05, solverType);
   ikGeoSolver_ = make_unique<ik_geo::Robot>(ik_geo::Robot::ur5());
 }
 

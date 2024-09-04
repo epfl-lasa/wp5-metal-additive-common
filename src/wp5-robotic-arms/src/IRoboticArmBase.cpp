@@ -25,8 +25,8 @@ IRoboticArmBase::IRoboticArmBase(string robotName) : robotName_(robotName) {
   if (originalFile.good()) {
     cout << "Using general YAML file: " << yamlPath << endl;
   } else {
-    cout << "Using local YAML file: " << yamlPath << endl;
     yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/config/arm_robot_config.yaml";
+    cout << "Using local YAML file: " << yamlPath << endl;
   }
 
   // Load parameters from YAML file

@@ -1,5 +1,5 @@
 ur5_robot:
-  path_urdf: "~/catkin_ws/src/controller_ur5/urdf/ur5.urdf"
+  path_urdf: "robot_description"
   joint_names:
   - "shoulder_pan_joint"
   - "shoulder_lift_joint"
