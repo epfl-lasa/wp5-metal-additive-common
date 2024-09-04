@@ -9,8 +9,20 @@
  *
  */
 
-#include "../include/RoboticArmCr7.h"
+#include "RoboticArmCr7.h"
 
-RoboticArmCr7::RoboticArmCr7() {
-  // TODO: implement the constructor
+#include <iostream>
+
+using namespace std;
+
+RoboticArmCr7::RoboticArmCr7() : IRoboticArmBase(string("xMateCR7")) {}
+
+vector<double> RoboticArmCr7::getFK(vector<double> jointPositions) {
+  //TODO(lmunier): Implement the forward kinematics of the xMateCR7 robotic arm
+  cout << "Forward kinematics of the UR5 robotic arm" << endl;
+}
+
+vector<double> RoboticArmCr7::getIK(IkType ikType) {
+  //TODO(lmunier): Implement the inverse kinematics of the xMateCR7 robotic arm
+  cout << "Inverse kinematics of the UR5 robotic arm" << endl;
 }

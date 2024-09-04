@@ -6,7 +6,6 @@ FROM osrf/ros:${ROS_DISTRO}-desktop-full-focal AS ros-ws
 ARG ROS_DISTRO
 ARG USER=root
 ARG HOME=/home/${USER}
-ARG DOCKER_GID
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -136,6 +135,7 @@ RUN chown -R ${USER}:${HOST_GID} .bashrc
 # Build the workspace and source the devel/setup.bash
 WORKDIR ${HOME}/catkin_ws
 COPY src/ /home/${USER}/catkin_ws/src/
+RUN rustup show
 #-------------------------------------------------------------------------------
 
 USER ${USER}
@@ -145,13 +145,14 @@ USER root
 RUN rosdep install --from-paths ${HOME}/catkin_ws/src --ignore-src -r -y
 
 USER ${USER}
-# ------------------------------------------------------------------------------
-# catkin build ROS noetic packages
-RUN cd /home/${USER}/catkin_ws                                              && \
-    source /opt/ros/noetic/setup.bash                                       && \
-    catkin build                                                            && \
-    source /home/${USER}/catkin_ws/devel/setup.bash
-# ------------------------------------------------------------------------------
+# TODO(lmunier): Fix catkin build that does not recognize rust commands
+# # ------------------------------------------------------------------------------
+# # catkin build ROS noetic packages
+# RUN cd /home/${USER}/catkin_ws                                              && \
+#     source /opt/ros/noetic/setup.bash                                       && \
+#     catkin build                                                            && \
+#     source /home/${USER}/catkin_ws/devel/setup.bash
+# # ------------------------------------------------------------------------------
 
 # Add the workspace to the bashrc
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc

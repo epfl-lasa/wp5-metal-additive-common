@@ -10,7 +10,6 @@ services:
       args:
         ROS_DISTRO: noetic
         USER: ${ROS_USER}
-        DOCKER_GID: ${DOCKER_GID}
     deploy:
       resources:
         reservations:
@@ -35,7 +34,6 @@ services:
       args:
         ROS_DISTRO: noetic
         USER: ${SIMU_USER}
-        DOCKER_GID: ${DOCKER_GID}
     deploy:
       resources:
         reservations:

@@ -49,6 +49,9 @@
     <!--   <doc_depend>doxygen</doc_depend> -->
     <buildtool_depend>catkin</buildtool_depend>
 
+    <depend>roscpp</depend>
+    <depend>trac_ik_lib</depend>
+
 
     <!-- <exec_depend>gpio_manager</exec_depend> -->
 

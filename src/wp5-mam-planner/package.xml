@@ -51,16 +51,22 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>roscpp</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>wp5_robotic_arms_drivers</build_depend>
   <build_depend>wp5_ros_interface</build_depend>
 
   <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>moveit_core</build_export_depend>
+  <build_export_depend>moveit_ros_planning_interface</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>wp5_robotic_arms_drivers</build_export_depend>
   <build_export_depend>wp5_ros_interface</build_export_depend>
 
   <exec_depend>roscpp</exec_depend>
+  <exec_depend>moveit_core</exec_depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>wp5_robotic_arms_drivers</exec_depend>
   <exec_depend>wp5_ros_interface</exec_depend>

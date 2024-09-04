@@ -13,8 +13,54 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <fstream>
+#include <iostream>
+
 using namespace std;
-using namespace Eigen;
+
+IRoboticArmBase::IRoboticArmBase(string robotName) : robotName_(robotName) {
+  string yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/../../config/arm_robot_config.yaml";
+
+  ifstream originalFile(yamlPath);
+  if (originalFile.good()) {
+    cout << "Using general YAML file: " << yamlPath << endl;
+  } else {
+    cout << "Using local YAML file: " << yamlPath << endl;
+    yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/config/arm_robot_config.yaml";
+  }
+
+  // Load parameters from YAML file
+  YAML::Node robotConfig = YAML::LoadFile(yamlPath)[robotName_];
+
+  pathUrdf_ = robotConfig["path_urdf"].as<string>();
+  jointNames_ = robotConfig["joint_names"].as<vector<string>>();
+  originalHomeJoint_ = robotConfig["original_home_joint"].as<vector<double>>();
+  referenceFrame_ = robotConfig["reference_frame"].as<string>();
+  tipLink_ = robotConfig["tip_link"].as<string>();
+
+  nJoint_ = jointNames_.size();
+}
+
+void IRoboticArmBase::printInfo() {
+  cout << "Robot name: " << robotName_ << endl;
+  cout << "URDF Path: " << pathUrdf_ << endl;
+  cout << "Number of joints: " << nJoint_ << endl;
+
+  cout << "Joint names: ";
+  for (const string& jointName : jointNames_) {
+    cout << jointName << " ";
+  }
+  cout << endl;
+
+  cout << "Tip link: " << tipLink_ << endl;
+  cout << "Reference frame: " << referenceFrame_ << endl;
+
+  cout << "Original home joint: ";
+  for (double joint : originalHomeJoint_) {
+    cout << joint << " ";
+  }
+  cout << endl;
+}
 
 // function for the inverse kinematic  ------------------------------------------------------------------------
 

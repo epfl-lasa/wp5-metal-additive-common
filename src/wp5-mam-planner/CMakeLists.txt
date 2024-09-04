@@ -9,16 +9,14 @@ set(CMAKE_BUILD_TYPE Release)
 # Save the path during compilation to solve inclusion problems with linked files
 add_definitions("-DWP5_TASKS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
 
-# Add the external library
-add_subdirectory(libs/ik-geo-cpp)
-
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  moveit_core
+  moveit_ros_planning_interface
   wp5_ros_interface
   wp5_robotic_arms_drivers
 )
 
-find_package(NLopt REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(yaml-cpp REQUIRED)
 
@@ -39,12 +37,12 @@ include_directories(
   ${NLopt_INCLUDE_DIRS}
 )
 
-add_library(wp5_mam_planner_node STATIC
+add_executable(wp5_mam_planner_node
+  src/main.cpp
   src/MAMPlanner.cpp
 )
 
 target_link_libraries(wp5_mam_planner_node
-  ik_geo
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${YAML_CPP_LIBRARIES}

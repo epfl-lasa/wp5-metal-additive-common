@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- <param name="robot_type" value="$(arg robot_type)" /> -->
+    <arg name="robot_type" doc="Which robot to use : [ur5, xMateCR7]" default="ur5" />
+    <param name="robot_type" value="$(arg robot_type)" />
+
+    <group ns="$(arg robot_type)">
+        <node pkg="wp5_mam_planner" type="wp5_mam_planner_node" name="wp5_mam_planner_node"
+            output="screen"
+            required="true">
+        </node>
+    </group>
+</launch>

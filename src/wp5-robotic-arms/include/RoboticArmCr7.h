@@ -22,6 +22,19 @@ public:
   // TODO: implement all the public members, accessible from everyone owning a class object
   explicit RoboticArmCr7();
 
+  /**
+   * @brief Get the forward kinematics of the robotic arm.
+   * @param jointPositions Joint positions of the robotic arm.
+   */
+  std::vector<double> getFK(std::vector<double> jointPositions);
+
+  /**
+   * @brief Get the inverse kinematics of the robotic arm.
+   * @param ikType Type of inverse kinematics to use.
+   * @return Pair of the return code and the next joint positions.
+   */
+  std::vector<double> getIK(IkType ikType);
+
 protected:
   // TODO: implement all the protected members, accessible from its own and herited classes
 

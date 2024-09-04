@@ -13,16 +13,20 @@ set(CMAKE_BUILD_TYPE Release)
 # Save the path during compilation to solve inclusion problems with linked files
 add_definitions("-DWP5_ROBOTIC_ARMS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
 
+# Add the external library
+add_subdirectory(libs/ik-geo-cpp)
+
 # Find packages if any
 find_package(catkin REQUIRED COMPONENTS)
 find_package(Eigen3 3.3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(trac_ik_lib REQUIRED COMPONENTS)
 
 ## The catkin_package macro generates cmake config files for your package
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS
+  CATKIN_DEPENDS roscpp trac_ik_lib
   DEPENDS EIGEN3 YAML_CPP
 )
 
@@ -32,6 +36,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIR}
+  ${trac_ik_lib_INCLUDE_DIRS}
 )
 
 # Create a STATIC library instead of SHARED
@@ -52,14 +57,19 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   urdf
   src
   ${YAML_CPP_INCLUDE_DIR}
+  ${trac_ik_lib_INCLUDE_DIRS}
 )
 
-# Link library to robotic_arms_drivers
-add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
+# Link the INTERFACE library to the STATIC library
 target_link_libraries(${PROJECT_NAME} PRIVATE
   ${catkin_LIBRARIES}
   Eigen3::Eigen
   ${YAML_CPP_LIBRARIES}
+  ${trac_ik_lib_LIBRARIES}
+  ik_geo
 )
+
+# Link library to robotic_arms_drivers
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 export(PACKAGE ${PROJECT_NAME})

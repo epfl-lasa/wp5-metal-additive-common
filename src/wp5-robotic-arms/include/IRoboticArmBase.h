@@ -9,17 +9,16 @@
  */
 
 #pragma once
-#include <yaml-cpp/yaml.h>
 
-#include <cmath>
-#include <eigen3/Eigen/Dense>
-#include <iostream>
-#include <map>
 #include <memory>
-#include <sstream>
 #include <string>
-// #include <trac_ik/trac_ik.hpp>
 #include <vector>
+
+enum IkType : uint8_t {
+  IK_GEO = 0,
+  TRACK_IK,
+  NB_TYPE // Keep at the end of enum => number of types
+};
 
 /**
  * @brief Mother class to create all the prototype functions needed in different robotic arms.
@@ -29,9 +28,9 @@
 class IRoboticArmBase {
 public:
   /**
-   * @brief Default constructor for IRoboticArmBase.
+   * @brief Constructor for IRoboticArmBase.
    */
-  IRoboticArmBase() = default;
+  IRoboticArmBase(std::string robotName);
 
   /**
    * @brief Destructor for IRoboticArmBase.
@@ -47,22 +46,47 @@ public:
   /**
    * @brief Original home joint positions of the robotic arm.
    */
-  std::vector<double> originalHomeJoint = {};
+  std::vector<double> getOriginalHomeJoint() { return originalHomeJoint_; }
+
+  /**
+   * @brief Get the number of joints of the robotic arm.
+   * @return Number of joints of the robotic arm.
+   */
+  int getNJoint() { return nJoint_; }
+
+  /**
+   * @brief Get the URDF path of the robotic arm.
+   *
+   */
+  std::string getPathUrdf() { return pathUrdf_; }
+
+  /**
+   * @brief Get the forward kinematics of the robotic arm.
+   * @param jointPositions Joint positions of the robotic arm.
+   */
+  virtual std::vector<double> getFK(std::vector<double> jointPositions) = 0;
+
+  /**
+   * @brief Get the inverse kinematics of the robotic arm.
+   * @param ikType Type of inverse kinematics to use.
+   * @return Pair of the return code and the next joint positions.
+   */
+  virtual std::vector<double> getIK(IkType ikType) = 0;
+
+  /**
+   * @brief Print the information for this robotic arm.
+   */
+  void printInfo();
 
 protected:
   /**
    * @brief Initialization function for inverse kinematics.
    */
+  int nJoint_ = 0;
   std::string robotName_ = "";
-  std::vector<std::string> jointNames_;
-  std::string baseLink_ = "";
+  std::vector<std::string> jointNames_ = {""};
   std::string tipLink_ = "";
-  std::string tipJoint_ = "";
   std::string referenceFrame_ = "";
   std::string pathUrdf_ = "";
-
-  std::string paramURDFnJoint_ = "";
-  int nJoint_ = 0;
-
-private:
+  std::vector<double> originalHomeJoint_ = {};
 };
