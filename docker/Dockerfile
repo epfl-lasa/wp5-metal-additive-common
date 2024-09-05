@@ -123,6 +123,8 @@ RUN apt install -y \
 
 USER ${USER}
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN echo "source ${HOME}/.cargo/env" >> ~/.bashrc
+
 ENV PATH="${HOME}/.cargo/bin:${PATH}"
 ENV CARGO_HOME="${HOME}/.cargo"
 
@@ -134,32 +136,30 @@ RUN chown -R ${USER}:${HOST_GID} .bashrc
 
 # Build the workspace and source the devel/setup.bash
 WORKDIR ${HOME}/catkin_ws
-COPY src/ /home/${USER}/catkin_ws/src/
-RUN rustup show
-#-------------------------------------------------------------------------------
-
-USER ${USER}
+COPY src/ ${HOME}/catkin_ws/src/
 RUN rosdep update
 
 USER root
 RUN rosdep install --from-paths ${HOME}/catkin_ws/src --ignore-src -r -y
 
+# Ensure correct ownership of the workspace
+RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
+
+# ------------------------------------------------------------------------------
+# catkin build ROS noetic packages
 USER ${USER}
-# TODO(lmunier): Fix catkin build that does not recognize rust commands
-# # ------------------------------------------------------------------------------
-# # catkin build ROS noetic packages
-# RUN cd /home/${USER}/catkin_ws                                              && \
-#     source /opt/ros/noetic/setup.bash                                       && \
-#     catkin build                                                            && \
-#     source /home/${USER}/catkin_ws/devel/setup.bash
-# # ------------------------------------------------------------------------------
+RUN source ${HOME}/.bashrc                                                  && \
+    source /opt/ros/noetic/setup.bash                                       && \
+    catkin build
+# ------------------------------------------------------------------------------
 
 # Add the workspace to the bashrc
-RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
-RUN echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc && \
+    echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
 
 # Remove copied files
 USER root
 RUN rm -rf ${HOME}/catkin_ws/src
 
+USER ${USER}
 CMD [ "bash" ]
