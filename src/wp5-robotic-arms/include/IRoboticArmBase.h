@@ -10,13 +10,15 @@
 
 #pragma once
 
+#include <Eigen/Dense>
 #include <memory>
 #include <string>
+#include <variant>
 #include <vector>
 
-enum IkType : uint8_t {
-  IK_GEO = 0,
-  TRACK_IK,
+enum IkSolver : uint8_t {
+  IK_GEO_SOLVER = 0,
+  TRAC_IK_SOLVER,
   NB_TYPE // Keep at the end of enum => number of types
 };
 
@@ -68,10 +70,14 @@ public:
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.
-   * @param ikType Type of inverse kinematics to use.
+   * @param ikSolver Type of inverse kinematics solver to use.
+   * @param quaternion Quaternion of the end effector.
+   * @param position Position of the end effector.
    * @return Pair of the return code and the next joint positions.
    */
-  virtual std::vector<double> getIK(IkType ikType) = 0;
+  virtual std::variant<std::vector<double>, std::vector<std::vector<double>>> getIK(IkSolver ikSolver,
+                                                                                    Eigen::Quaterniond quaternion,
+                                                                                    Eigen::Vector3d position) = 0;
 
   /**
    * @brief Print the information for this robotic arm.

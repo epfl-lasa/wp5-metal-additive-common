@@ -56,6 +56,8 @@ RUN apt install -y \
     ros-${ROS_DISTRO}-moveit-ros-planning-interface \
     ros-${ROS_DISTRO}-moveit-ros-move-group \
     ros-${ROS_DISTRO}-moveit-visual-tools \
+    ros-${ROS_DISTRO}-chomp-motion-planner \
+    ros-${ROS_DISTRO}-moveit-chomp-optimizer-adapter \
     ros-${ROS_DISTRO}-teleop-twist-keyboard \
     ros-${ROS_DISTRO}-joint-state-publisher \
     ros-${ROS_DISTRO}-robot-state-publisher \
@@ -68,6 +70,10 @@ RUN apt install -y \
     ros-${ROS_DISTRO}-trac-ik-kinematics-plugin \
     ros-${ROS_DISTRO}-diagnostic-updater
 
+# Install ik_geo for python use
+RUN apt update --fix-missing && apt upgrade -y && apt clean
+RUN pip install ik-geo
+
 # Install NLopt library
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
@@ -75,8 +81,7 @@ RUN apt install -y \
     libnlopt-cxx-dev
 
 # Install ANiMA's dependencies
-RUN apt update --fix-missing
-RUN apt upgrade -y && apt clean
+RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
     ros-${ROS_DISTRO}-catkin-virtualenv \
     ros-${ROS_DISTRO}-joint-state-publisher-gui \

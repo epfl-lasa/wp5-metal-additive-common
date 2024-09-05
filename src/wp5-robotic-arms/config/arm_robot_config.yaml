@@ -1,5 +1,5 @@
 ur5_robot:
-  path_urdf: "robot_description"
+  path_urdf: "/ur5/robot_description"
   joint_names:
   - "shoulder_pan_joint"
   - "shoulder_lift_joint"

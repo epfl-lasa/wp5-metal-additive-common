@@ -10,6 +10,10 @@
  */
 #pragma once
 
+#include <Eigen/Dense>
+#include <variant>
+#include <vector>
+
 #include "IRoboticArmBase.h"
 
 /**
@@ -30,10 +34,14 @@ public:
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.
-   * @param ikType Type of inverse kinematics to use.
+   * @param ikSolver Type of inverse kinematics solver to use.
+   * @param quaternion Quaternion of the end effector.
+   * @param position Position of the end effector.
    * @return Pair of the return code and the next joint positions.
    */
-  std::vector<double> getIK(IkType ikType);
+  std::variant<std::vector<double>, std::vector<std::vector<double>>> getIK(IkSolver ikSolver,
+                                                                            Eigen::Quaterniond quaternion,
+                                                                            Eigen::Vector3d position);
 
 protected:
   // TODO: implement all the protected members, accessible from its own and herited classes
