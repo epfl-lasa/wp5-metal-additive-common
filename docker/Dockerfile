@@ -29,7 +29,9 @@ RUN apt install -y \
     python3-pip \
     net-tools \
     build-essential \
-    cmake
+    cmake \
+    gdb \
+    valgrind
 
 RUN pip3 install --upgrade pip
 
