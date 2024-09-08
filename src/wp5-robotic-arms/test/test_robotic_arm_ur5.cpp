@@ -19,72 +19,92 @@ using namespace std;
 
 class RoboticArmUr5Test : public ::testing::Test {
 protected:
-  const double TOLERANCE = 1e-6;
+  const double TOLERANCE = 1e-5;
 
-  RoboticArmUr5* robotic_arm;
+  RoboticArmUr5* roboticArm;
   vector<double> seed = {};
   Eigen::Quaterniond quaternion = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0); // w, x, y, z
   Eigen::Vector3d position = Eigen::Vector3d(0.3, 0.209, 0.6);
 
   void SetUp() override {
     ros::NodeHandle nh;
-    robotic_arm = new RoboticArmUr5();
+    roboticArm = new RoboticArmUr5();
 
-    for (int i = 0; i < robotic_arm->getNJoint(); i++) {
+    for (int i = 0; i < roboticArm->getNJoint(); i++) {
       seed.push_back(0.0);
     }
   }
 
-  void TearDown() override { delete robotic_arm; }
+  void TearDown() override { delete roboticArm; }
 };
 
 // Create a test to check the forward kinematics of the UR5 robotic arm
 TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
-  auto ik_result = robotic_arm->getIK(IkSolver::TRAC_IK_SOLVER, quaternion, position);
+  auto ikResult = roboticArm->getIK(IkSolver::TRAC_IK_SOLVER, quaternion, position);
 
   // Use get_if to safely extract the type
-  auto ik_solutions = get_if<vector<double>>(&ik_result);
-  ASSERT_NE(ik_solutions, nullptr) << "Failed to extract vector<double> from variant";
+  auto ikSolutions = get_if<vector<double>>(&ikResult);
+  ASSERT_NE(ikSolutions, nullptr) << "Failed to extract vector<double> from variant";
+
+  // Print ikSolutions for debugging
+  cout << "Trac IK solutions: ";
+  for (const auto& sol : *ikSolutions) {
+    cout << sol << " ";
+  }
+  cout << endl;
 
   // Compute forward kinematics
-  vector<double> fk_result = robotic_arm->getFK(*ik_solutions);
+  cout << "Calling KDL getFK..." << endl;
+  pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFK(IkSolver::TRAC_IK_SOLVER, *ikSolutions);
 
   // Check the position
   for (int i = 0; i < 3; i++) {
-    EXPECT_NEAR(fk_result[i], position[i], TOLERANCE);
+    EXPECT_NEAR(fkResult.second[i], position[i], TOLERANCE);
   }
 
   // Check the orientation
-  for (int i = 3; i < 7; i++) {
-    EXPECT_NEAR(fk_result[i], quaternion.coeffs()[i - 3], TOLERANCE);
+  Eigen::Vector4d quaternionCoeffs = fkResult.first.coeffs();
+  for (int i = 0; i < 4; i++) {
+    EXPECT_NEAR(quaternionCoeffs[i], quaternion.coeffs()[i], TOLERANCE);
   }
 }
 
 TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
-  //   cout << "Number of solutions: " << solutions.size() << endl;
+  auto ikResult = roboticArm->getIK(IkSolver::IK_GEO_SOLVER, quaternion, position);
 
-  //   for (auto& solution : solutions) {
-  //     cout << "Solution: ";
-  //     for (size_t i = 0; i < 6; i++) {
-  //       cout << solution.q[i] << " ";
-  //     }
+  // Use get_if to safely extract the type
+  auto ikSolutions = get_if<vector<vector<double>>>(&ikResult);
+  ASSERT_NE(ikSolutions, nullptr) << "Failed to extract vector<double> from variant";
 
-  //     array<double, 9> rotation_matrix;
-  //     array<double, 3> position_vector;
-  //     ikGeoSolver_->fk(solution.q, rotation_matrix, position_vector);
+  // Print ikSolutions for debugging
+  cout << "IK-Geo solutions:\n";
+  for (const auto& sol : *ikSolutions) {
+    for (const auto& joint : sol) {
+      cout << joint << " ";
+    }
+    cout << endl;
+  }
 
-  //     cout << "Is LS: " << (solution.is_ls ? "True" : "False") << endl;
-  //     cout << "Rotation Matrix: " << endl;
-  //     for (size_t i = 0; i < 3; i++) {
-  //       for (size_t j = 0; j < 3; j++) cout << rotation_matrix[i * 3 + j] << " ";
-  //       cout << endl;
-  //     }
-  //     cout << "Position Vector: " << endl;
-  //     for (size_t i = 0; i < 3; i++) {
-  //       cout << position_vector[i] << " ";
-  //     }
-  //     cout << endl;
-  //   }
+  // Compute forward kinematics
+  cout << "Calling IK-Geo getFK..." << endl;
+  for (const auto& sol : *ikSolutions) {
+    pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFK(IkSolver::IK_GEO_SOLVER, sol);
+
+    // Check the position
+    for (int i = 0; i < 3; i++) {
+      cout << "Position: " << fkResult.second[i] << " " << position[i] << endl;
+      EXPECT_NEAR(fkResult.second[i], position[i], TOLERANCE);
+    }
+    cout << endl << endl;
+
+    // Check the orientation
+    Eigen::Vector4d quaternionCoeffs = fkResult.first.coeffs();
+    for (int i = 0; i < 4; i++) {
+      cout << "Orientation: " << fkResult.first.coeffs()[i] << " " << quaternion.coeffs()[i] << endl;
+      EXPECT_NEAR(quaternionCoeffs[i], quaternion.coeffs()[i], TOLERANCE);
+    }
+    cout << endl << endl;
+  }
 }
 
 int main(int argc, char** argv) {

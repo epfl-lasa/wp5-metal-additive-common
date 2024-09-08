@@ -17,7 +17,7 @@ using namespace std;
 
 RoboticArmCr7::RoboticArmCr7() : IRoboticArmBase(string("xMateCR7")) {}
 
-vector<double> RoboticArmCr7::getFK(vector<double> jointPositions) {
+pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmCr7::getFK(IkSolver ikSolver, vector<double> jointPositions) {
   //TODO(lmunier): Implement the forward kinematics of the xMateCR7 robotic arm
   cout << "Forward kinematics of the UR5 robotic arm" << endl;
 }

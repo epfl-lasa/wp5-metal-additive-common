@@ -64,9 +64,10 @@ public:
 
   /**
    * @brief Get the forward kinematics of the robotic arm.
+   * @param ikSolver Type of inverse kinematics solver to use.
    * @param jointPositions Joint positions of the robotic arm.
    */
-  virtual std::vector<double> getFK(std::vector<double> jointPositions) = 0;
+  virtual std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, std::vector<double> joint_pos) = 0;
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.
@@ -91,8 +92,10 @@ protected:
   int nJoint_ = 0;
   std::string robotName_ = "";
   std::vector<std::string> jointNames_ = {""};
-  std::string tipLink_ = "";
-  std::string referenceFrame_ = "";
+
+  std::string chainStart_ = "";
+  std::string chainEnd_ = "";
   std::string pathUrdf_ = "";
+  std::string referenceFrame_ = "";
   std::vector<double> originalHomeJoint_ = {};
 };

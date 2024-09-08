@@ -36,7 +36,6 @@ IRoboticArmBase::IRoboticArmBase(string robotName) : robotName_(robotName) {
   jointNames_ = robotConfig["joint_names"].as<vector<string>>();
   originalHomeJoint_ = robotConfig["original_home_joint"].as<vector<double>>();
   referenceFrame_ = robotConfig["reference_frame"].as<string>();
-  tipLink_ = robotConfig["tip_link"].as<string>();
 
   nJoint_ = jointNames_.size();
 }
@@ -52,7 +51,6 @@ void IRoboticArmBase::printInfo() {
   }
   cout << endl;
 
-  cout << "Tip link: " << tipLink_ << endl;
   cout << "Reference frame: " << referenceFrame_ << endl;
 
   cout << "Original home joint: ";

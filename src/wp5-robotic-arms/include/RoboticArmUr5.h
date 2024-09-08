@@ -12,8 +12,13 @@
 
 #include <Eigen/Dense>
 #include <array>
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/chainiksolverpos_nr_jl.hpp>
+#include <kdl/frames.hpp>
+#include <kdl/jntarray.hpp>
 #include <string>
 #include <trac_ik/trac_ik.hpp>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -22,7 +27,6 @@
 
 // clang-format off
 constexpr double UR5_H_MATRIX[] = {
-
     0.0, 0.0, 1.0,
     0.0, -1.0, 0.0,
     0.0, -1.0, 0.0,
@@ -54,9 +58,10 @@ public:
 
   /**
    * @brief Get the forward kinematics of the robotic arm.
+   * @param ikSolver Type of inverse kinematics solver to use.
    * @param jointPositions Joint positions of the robotic arm.
    */
-  std::vector<double> getFK(std::vector<double> jointPositions);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, std::vector<double> jointPositions);
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.
@@ -70,8 +75,42 @@ public:
                                                                             Eigen::Vector3d position);
 
 private:
-  TRAC_IK::TRAC_IK* tracIkSolver_ = nullptr; ///< TRAC-IK solver
-  ik_geo::Robot* ikGeoSolver_ = nullptr;     ///< IK-Geo solver
+  // clang-format off
+  static constexpr double UR5_H_MATRIX[] = {
+      0.0, 0.0, 1.0,
+      0.0, -1.0, 0.0,
+      0.0, -1.0, 0.0,
+      0.0, -1.0, 0.0,
+      0.0, 0.0, -1.0,
+      0.0, -1.0, 0.0
+  };
+
+  static constexpr double UR5_P_MATRIX[] = {
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0892,
+      -0.425, 0.0, 0.0,
+      -0.3922, 0.0, 0.0,
+      0.0, -0.1091, 0.0,
+      0.0, 0.0, -0.0946,
+      0.0, -0.0823, 0.0
+  };
+  // clang-format on
+
+  double epsilon_ = 1e-5;                             ///< Epsilon for the IK solver
+  double timeout_ = 0.01;                             ///< Timeout for the IK solver
+  TRAC_IK::SolveType solverType_ = TRAC_IK::Distance; ///< Solve type for the IK solver
+
+  TRAC_IK::TRAC_IK* tracIkSolver_ = nullptr;            ///< TRAC-IK solver
+  KDL::ChainFkSolverPos_recursive* fkSolver_ = nullptr; ///< FK solver
+  KDL::Chain chain_;                                    ///< KDL chain
+  KDL::JntArray ll_, ul_;                               ///< lower joint limits, upper joint limits
+
+  ik_geo::Robot* robotGeoSolver_ = nullptr; ///< IK-Geo solver
+
+  void initializeTracIkSolver_();
+
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getTracFkSolution_(std::vector<double> jointPositions);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFkGeoSolution_(std::vector<double> jointPositions);
 
   std::vector<double> getTracIkSolution_(Eigen::Quaterniond quaternion, Eigen::Vector3d position);
   std::vector<std::vector<double>> getIkGeoSolution_(Eigen::Quaterniond quaternion, Eigen::Vector3d position);

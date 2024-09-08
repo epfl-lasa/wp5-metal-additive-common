@@ -25,7 +25,7 @@ MAMPlanner::MAMPlanner() : spinner_(1) {
     // Add obstacles
     // addStaticObstacles();
 
-    // ik_solver_ = make_unique<TRAC_IK::TRAC_IK>(robot_base, virtual_target, "Distance", ros::Duration(0.01));
+    // ikSolver_ = make_unique<TRAC_IK::TRAC_IK>(robot_base, virtual_target, "Distance", ros::Duration(0.01));
 
     // TODO: Implement tracIK solutions
     // for each solution, start a thread and compute path planning
