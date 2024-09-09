@@ -37,9 +37,12 @@ public:
    * @param ikSolver Type of inverse kinematics solver to use.
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
+   * @param jointPos Joint positions of the robotic arm.
    * @return Pair of the return code and the next joint positions.
    */
-  std::variant<std::vector<double>, std::vector<std::vector<double>>> getIK(IkSolver ikSolver,
-                                                                            const Eigen::Quaterniond& quaternion,
-                                                                            const Eigen::Vector3d& position);
+  bool getIK(IkSolver ikSolver,
+             const Eigen::Quaterniond& quaternion,
+             const Eigen::Vector3d& position,
+             std::vector<double>& jointPos,
+             const KDL::JntArray& nominal);
 };

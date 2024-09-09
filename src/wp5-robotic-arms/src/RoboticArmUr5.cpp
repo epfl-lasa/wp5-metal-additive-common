@@ -34,18 +34,33 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFK(IkSolver ikSolver
   return make_pair(Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero());
 }
 
-variant<vector<double>, vector<vector<double>>> RoboticArmUr5::getIK(IkSolver ikSolver,
-                                                                     const Eigen::Quaterniond& quaternion,
-                                                                     const Eigen::Vector3d& position) {
+bool RoboticArmUr5::getIK(IkSolver ikSolver,
+                          const Eigen::Quaterniond& quaternion,
+                          const Eigen::Vector3d& position,
+                          vector<double>& jointPos,
+                          const KDL::JntArray& nominal) {
   if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
-    return IRoboticArmBase::getTracIkSolution_(quaternion, position);
-  } else if (ikSolver == IkSolver::IK_GEO_SOLVER) {
-    return getIkGeoSolution_(quaternion, position);
+    return IRoboticArmBase::getTracIkSolution_(quaternion, position, jointPos, nominal);
   } else {
     ROS_ERROR("Invalid inverse kinematics solver type");
   }
 
-  return vector<double>();
+  jointPos.clear();
+  return false;
+}
+
+bool RoboticArmUr5::getIK(IkSolver ikSolver,
+                          const Eigen::Quaterniond& quaternion,
+                          const Eigen::Vector3d& position,
+                          vector<vector<double>>& jointPos) {
+  if (ikSolver == IkSolver::IK_GEO_SOLVER) {
+    return getIkGeoSolution_(quaternion, position, jointPos);
+  } else {
+    ROS_ERROR("Invalid inverse kinematics solver type");
+  }
+
+  jointPos.clear();
+  return false;
 }
 
 pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFkGeoSolution_(const vector<double>& jointPos) {
@@ -67,22 +82,26 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFkGeoSolution_(const
   return make_pair(move(quaternion), move(posVector));
 }
 
-vector<vector<double>> RoboticArmUr5::getIkGeoSolution_(const Eigen::Quaterniond& quaternion,
-                                                        const Eigen::Vector3d& position) {
+bool RoboticArmUr5::getIkGeoSolution_(const Eigen::Quaterniond& quaternion,
+                                      const Eigen::Vector3d& position,
+                                      vector<vector<double>>& jointPos) {
+  double posVector[3] = {position.x(), position.y(), position.z()};
+
+  double rotMatrixArray[9]{};
   Eigen::Matrix3d rotMatrix = quaternion.toRotationMatrix();
-  Eigen::Map<const Eigen::Vector3d> posVector(position.data());
+  Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(rotMatrixArray, rotMatrix.rows(), rotMatrix.cols()) =
+      rotMatrix;
 
   // Compute IK
   vector<ik_geo::Solution> solutions;
-  robotGeoSolver_->ik(rotMatrix.data(), posVector.data(), solutions);
+  robotGeoSolver_->ik(rotMatrixArray, posVector, solutions);
 
-  // Convert the solutions to a vector of vectors
-  vector<vector<double>> solutionsVector;
-  solutionsVector.reserve(solutions.size()); // Reserve space to avoid multiple allocations
+  jointPos.clear();
+  jointPos.reserve(solutions.size()); // Reserve space to avoid multiple allocations
 
-  transform(solutions.begin(), solutions.end(), back_inserter(solutionsVector), [](const ik_geo::Solution& solution) {
+  transform(solutions.begin(), solutions.end(), back_inserter(jointPos), [](const ik_geo::Solution& solution) {
     return vector<double>(solution.q.begin(), solution.q.end());
   });
 
-  return move(solutionsVector);
+  return true;
 }

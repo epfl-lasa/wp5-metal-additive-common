@@ -10,6 +10,8 @@
  */
 #pragma once
 
+#include <ros/ros.h>
+
 #include <Eigen/Dense>
 #include <array>
 #include <string>
@@ -63,11 +65,27 @@ public:
    * @param ikSolver Type of inverse kinematics solver to use.
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
+   * @param jointPos Joint positions of the robotic arm.
    * @return Pair of the return code and the next joint positions.
    */
-  std::variant<std::vector<double>, std::vector<std::vector<double>>> getIK(IkSolver ikSolver,
-                                                                            const Eigen::Quaterniond& quaternion,
-                                                                            const Eigen::Vector3d& position);
+  bool getIK(IkSolver ikSolver,
+             const Eigen::Quaterniond& quaternion,
+             const Eigen::Vector3d& position,
+             std::vector<double>& jointPos,
+             const KDL::JntArray& nominal);
+
+  /**
+   * @brief Get the inverse kinematics of the robotic arm.
+   * @param ikSolver Type of inverse kinematics solver to use.
+   * @param quaternion Quaternion of the end effector.
+   * @param position Position of the end effector.
+   * @param jointPos Vector of joint positions of the robotic arm.
+   * @return Pair of the return code and the next joint positions.
+   */
+  bool getIK(IkSolver ikSolver,
+             const Eigen::Quaterniond& quaternion,
+             const Eigen::Vector3d& position,
+             std::vector<std::vector<double>>& jointPos);
 
 private:
   // clang-format off
@@ -94,6 +112,7 @@ private:
   ik_geo::Robot* robotGeoSolver_ = nullptr; ///< IK-Geo solver
 
   std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFkGeoSolution_(const std::vector<double>& jointPos);
-  std::vector<std::vector<double>> getIkGeoSolution_(const Eigen::Quaterniond& quaternion,
-                                                     const Eigen::Vector3d& position);
+  bool getIkGeoSolution_(const Eigen::Quaterniond& quaternion,
+                         const Eigen::Vector3d& position,
+                         std::vector<std::vector<double>>& jointPos);
 };

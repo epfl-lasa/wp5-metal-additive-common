@@ -14,10 +14,13 @@
 #include <ros/ros.h>
 #include <yaml-cpp/yaml.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
 using namespace std;
+
+const int IRoboticArmBase::NB_JOINTS_ = 6; ///< Number of joints of the robotic arm
 
 IRoboticArmBase::IRoboticArmBase(string robotName, string customYamlPath) : robotName_(robotName) {
   string yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/../../config/arm_robot_config.yaml";
@@ -46,7 +49,9 @@ IRoboticArmBase::IRoboticArmBase(string robotName, string customYamlPath) : robo
   originalHomeJoint_ = robotConfig["original_home_joint"].as<vector<double>>();
   referenceFrame_ = robotConfig["reference_frame"].as<string>();
 
-  nJoint_ = jointNames_.size();
+  if (getNbJoints() != jointNames_.size()) {
+    throw runtime_error("Number of joints does not match the number of joint names");
+  }
 
   // Initialize Trac-IK solver
   initializeTracIkSolver_();
@@ -60,7 +65,7 @@ IRoboticArmBase::~IRoboticArmBase() {
 void IRoboticArmBase::printInfo() {
   cout << "Robot name: " << robotName_ << endl;
   cout << "URDF Path: " << pathUrdf_ << endl;
-  cout << "Number of joints: " << nJoint_ << endl;
+  cout << "Number of joints: " << getNbJoints() << endl;
 
   cout << "Joint names: ";
   for (const string& jointName : jointNames_) {
@@ -85,16 +90,6 @@ void IRoboticArmBase::initializeTracIkSolver_() {
     return;
   }
 
-  if (!tracIkSolver_->getKDLLimits(ll_, ul_)) {
-    ROS_ERROR("There were no valid KDL joint limits found");
-    return;
-  }
-
-  assert(chain_.getNrOfJoints() == ll_.data.size());
-  assert(chain_.getNrOfJoints() == ul_.data.size());
-
-  ROS_INFO("Using %d joints", chain_.getNrOfJoints());
-
   // Set up KDL IK
   fkSolver_ = new KDL::ChainFkSolverPos_recursive(chain_); // Forward kinematics solver
 }
@@ -113,26 +108,26 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getTracFkSolution_(co
 
   // Extract position and orientation
   Eigen::Vector3d posVector(cartesian_pose.p.data);
-  Eigen::Quaterniond quaternion;
+  Eigen::Quaterniond quaternion{};
   cartesian_pose.M.GetQuaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 
   return make_pair(move(quaternion), move(posVector));
 }
 
-vector<double> IRoboticArmBase::getTracIkSolution_(const Eigen::Quaterniond& quaternion,
-                                                   const Eigen::Vector3d& position) {
+bool IRoboticArmBase::getTracIkSolution_(const Eigen::Quaterniond& quaternion,
+                                         const Eigen::Vector3d& position,
+                                         vector<double>& jointPos,
+                                         const KDL::JntArray& nominal) {
   // Initialize computing materials
-  KDL::JntArray result;
-  KDL::Frame endEffectorPose;
-  KDL::JntArray nominal(nJoint_);
-  nominal.data.setZero();
+  KDL::JntArray result{};
+  KDL::Frame endEffectorPose{};
 
   endEffectorPose.p = KDL::Vector(position.x(), position.y(), position.z());
   endEffectorPose.M = KDL::Rotation::Quaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 
   // Compute IK
-  tracIkSolver_->CartToJnt(nominal, endEffectorPose, result);
-  vector<double> result_vector(result.data.data(), result.data.data() + result.data.size());
+  int isValid = tracIkSolver_->CartToJnt(nominal, endEffectorPose, result);
+  jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
 
-  return move(result_vector);
+  return isValid >= 0;
 }

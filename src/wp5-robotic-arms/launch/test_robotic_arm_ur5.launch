@@ -1,4 +1,4 @@
 <launch>
     <node name="test_robotic_arm_ur5" pkg="wp5_robotic_arms_drivers" type="test_robotic_arm_ur5"
-        output="screen" launch-prefix="gdb -ex run --args" />
+        output="screen" />
 </launch>

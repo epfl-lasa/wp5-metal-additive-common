@@ -29,14 +29,16 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmCr7::getFK(IkSolver ikSolver
   return make_pair(Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero());
 }
 
-variant<vector<double>, vector<vector<double>>> RoboticArmCr7::getIK(IkSolver ikSolver,
-                                                                     const Eigen::Quaterniond& quaternion,
-                                                                     const Eigen::Vector3d& position) {
+bool RoboticArmCr7::getIK(IkSolver ikSolver,
+                          const Eigen::Quaterniond& quaternion,
+                          const Eigen::Vector3d& position,
+                          vector<double>& jointPos,
+                          const KDL::JntArray& nominal) {
   if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
-    return IRoboticArmBase::getTracIkSolution_(quaternion, position);
+    return IRoboticArmBase::getTracIkSolution_(quaternion, position, jointPos, nominal);
   } else {
     ROS_ERROR("Invalid inverse kinematics solver type");
   }
 
-  return vector<double>();
+  return false;
 }

@@ -48,24 +48,24 @@ public:
    * @brief Get the name of the robotic arm.
    * @return Name of the robotic arm.
    */
-  std::string getName() { return robotName_; }
+  const std::string getName() const { return robotName_; }
 
   /**
    * @brief Original home joint positions of the robotic arm.
    */
-  std::vector<double> getOriginalHomeJoint() { return originalHomeJoint_; }
+  const std::vector<double> getOriginalHomeJoint() const { return originalHomeJoint_; }
 
   /**
    * @brief Get the number of joints of the robotic arm.
    * @return Number of joints of the robotic arm.
    */
-  int getNJoint() { return nJoint_; }
+  const int getNbJoints() const { return NB_JOINTS_; }
 
   /**
    * @brief Get the URDF path of the robotic arm.
    *
    */
-  std::string getPathUrdf() { return pathUrdf_; }
+  const std::string getPathUrdf() const { return pathUrdf_; }
 
   /**
    * @brief Get the forward kinematics of the robotic arm.
@@ -80,10 +80,14 @@ public:
    * @param ikSolver Type of inverse kinematics solver to use.
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
+   * @param jointPos Joint positions of the robotic arm.
    * @return Pair of the return code and the next joint positions.
    */
-  virtual std::variant<std::vector<double>, std::vector<std::vector<double>>> getIK(
-      IkSolver ikSolver, const Eigen::Quaterniond& quaternion, const Eigen::Vector3d& position) = 0;
+  virtual bool getIK(IkSolver ikSolver,
+                     const Eigen::Quaterniond& quaternion,
+                     const Eigen::Vector3d& position,
+                     std::vector<double>& jointPos,
+                     const KDL::JntArray& nominal = KDL::JntArray(NB_JOINTS_)) = 0;
 
   /**
    * @brief Print the information for this robotic arm.
@@ -92,19 +96,22 @@ public:
 
 protected:
   std::pair<Eigen::Quaterniond, Eigen::Vector3d> getTracFkSolution_(const std::vector<double>& jointPos);
-  std::vector<double> getTracIkSolution_(const Eigen::Quaterniond& quaternion, const Eigen::Vector3d& position);
+  bool getTracIkSolution_(const Eigen::Quaterniond& quaternion,
+                          const Eigen::Vector3d& position,
+                          std::vector<double>& jointPos,
+                          const KDL::JntArray& nominal);
 
 private:
   // Attributes
-  int nJoint_ = 0;
+  static const int NB_JOINTS_;
   std::string robotName_ = "";
-  std::vector<std::string> jointNames_ = {""};
+  std::vector<std::string> jointNames_{};
 
   std::string chainStart_ = "";
   std::string chainEnd_ = "";
   std::string pathUrdf_ = "";
   std::string referenceFrame_ = "";
-  std::vector<double> originalHomeJoint_ = {};
+  std::vector<double> originalHomeJoint_{};
 
   // TRAC-IK solver parameters
   double epsilon_ = 1e-5;                             ///< Epsilon for the IK solver
@@ -113,8 +120,7 @@ private:
 
   TRAC_IK::TRAC_IK* tracIkSolver_ = nullptr;            ///< TRAC-IK solver
   KDL::ChainFkSolverPos_recursive* fkSolver_ = nullptr; ///< FK solver
-  KDL::Chain chain_;                                    ///< KDL chain
-  KDL::JntArray ll_, ul_;                               ///< lower joint limits, upper joint limits
+  KDL::Chain chain_{};                                  ///< KDL robot kinematic chain
 
   // Methods
   void initializeTracIkSolver_();
