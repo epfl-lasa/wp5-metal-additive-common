@@ -37,21 +37,6 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFK(IkSolver ikSolver
 bool RoboticArmUr5::getIK(IkSolver ikSolver,
                           const Eigen::Quaterniond& quaternion,
                           const Eigen::Vector3d& position,
-                          vector<double>& jointPos,
-                          const KDL::JntArray& nominal) {
-  if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
-    return IRoboticArmBase::getTracIkSolution_(quaternion, position, jointPos, nominal);
-  } else {
-    ROS_ERROR("Invalid inverse kinematics solver type");
-  }
-
-  jointPos.clear();
-  return false;
-}
-
-bool RoboticArmUr5::getIK(IkSolver ikSolver,
-                          const Eigen::Quaterniond& quaternion,
-                          const Eigen::Vector3d& position,
                           vector<vector<double>>& jointPos) {
   if (ikSolver == IkSolver::IK_GEO_SOLVER) {
     return getIkGeoSolution_(quaternion, position, jointPos);

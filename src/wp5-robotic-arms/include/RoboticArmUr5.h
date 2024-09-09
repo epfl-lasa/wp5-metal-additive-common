@@ -58,21 +58,12 @@ public:
    * @param ikSolver Type of inverse kinematics solver to use.
    * @param jointPos Joint positions of the robotic arm.
    */
-  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, const std::vector<double>& jointPos);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, const std::vector<double>& jointPos) override;
 
   /**
-   * @brief Get the inverse kinematics of the robotic arm.
-   * @param ikSolver Type of inverse kinematics solver to use.
-   * @param quaternion Quaternion of the end effector.
-   * @param position Position of the end effector.
-   * @param jointPos Joint positions of the robotic arm.
-   * @return Pair of the return code and the next joint positions.
+   * @brief Bring the getIK function from the parent class.
    */
-  bool getIK(IkSolver ikSolver,
-             const Eigen::Quaterniond& quaternion,
-             const Eigen::Vector3d& position,
-             std::vector<double>& jointPos,
-             const KDL::JntArray& nominal);
+  using IRoboticArmBase::getIK;
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.

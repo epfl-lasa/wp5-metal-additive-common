@@ -18,27 +18,3 @@
 using namespace std;
 
 RoboticArmCr7::RoboticArmCr7() : IRoboticArmBase(string("xMateCR7")) {}
-
-pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmCr7::getFK(IkSolver ikSolver, const vector<double>& jointPos) {
-  if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
-    return IRoboticArmBase::getTracFkSolution_(jointPos);
-  } else {
-    ROS_ERROR("Invalid forward kinematics solver type");
-  }
-
-  return make_pair(Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero());
-}
-
-bool RoboticArmCr7::getIK(IkSolver ikSolver,
-                          const Eigen::Quaterniond& quaternion,
-                          const Eigen::Vector3d& position,
-                          vector<double>& jointPos,
-                          const KDL::JntArray& nominal) {
-  if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
-    return IRoboticArmBase::getTracIkSolution_(quaternion, position, jointPos, nominal);
-  } else {
-    ROS_ERROR("Invalid inverse kinematics solver type");
-  }
-
-  return false;
-}

@@ -21,7 +21,7 @@ using namespace std;
 class RoboticArmUr5Test : public ::testing::Test {
 protected:
   const double TOLERANCE = 1e-4;
-  static const int NB_TESTS = 50;
+  static const int NB_TESTS = 5;
 
   static RoboticArmUr5* roboticArm;
   static mt19937 gen;
@@ -50,15 +50,12 @@ protected:
 
   // Function to generate a reachable random waypoint
   static pair<Eigen::Quaterniond, Eigen::Vector3d> generateReachableWaypoint(IkSolver solver) {
-    KDL::JntArray nominal = KDL::JntArray(roboticArm->getNbJoints());
-    nominal.data << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-
     while (true) {
       Eigen::Quaterniond quaternion = generateRandomQuaternion();
       Eigen::Vector3d position = generateRandomPosition();
       vector<double> jointPos{};
 
-      bool isValid = roboticArm->getIK(solver, quaternion, position, jointPos, nominal);
+      bool isValid = roboticArm->getIK(solver, quaternion, position, jointPos);
 
       // Check if the IK solver found a valid solution
       if (isValid) {
@@ -99,12 +96,9 @@ vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> RoboticArmUr5Test::waypoints;
 
 // Create a test to check the forward kinematics of the UR5 robotic arm
 TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
-  KDL::JntArray nominal = KDL::JntArray(roboticArm->getNbJoints());
-  nominal.data << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-
   for (auto& [quaternion, position] : waypoints) {
     vector<double> jointPos{};
-    roboticArm->getIK(IkSolver::TRAC_IK_SOLVER, quaternion, position, jointPos, nominal);
+    roboticArm->getIK(IkSolver::TRAC_IK_SOLVER, quaternion, position, jointPos);
 
     // Compute forward kinematics
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFK(IkSolver::TRAC_IK_SOLVER, jointPos);

@@ -72,8 +72,7 @@ public:
    * @param ikSolver Type of inverse kinematics solver to use.
    * @param jointPos Joint positions of the robotic arm.
    */
-  virtual std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver,
-                                                               const std::vector<double>& jointPos) = 0;
+  virtual std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, const std::vector<double>& jointPos);
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.
@@ -81,13 +80,14 @@ public:
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
    * @param jointPos Joint positions of the robotic arm.
+   * @param nominal (Optional) Nominal joint positions.
    * @return Pair of the return code and the next joint positions.
    */
-  virtual bool getIK(IkSolver ikSolver,
-                     const Eigen::Quaterniond& quaternion,
-                     const Eigen::Vector3d& position,
-                     std::vector<double>& jointPos,
-                     const KDL::JntArray& nominal = KDL::JntArray(NB_JOINTS_)) = 0;
+  bool getIK(IkSolver ikSolver,
+             const Eigen::Quaterniond& quaternion,
+             const Eigen::Vector3d& position,
+             std::vector<double>& jointPos,
+             const KDL::JntArray& nominal = KDL::JntArray(NB_JOINTS_));
 
   /**
    * @brief Print the information for this robotic arm.

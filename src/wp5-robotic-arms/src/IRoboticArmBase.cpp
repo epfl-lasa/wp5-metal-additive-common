@@ -62,6 +62,30 @@ IRoboticArmBase::~IRoboticArmBase() {
   delete fkSolver_;
 }
 
+pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFK(IkSolver ikSolver, const vector<double>& jointPos) {
+  if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
+    return getTracFkSolution_(jointPos);
+  } else {
+    ROS_ERROR("Invalid forward kinematics solver type");
+  }
+
+  return make_pair(Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero());
+}
+
+bool IRoboticArmBase::getIK(IkSolver ikSolver,
+                            const Eigen::Quaterniond& quaternion,
+                            const Eigen::Vector3d& position,
+                            vector<double>& jointPos,
+                            const KDL::JntArray& nominal) {
+  if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
+    return getTracIkSolution_(quaternion, position, jointPos, nominal);
+  } else {
+    ROS_ERROR("Invalid inverse kinematics solver type");
+  }
+
+  return false;
+}
+
 void IRoboticArmBase::printInfo() {
   cout << "Robot name: " << robotName_ << endl;
   cout << "URDF Path: " << pathUrdf_ << endl;
@@ -80,18 +104,6 @@ void IRoboticArmBase::printInfo() {
     cout << joint << " ";
   }
   cout << endl;
-}
-
-void IRoboticArmBase::initializeTracIkSolver_() {
-  tracIkSolver_ = new TRAC_IK::TRAC_IK(chainStart_, chainEnd_, pathUrdf_, timeout_, epsilon_, solverType_);
-
-  if (!tracIkSolver_->getKDLChain(chain_)) {
-    ROS_ERROR("There was no valid KDL chain found");
-    return;
-  }
-
-  // Set up KDL IK
-  fkSolver_ = new KDL::ChainFkSolverPos_recursive(chain_); // Forward kinematics solver
 }
 
 pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getTracFkSolution_(const vector<double>& jointPos) {
@@ -130,4 +142,16 @@ bool IRoboticArmBase::getTracIkSolution_(const Eigen::Quaterniond& quaternion,
   jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
 
   return isValid >= 0;
+}
+
+void IRoboticArmBase::initializeTracIkSolver_() {
+  tracIkSolver_ = new TRAC_IK::TRAC_IK(chainStart_, chainEnd_, pathUrdf_, timeout_, epsilon_, solverType_);
+
+  if (!tracIkSolver_->getKDLChain(chain_)) {
+    ROS_ERROR("There was no valid KDL chain found");
+    return;
+  }
+
+  // Set up KDL IK
+  fkSolver_ = new KDL::ChainFkSolverPos_recursive(chain_); // Forward kinematics solver
 }
