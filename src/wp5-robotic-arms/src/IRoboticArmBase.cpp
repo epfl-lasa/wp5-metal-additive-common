@@ -4,13 +4,14 @@
  * @author Tristan Bonato (tristan_bonato@hotmail.com)
  * @brief
  * @version 0.1
- * @date 2024-03-07
+ * @date 2024-09-09
  *
  * @copyright Copyright (c) 2024 - EPFL
  *
  */
 #include "IRoboticArmBase.h"
 
+#include <ros/ros.h>
 #include <yaml-cpp/yaml.h>
 
 #include <fstream>
@@ -18,8 +19,13 @@
 
 using namespace std;
 
-IRoboticArmBase::IRoboticArmBase(string robotName) : robotName_(robotName) {
+IRoboticArmBase::IRoboticArmBase(string robotName, string customYamlPath) : robotName_(robotName) {
   string yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/../../config/arm_robot_config.yaml";
+
+  if (!customYamlPath.empty()) {
+    yamlPath = customYamlPath;
+    cout << "Using custom YAML file: " << yamlPath << endl;
+  }
 
   ifstream originalFile(yamlPath);
   if (originalFile.good()) {
@@ -32,12 +38,23 @@ IRoboticArmBase::IRoboticArmBase(string robotName) : robotName_(robotName) {
   // Load parameters from YAML file
   YAML::Node robotConfig = YAML::LoadFile(yamlPath)[robotName_];
 
+  chainStart_ = robotConfig["chain_start"].as<string>();
+  chainEnd_ = robotConfig["chain_end"].as<string>();
+
   pathUrdf_ = robotConfig["path_urdf"].as<string>();
   jointNames_ = robotConfig["joint_names"].as<vector<string>>();
   originalHomeJoint_ = robotConfig["original_home_joint"].as<vector<double>>();
   referenceFrame_ = robotConfig["reference_frame"].as<string>();
 
   nJoint_ = jointNames_.size();
+
+  // Initialize Trac-IK solver
+  initializeTracIkSolver_();
+}
+
+IRoboticArmBase::~IRoboticArmBase() {
+  delete tracIkSolver_;
+  delete fkSolver_;
 }
 
 void IRoboticArmBase::printInfo() {
@@ -60,80 +77,62 @@ void IRoboticArmBase::printInfo() {
   cout << endl;
 }
 
-// function for the inverse kinematic  ------------------------------------------------------------------------
+void IRoboticArmBase::initializeTracIkSolver_() {
+  tracIkSolver_ = new TRAC_IK::TRAC_IK(chainStart_, chainEnd_, pathUrdf_, timeout_, epsilon_, solverType_);
 
-// pair<int, vector<double>> IRoboticArmBase::getIK(vector<double> actualJoint, vector<double> vectorQuatPos ) {
+  if (!tracIkSolver_->getKDLChain(chain_)) {
+    ROS_ERROR("There was no valid KDL chain found");
+    return;
+  }
 
-//   //Inverse kinematics trac-IK
-//   KDL::JntArray NextJointTask;
-//   KDL::JntArray actualJointTask;
+  if (!tracIkSolver_->getKDLLimits(ll_, ul_)) {
+    ROS_ERROR("There were no valid KDL joint limits found");
+    return;
+  }
 
-//   VectorXd pos_joint_actual_eigen(nJoint_);
-//   for(int i = 0 ;i<nJoint;++i){
-//       pos_joint_actual_eigen(i) =actualJoint[i];
-//   }
-//   actualJointTask.data = pos_joint_actual_eigen;
+  assert(chain_.getNrOfJoints() == ll_.data.size());
+  assert(chain_.getNrOfJoints() == ul_.data.size());
 
-//   KDL::Vector Vec(vectorQuatPos[4],vectorQuatPos[5],vectorQuatPos[6]);
+  ROS_INFO("Using %d joints", chain_.getNrOfJoints());
 
-//   Quaterniond q(vectorQuatPos[3],vectorQuatPos[0],vectorQuatPos[1],vectorQuatPos[2]);
-//   q.normalize();
-//   KDL::Rotation Rot = KDL::Rotation::Quaternion(q.x(),q.y(),q.z(),q.w());
-//   KDL::Frame NextJointCartesian(Rot,Vec);
-//   rc = ikSolver->CartToJnt(actualJointTask, NextJointCartesian, NextJointTask);
-//   if (rc< 0){
-//       cout<<"no inverse kinematic found"<<endl;
-//   }
+  // Set up KDL IK
+  fkSolver_ = new KDL::ChainFkSolverPos_recursive(chain_); // Forward kinematics solver
+}
 
-//   VectorXd posJointNextEigen = NextJointTask.data;
-//   vector<double> posJointNext ;
-//   for(int i = 0 ;i<nJoint;++i){
-//       posJointNext[i] =posJointNextEigen(i);
-//       }
-//   //msgP.data = posJointNext;
+pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getTracFkSolution_(const vector<double>& jointPos) {
+  KDL::JntArray joint_array(chain_.getNrOfJoints());
+  for (size_t i = 0; i < jointPos.size(); ++i) {
+    joint_array(i) = jointPos[i];
+  }
 
-//   //actualJointTask.data.clear();
-//   pair<int, vector<double>> myPair = make_pair(rc, posJointNext);
+  // Perform forward kinematics
+  KDL::Frame cartesian_pose;
+  if (fkSolver_->JntToCart(joint_array, cartesian_pose) < 0) {
+    throw runtime_error("Failed to compute forward kinematics");
+  }
 
-//   return myPair;
-// }
+  // Extract position and orientation
+  Eigen::Vector3d posVector(cartesian_pose.p.data);
+  Eigen::Quaterniond quaternion;
+  cartesian_pose.M.GetQuaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 
-// void IRoboticArmBase::updateIK(double err ,double timeoutInSecs, string solveTypeStr ){
-//   // Convert the solve type string to the corresponding enum value
-//   TRAC_IK::SolveType solveType;
-//   if (solveTypeStr == "Distance") {
-//       solveType = TRAC_IK::Distance;
-//   } else if (solveTypeStr == "Speed") {
-//       solveType = TRAC_IK::Speed;
-//   } else {
-//       cout<< "Handle unrecognized solve types: set Distance as default value" << endl;
-//       solveType = TRAC_IK::Distance;
-//   }
-//   ikSolver= new TRAC_IK::TRAC_IK(baseLink_, tipLink_,paramURDF_, timeoutInSecs, err, solveType);
-// }
+  return make_pair(move(quaternion), move(posVector));
+}
 
-// void IRoboticArmBase::initIK(){
-//   YAML::Node config = YAML::LoadFile("/../config/config.yaml");
-//   // Get the solve type from the YAML file
-//   string solveTypeStr = config["IK/solve_type"].as<string>();
+vector<double> IRoboticArmBase::getTracIkSolution_(const Eigen::Quaterniond& quaternion,
+                                                   const Eigen::Vector3d& position) {
+  // Initialize computing materials
+  KDL::JntArray result;
+  KDL::Frame endEffectorPose;
+  KDL::JntArray nominal(nJoint_);
+  nominal.data.setZero();
 
-//   // Convert the solve type string to the corresponding enum value
-//   TRAC_IK::SolveType solveType;
-//   if (solveTypeStr == "Distance") {
-//       solveType = TRAC_IK::Distance;
-//   } else if (solveTypeStr == "Speed") {
-//       solveType = TRAC_IK::Speed;
-//   } else {
-//       cout<< "Handle unrecognized solve types: set Distance as default value" << endl;
-//       solveType = TRAC_IK::Distance;
-//   }
-//   error = config["IK/error"].as<double>();
-//   timeoutInSecs = config["IK/timeoutInSecs"].as<double>();
+  endEffectorPose.p = KDL::Vector(position.x(), position.y(), position.z());
+  endEffectorPose.M = KDL::Rotation::Quaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 
-//   ikSolver= new TRAC_IK::TRAC_IK(baseLink_, tipLink_,paramURDF_, timeoutInSecs, error, type);
+  // Compute IK
+  tracIkSolver_->CartToJnt(nominal, endEffectorPose, result);
+  vector<double> result_vector(result.data.data(), result.data.data() + result.data.size());
 
-//   valid = ikSolver->getKDLChain(chain);
-//   if (!valid) {
-//       cout << "There was no valid KDL chain found"<< endl;
-//   }
-// }
+  return move(result_vector);
+}

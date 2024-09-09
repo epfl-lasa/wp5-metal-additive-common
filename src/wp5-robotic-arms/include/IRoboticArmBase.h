@@ -4,15 +4,20 @@
  * @author Louis Munier (lmunier@protonmail.com)
  * @author Tristan Bonato (tristan_bonato@hotmail.com)
  * @version 0.1
- * @date 2024-03-07
+ * @date 2024-09-09
  * @copyright Copyright (c) 2024 - EPFL
  */
 
 #pragma once
 
 #include <Eigen/Dense>
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/chainiksolverpos_nr_jl.hpp>
+#include <kdl/frames.hpp>
+#include <kdl/jntarray.hpp>
 #include <memory>
 #include <string>
+#include <trac_ik/trac_ik.hpp>
 #include <variant>
 #include <vector>
 
@@ -32,12 +37,12 @@ public:
   /**
    * @brief Constructor for IRoboticArmBase.
    */
-  IRoboticArmBase(std::string robotName);
+  IRoboticArmBase(std::string robotName, std::string customYamlPath = "");
 
   /**
    * @brief Destructor for IRoboticArmBase.
    */
-  virtual ~IRoboticArmBase() = default;
+  ~IRoboticArmBase();
 
   /**
    * @brief Get the name of the robotic arm.
@@ -65,10 +70,10 @@ public:
   /**
    * @brief Get the forward kinematics of the robotic arm.
    * @param ikSolver Type of inverse kinematics solver to use.
-   * @param jointPositions Joint positions of the robotic arm.
+   * @param jointPos Joint positions of the robotic arm.
    */
   virtual std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver,
-                                                               const std::vector<double>& joint_pos) = 0;
+                                                               const std::vector<double>& jointPos) = 0;
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.
@@ -86,9 +91,11 @@ public:
   void printInfo();
 
 protected:
-  /**
-   * @brief Initialization function for inverse kinematics.
-   */
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getTracFkSolution_(const std::vector<double>& jointPos);
+  std::vector<double> getTracIkSolution_(const Eigen::Quaterniond& quaternion, const Eigen::Vector3d& position);
+
+private:
+  // Attributes
   int nJoint_ = 0;
   std::string robotName_ = "";
   std::vector<std::string> jointNames_ = {""};
@@ -98,4 +105,17 @@ protected:
   std::string pathUrdf_ = "";
   std::string referenceFrame_ = "";
   std::vector<double> originalHomeJoint_ = {};
+
+  // TRAC-IK solver parameters
+  double epsilon_ = 1e-5;                             ///< Epsilon for the IK solver
+  double timeout_ = 0.01;                             ///< Timeout for the IK solver
+  TRAC_IK::SolveType solverType_ = TRAC_IK::Distance; ///< Solve type for the IK solver
+
+  TRAC_IK::TRAC_IK* tracIkSolver_ = nullptr;            ///< TRAC-IK solver
+  KDL::ChainFkSolverPos_recursive* fkSolver_ = nullptr; ///< FK solver
+  KDL::Chain chain_;                                    ///< KDL chain
+  KDL::JntArray ll_, ul_;                               ///< lower joint limits, upper joint limits
+
+  // Methods
+  void initializeTracIkSolver_();
 };

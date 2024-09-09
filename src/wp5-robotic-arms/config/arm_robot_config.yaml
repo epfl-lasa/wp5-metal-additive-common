@@ -9,5 +9,7 @@ ur5_robot:
   - "wrist_3_joint"
   original_home_joint: [0.0, -1.5708, 0.0, -1.5708, 0.0, 0.0]
   reference_frame: "base_link_inertia"
+  chain_start: "base_link_inertia"
+  chain_end: "virtual_link"
   tip_link: "tool0"
 

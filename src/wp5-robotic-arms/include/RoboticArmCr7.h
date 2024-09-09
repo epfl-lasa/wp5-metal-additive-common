@@ -23,15 +23,14 @@
  */
 class RoboticArmCr7 : public IRoboticArmBase {
 public:
-  // TODO: implement all the public members, accessible from everyone owning a class object
   explicit RoboticArmCr7();
 
   /**
    * @brief Get the forward kinematics of the robotic arm.
    * @param ikSolver Type of inverse kinematics solver to use.
-   * @param jointPositions Joint positions of the robotic arm.
+   * @param jointPos Joint positions of the robotic arm.
    */
-  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, const std::vector<double>& jointPositions);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, const std::vector<double>& jointPos);
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.
@@ -43,10 +42,4 @@ public:
   std::variant<std::vector<double>, std::vector<std::vector<double>>> getIK(IkSolver ikSolver,
                                                                             const Eigen::Quaterniond& quaternion,
                                                                             const Eigen::Vector3d& position);
-
-protected:
-  // TODO: implement all the protected members, accessible from its own and herited classes
-
-private:
-  // TODO: implement all the private members, only accessible from its own class
 };
