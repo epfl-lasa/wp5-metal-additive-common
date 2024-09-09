@@ -1,0 +1,28 @@
+# Add obstacles like the following examples:
+# obstacles:
+#   - name: obstacle1
+#     type: box
+#     size: [0.1, 0.1, 0.1] # [m]
+#     pose: [0.5, 0.5, 0.5, 0, 0, 0] # World space [xyz, xyzw] in [m, rad]
+#   - name: obstacle2
+#     type: sphere
+#     radius: 0.1 # [m]
+#     pose: [0.5, 0.5, 0.5, 0, 0, 0] # World space [xyz, xyzw] in [m, rad]
+#   - name: obstacle3
+#     type: cylinder
+#     radius: 0.1 # [m]
+#     height: 0.2 # [m]
+#     pose: [0.5, 0.5, 0.5, 0, 0, 0] # World space [xyz, xyzw] in [m, rad]
+#   - name: obstacle4
+#     type: mesh
+#     path: /home/ros/catkin_ws/src/anima_ros/laser_description/meshes/collision/laser_holder_collision.stl
+#     pose: [0.5, 0.5, 0.5, 0, 0, 0] # World space [xyz, xyzw] in [m, rad]
+obstacles:
+  - name: ridgeback_platform
+    type: box
+    size: [0.97, 0.77, 0.3] # [m]
+    pose: [-0.185, 0, -0.15, 0.0, 0.0, 0.0, 1.0] # World space [xyz, xyzw] in [m, rad]
+  - name: ridgeback_arch
+    type: box
+    size: [0.15, 0.55, 0.85] # [m]
+    pose: [-0.62, 0.0, 0.425, 0.0, 0.0, 0.0, 1.0] # World space [xyz, xyzw] in [m, rad]

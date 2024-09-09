@@ -45,4 +45,5 @@ private:
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> move_group_ = nullptr; ///< MoveGroup interface
 
   void initMoveit_();
+  void addStaticObstacles_();
 };
