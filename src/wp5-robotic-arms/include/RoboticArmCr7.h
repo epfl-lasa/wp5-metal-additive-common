@@ -31,7 +31,7 @@ public:
    * @param ikSolver Type of inverse kinematics solver to use.
    * @param jointPositions Joint positions of the robotic arm.
    */
-  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, std::vector<double> jointPositions);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, const std::vector<double>& jointPositions);
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.
@@ -41,8 +41,8 @@ public:
    * @return Pair of the return code and the next joint positions.
    */
   std::variant<std::vector<double>, std::vector<std::vector<double>>> getIK(IkSolver ikSolver,
-                                                                            Eigen::Quaterniond quaternion,
-                                                                            Eigen::Vector3d position);
+                                                                            const Eigen::Quaterniond& quaternion,
+                                                                            const Eigen::Vector3d& position);
 
 protected:
   // TODO: implement all the protected members, accessible from its own and herited classes

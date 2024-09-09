@@ -3,7 +3,7 @@
  * @author Louis Munier (lmunier@protonmail.com)
  * @brief
  * @version 0.1
- * @date 2024-09-05
+ * @date 2024-09-09
  *
  * @copyright Copyright (c) 2024 - EPFL
  *
@@ -22,17 +22,12 @@ protected:
   const double TOLERANCE = 1e-5;
 
   RoboticArmUr5* roboticArm;
-  vector<double> seed = {};
   Eigen::Quaterniond quaternion = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0); // w, x, y, z
   Eigen::Vector3d position = Eigen::Vector3d(0.3, 0.209, 0.6);
 
   void SetUp() override {
     ros::NodeHandle nh;
     roboticArm = new RoboticArmUr5();
-
-    for (int i = 0; i < roboticArm->getNJoint(); i++) {
-      seed.push_back(0.0);
-    }
   }
 
   void TearDown() override { delete roboticArm; }
@@ -46,15 +41,7 @@ TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
   auto ikSolutions = get_if<vector<double>>(&ikResult);
   ASSERT_NE(ikSolutions, nullptr) << "Failed to extract vector<double> from variant";
 
-  // Print ikSolutions for debugging
-  cout << "Trac IK solutions: ";
-  for (const auto& sol : *ikSolutions) {
-    cout << sol << " ";
-  }
-  cout << endl;
-
   // Compute forward kinematics
-  cout << "Calling KDL getFK..." << endl;
   pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFK(IkSolver::TRAC_IK_SOLVER, *ikSolutions);
 
   // Check the position
@@ -74,36 +61,22 @@ TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
 
   // Use get_if to safely extract the type
   auto ikSolutions = get_if<vector<vector<double>>>(&ikResult);
-  ASSERT_NE(ikSolutions, nullptr) << "Failed to extract vector<double> from variant";
-
-  // Print ikSolutions for debugging
-  cout << "IK-Geo solutions:\n";
-  for (const auto& sol : *ikSolutions) {
-    for (const auto& joint : sol) {
-      cout << joint << " ";
-    }
-    cout << endl;
-  }
+  ASSERT_NE(ikSolutions, nullptr) << "Failed to extract vector<vector<double>> from variant";
 
   // Compute forward kinematics
-  cout << "Calling IK-Geo getFK..." << endl;
   for (const auto& sol : *ikSolutions) {
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFK(IkSolver::IK_GEO_SOLVER, sol);
 
     // Check the position
     for (int i = 0; i < 3; i++) {
-      cout << "Position: " << fkResult.second[i] << " " << position[i] << endl;
       EXPECT_NEAR(fkResult.second[i], position[i], TOLERANCE);
     }
-    cout << endl << endl;
 
     // Check the orientation
     Eigen::Vector4d quaternionCoeffs = fkResult.first.coeffs();
     for (int i = 0; i < 4; i++) {
-      cout << "Orientation: " << fkResult.first.coeffs()[i] << " " << quaternion.coeffs()[i] << endl;
       EXPECT_NEAR(quaternionCoeffs[i], quaternion.coeffs()[i], TOLERANCE);
     }
-    cout << endl << endl;
   }
 }
 
