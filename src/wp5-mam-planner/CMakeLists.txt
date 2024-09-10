@@ -7,12 +7,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
 # Save the path during compilation to solve inclusion problems with linked files
-add_definitions("-DWP5_TASKS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
+add_definitions("-DWP5_MAM_PLANNER_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   moveit_core
+  moveit_ros_planning
   moveit_ros_planning_interface
+  moveit_ros_move_group
   wp5_ros_interface
   wp5_robotic_arms_drivers
 )
@@ -24,6 +26,10 @@ catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS
   roscpp
+  moveit_core
+  moveit_ros_planning
+  moveit_ros_planning_interface
+  moveit_ros_move_group
   wp5_ros_interface
   wp5_robotic_arms_drivers
   DEPENDS YAML_CPP

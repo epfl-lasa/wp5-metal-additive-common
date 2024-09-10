@@ -6,9 +6,13 @@
  */
 #include "MAMPlanner.h"
 
+#include <geometric_shapes/mesh_operations.h>
+#include <geometric_shapes/shape_operations.h>
+#include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <shape_msgs/Mesh.h>
+#include <shape_msgs/SolidPrimitive.h>
 #include <std_msgs/Bool.h>
-#include <yaml-cpp/yaml.h>
 
 using namespace std;
 
@@ -20,8 +24,8 @@ MAMPlanner::MAMPlanner() : spinner_(1) {
     robot_->printInfo();
     initMoveit_();
 
-    pub_welding_state_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
-    pub_display_trajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/display_planned_path", 20);
+    pubWeldingState_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
+    pubDisplayTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/display_planned_path", 20);
 
     // Add obstacles
     addStaticObstacles_();
@@ -57,13 +61,13 @@ void MAMPlanner::initMoveit_() {
   string robot_base = "base_link_inertia";
 
   scene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
-  move_group_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robot_group);
-  move_group_->setPoseReferenceFrame(robot_base);
-  move_group_->setPlannerId("RRTConnectkConfigDefault");
-  move_group_->setPlanningTime(5.0);
-  move_group_->setNumPlanningAttempts(10);
-  move_group_->setGoalPositionTolerance(0.005);
-  move_group_->setGoalOrientationTolerance(0.01);
+  moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robot_group);
+  moveGroup_->setPoseReferenceFrame(robot_base);
+  moveGroup_->setPlannerId("RRTConnectkConfigDefault");
+  moveGroup_->setPlanningTime(5.0);
+  moveGroup_->setNumPlanningAttempts(10);
+  moveGroup_->setGoalPositionTolerance(0.005);
+  moveGroup_->setGoalOrientationTolerance(0.01);
 
   spinner_.start();
 
@@ -71,73 +75,136 @@ void MAMPlanner::initMoveit_() {
   ros::Duration(1.0).sleep();
 }
 
+geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
+  if (pose.size() != 6 && pose.size() != 7) {
+    ROS_ERROR("Invalid pose size it should be 6 or 7.");
+    return geometry_msgs::Pose();
+  }
+
+  geometry_msgs::Pose newPose;
+  newPose.position.x = pose[0];
+  newPose.position.y = pose[1];
+  newPose.position.z = pose[2];
+
+  if (pose.size() == 6) {
+    Eigen::Quaternionf q;
+    q = Eigen::AngleAxisf(pose[3], Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(pose[4], Eigen::Vector3f::UnitY())
+        * Eigen::AngleAxisf(pose[5], Eigen::Vector3f::UnitZ());
+
+    newPose.orientation.x = q.x();
+    newPose.orientation.y = q.y();
+    newPose.orientation.z = q.z();
+    newPose.orientation.w = q.w();
+  } else if (pose.size() == 7) {
+    newPose.orientation.x = pose[3];
+    newPose.orientation.y = pose[4];
+    newPose.orientation.z = pose[5];
+    newPose.orientation.w = pose[6];
+  }
+
+  return newPose;
+}
+
 void MAMPlanner::addStaticObstacles_() {
-  vector<moveit_msgs::CollisionObject> collision_objects;
-  moveit_msgs::CollisionObject collision_object;
-  collision_object.header.frame_id = move_group_.getPlanningFrame();
+  string name{}, type{};
+
+  moveit_msgs::CollisionObject collisionObject;
+  vector<moveit_msgs::CollisionObject> collisionObjects;
+  collisionObject.header.frame_id = moveGroup_->getPlanningFrame();
 
   // Get obstacles from the config file
-  YAML::Node config = YAML::LoadFile("config/obstacles.yaml");
+  string yamlPath = string(WP5_MAM_PLANNER_DIR) + "/config/obstacles.yaml";
+  YAML::Node config = YAML::LoadFile(yamlPath);
   vector<YAML::Node> obstacles = config["obstacles"].as<vector<YAML::Node>>();
 
   for (const auto& obstacle : obstacles) {
-    string name = obstacle["name"].as<string>();
-    string type = obstacle["type"].as<string>();
-    geometry_msgs::PoseStamped new_obstacle;
+    name = obstacle["name"].as<string>();
+    type = obstacle["type"].as<string>();
+    geometry_msgs::PoseStamped newObstacle;
 
-    new_obstacle.header.frame_id = collision_object.header.frame_id;
-    new_obstacle.pose = generatePose_(obstacle["pose"].as<vector<double>>());
-    collision_object.id = name;
+    newObstacle.header.frame_id = collisionObject.header.frame_id;
+    newObstacle.pose = generatePose_(obstacle["pose"].as<vector<double>>());
 
+    // Create the collision object
     if (type == "box") {
-      ROS_INFO("Adding box %s...", name);
-      shape_msgs::SolidPrimitive primitive;
-      primitive.type = primitive.BOX;
+      vector<double> size = obstacle["size"].as<vector<double>>();
 
-      primitive.dimensions.resize(3);
-      primitive.dimensions = {obstacle["dimensions"][0].as<double>(),
-                              obstacle["dimensions"][1].as<double>(),
-                              obstacle["dimensions"][2].as<double>()};
-
-      collision_object.primitives.push_back(primitive);
-      collision_object.primitive_poses.push_back(new_obstacle.pose);
+      collisionObject.primitives.push_back(createBox_(name, size));
     } else if (type == "cylinder") {
-      ROS_INFO("Adding cylinder %s...", name);
-      shape_msgs::SolidPrimitive primitive;
-      primitive.type = primitive.CYLINDER;
+      double height = obstacle["height"].as<double>();
+      double radius = obstacle["radius"].as<double>();
 
-      primitive.dimensions.resize(2);
-      primitive.dimensions = {obstacle["height"].as<double>(), obstacle["radius"].as<double>()};
-
-      collision_object.primitives.push_back(primitive);
-      collision_object.primitive_poses.push_back(new_obstacle.pose);
+      collisionObject.primitives.push_back(createCylinder_(name, height, radius));
     } else if (type == "sphere") {
-      ROS_INFO("Adding sphere %s...", name);
-      shape_msgs::SolidPrimitive primitive;
-      primitive.type = primitive.SPHERE;
+      double radius = obstacle["radius"].as<double>();
 
-      primitive.dimensions.resize(1);
-      primitive.dimensions = {obstacle["radius"].as<double>()};
-
-      collision_object.primitives.push_back(primitive);
-      collision_object.primitive_poses.push_back(new_obstacle.pose);
+      collisionObject.primitives.push_back(createSphere_(name, radius));
     } else if (type == "mesh") {
-      ROS_INFO("Adding mesh %s...", name);
-      shapes::Mesh* m = shapes::createMeshFromResource(obstacle["path"].as<string>());
+      string meshPath = obstacle["mesh_path"].as<string>();
 
-      shape_msgs::Mesh mesh;
-      shapes::ShapeMsg mesh_msg;
-      shapes::constructMsgFromShape(m, mesh_msg);
-      mesh = boost::get<shape_msgs::Mesh>(mesh_msg);
-
-      collision_object.meshes.push_back(mesh);
-      collision_object.mesh_poses.push_back(new_obstacle.pose);
+      collisionObject.meshes.push_back(createMesh_(name, meshPath));
     } else {
       ROS_ERROR("No such obstacle type.");
+      continue;
     }
 
-    collision_objects.push_back(collision_object);
+    // Add the obstacle to the scene
+    if (type == "mesh") {
+      collisionObject.mesh_poses.push_back(newObstacle.pose);
+    } else {
+      collisionObject.primitive_poses.push_back(newObstacle.pose);
+    }
+
+    collisionObject.id = name;
+    collisionObjects.push_back(collisionObject);
   }
 
-  planning_scene_interface_.applyCollisionObjects(collision_objects);
+  scene_->applyCollisionObjects(collisionObjects);
+}
+
+shape_msgs::SolidPrimitive MAMPlanner::MAMPlanner::createBox_(const string name, const vector<double>& size) const {
+  ROS_INFO("Adding box %s...", name.c_str());
+  shape_msgs::SolidPrimitive primitive;
+  primitive.type = primitive.BOX;
+
+  primitive.dimensions.resize(3);
+  primitive.dimensions = size;
+
+  return move(primitive);
+}
+
+shape_msgs::SolidPrimitive MAMPlanner::createCylinder_(const string name,
+                                                       const double height,
+                                                       const double radius) const {
+  ROS_INFO("Adding cylinder %s...", name.c_str());
+  shape_msgs::SolidPrimitive primitive;
+  primitive.type = primitive.CYLINDER;
+
+  primitive.dimensions.resize(2);
+  primitive.dimensions = {height, radius};
+
+  return move(primitive);
+}
+
+shape_msgs::SolidPrimitive MAMPlanner::createSphere_(const string name, const double radius) const {
+  ROS_INFO("Adding sphere %s...", name.c_str());
+  shape_msgs::SolidPrimitive primitive;
+  primitive.type = primitive.SPHERE;
+
+  primitive.dimensions.resize(1);
+  primitive.dimensions = {radius};
+
+  return move(primitive);
+}
+
+shape_msgs::Mesh MAMPlanner::createMesh_(const string name, const string meshPath) const {
+  ROS_INFO("Adding mesh %s...", name.c_str());
+  shapes::Mesh* m = shapes::createMeshFromResource(meshPath);
+
+  shape_msgs::Mesh mesh;
+  shapes::ShapeMsg meshMsg;
+  shapes::constructMsgFromShape(m, meshMsg);
+  mesh = boost::get<shape_msgs::Mesh>(meshMsg);
+
+  return move(mesh);
 }
