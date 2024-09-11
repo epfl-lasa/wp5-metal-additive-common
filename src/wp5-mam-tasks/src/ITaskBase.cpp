@@ -9,15 +9,16 @@ using namespace Eigen;
 
 ITaskBase::ITaskBase(ros::NodeHandle& nh, double freq, string robotName) : nh_(nh), rosFreq_(freq), loopRate_(freq) {
   // Create an unique pointer for the instance of RosInterfaceNoetic
-  rosInterface_ = make_unique<RosInterfaceNoetic>(nh_, robotName);
+  rosInterface_ = make_unique<RosInterfaceNoetic>(robotName);
 
   // Create an unique pointer for the instance of RosInterfaceNoetic
   RoboticArmFactory armFactory = RoboticArmFactory();
-  roboticArm_ = armFactory.createRoboticArm(robotName);
+  roboticArm_ = armFactory.createRoboticArm(robotName, ROSVersion::ROS1_NOETIC);
 }
 
 bool ITaskBase::initialize() {
-  cout << "Initialize" << endl;
+  planner_ = make_unique<MAMPlanner>();
+
   return true;
 }
 

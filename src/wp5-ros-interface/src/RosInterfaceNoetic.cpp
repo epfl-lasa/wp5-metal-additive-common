@@ -22,12 +22,11 @@
 
 using namespace std;
 
-RosInterfaceNoetic::RosInterfaceNoetic(ros::NodeHandle& n, string robotName) : nh_(n), robotName_(robotName) {
-  // Try to load parameters from YAML file
-  try {
+RosInterfaceNoetic::RosInterfaceNoetic(string robotName) : IRosInterfaceBase(ROSVersion::ROS1_NOETIC) {
+  nh_ = ros::NodeHandle();
 
+  try {
     // Load parameters from YAML file
-    string alternativeYamlPath = string(WP5_ROS_INTERFACE_DIR) + "/config/ros_interface_config.yaml";
     string yamlPath = string(WP5_ROS_INTERFACE_DIR) + "/../../config/ros_interface_config.yaml";
 
     // Check if the alternative YAML file exists
@@ -35,17 +34,15 @@ RosInterfaceNoetic::RosInterfaceNoetic(ros::NodeHandle& n, string robotName) : n
     if (originalFile.good()) {
       cout << "Using general YAML file: " << yamlPath << endl;
     } else {
-      yamlPath = alternativeYamlPath;
+      yamlPath = string(WP5_ROS_INTERFACE_DIR) + "/config/ros_interface_config.yaml";
       cout << "Using local YAML file: " << yamlPath << endl;
     }
 
     // Load parameters from YAML file
     YAML::Node config = YAML::LoadFile(yamlPath);
-    cout << "Loaded YAML file: " << yamlPath << endl;
-    cout << "Robot name: " << robotName_ << endl;
 
     // Print information about robotName_ field
-    YAML::Node robotNode = config[robotName_];
+    YAML::Node robotNode = config[robotName];
 
     // Attempt to access the "njoint" field within the robot
     nJoint_ = robotNode["number_joint"].as<int>();
@@ -77,13 +74,6 @@ RosInterfaceNoetic::RosInterfaceNoetic(ros::NodeHandle& n, string robotName) : n
     ROS_INFO("Waiting for ROS master to be connected...");
     ros::Duration(1.0).sleep(); // Sleep for 1 second before checking again
   }
-
-  // Wait for the callback to be called at least once
-  // while (!initJoint_) {
-  //   ROS_INFO("Waiting for the callback to be called...");
-  //   ros::Duration(1.0).sleep(); // Sleep for 1 second before checking again
-  //   ros::spinOnce();            // Ensure the callback is called
-  // }
 }
 
 void RosInterfaceNoetic::jointStateCallback(const sensor_msgs::JointState::ConstPtr& msg) {
@@ -125,43 +115,14 @@ void RosInterfaceNoetic::FTCallback(const geometry_msgs::WrenchStamped::ConstPtr
   }
 }
 
-tuple<vector<double>, vector<double>, vector<double>> RosInterfaceNoetic::receiveState() {
-  ros::spinOnce();
-
-  // Create a tuple and fill it with existing vectors
-  tuple<vector<double>, vector<double>, vector<double>> stateJoints =
-      make_tuple(jointsPosition_, jointsSpeed_, jointsTorque_);
-
-  return stateJoints;
-}
-
-vector<double> RosInterfaceNoetic::receiveWrench() {
-  ros::spinOnce();
-  return wrenchSensor_;
-}
-
-void RosInterfaceNoetic::sendState(vector<double>& data) {
-
+void RosInterfaceNoetic::setState(const vector<double>& data) {
   std_msgs::Float64MultiArray nextJointMsg;
   nextJointMsg.data = data;
   pubState_.publish(nextJointMsg);
 }
 
-// These functions aff for purpose to plot the speed easily
-
-void RosInterfaceNoetic::setDesiredDsTwist(vector<double>& data) {
-  std_msgs::Float64MultiArray nextTwistMsg;
-  nextTwistMsg.data = data;
-  pubStateDS_.publish(nextTwistMsg);
-}
-
-void RosInterfaceNoetic::setCartesianTwist(vector<double>& data) {
-  std_msgs::Float64MultiArray actualTwistMsg;
-  actualTwistMsg.data = data;
-  pubStateCartesianTwistEEF_.publish(actualTwistMsg);
-}
-
-void RosInterfaceNoetic::setCartesianPose(pair<Eigen::Quaterniond, Eigen::Vector3d> pairActualQuatPos) {
+void RosInterfaceNoetic::setCartesianPose(pair<Eigen::Quaterniond, Eigen::Vector3d> pairActualQuatPos,
+                                          string referenceFrame) {
   geometry_msgs::PoseStamped actualPoseMsg;
   // Populate the quaternion part
   actualPoseMsg.pose.orientation.x = pairActualQuatPos.first.x();
@@ -175,9 +136,24 @@ void RosInterfaceNoetic::setCartesianPose(pair<Eigen::Quaterniond, Eigen::Vector
   actualPoseMsg.pose.position.z = pairActualQuatPos.second.z();
 
   // Set the header information (optional)
-  actualPoseMsg.header.stamp = ros::Time::now(); // Set the current time as the timestamp
-  actualPoseMsg.header.frame_id = "base_link";   // Set the frame ID as needed
+  actualPoseMsg.header.stamp = ros::Time::now();  // Set the current time as the timestamp
+  actualPoseMsg.header.frame_id = referenceFrame; // Set the frame ID as needed
 
   // Publish the message
   pubStateCartesianPoseEEF_.publish(actualPoseMsg);
+}
+
+tuple<vector<double>, vector<double>, vector<double>> RosInterfaceNoetic::getState() const {
+  ros::spinOnce();
+
+  // Create a tuple and fill it with existing vectors
+  tuple<vector<double>, vector<double>, vector<double>> stateJoints =
+      make_tuple(jointsPosition_, jointsSpeed_, jointsTorque_);
+
+  return move(stateJoints);
+}
+
+const vector<double> RosInterfaceNoetic::getWrench() const {
+  ros::spinOnce();
+  return wrenchSensor_;
 }

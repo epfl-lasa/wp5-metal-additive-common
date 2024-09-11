@@ -32,7 +32,7 @@ protected:
 
   static void SetUpTestSuite() {
     ros::NodeHandle nh;
-    roboticArm = new RoboticArmUr5();
+    roboticArm = new RoboticArmUr5(ROSVersion::ROS1_NOETIC);
     generateWaypoints();
   }
 
@@ -47,6 +47,15 @@ protected:
 
   // Function to generate a random position vector
   static Eigen::Vector3d generateRandomPosition() { return Eigen::Vector3d(dis(gen), dis(gen), dis(gen)); }
+
+  // Function to generate a random vector of size n
+  static vector<double> generateRandomVector(int n) {
+    vector<double> vec(n);
+    for (int i = 0; i < n; ++i) {
+      vec[i] = dis(gen);
+    }
+    return vec;
+  }
 
   // Function to generate a reachable random waypoint
   static pair<Eigen::Quaterniond, Eigen::Vector3d> generateReachableWaypoint(IkSolver solver) {
@@ -129,6 +138,33 @@ TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
       arePositionsEquivalent(fkResult.second, position, TOLERANCE);
     }
   }
+}
+
+TEST_F(RoboticArmUr5Test, TestSwapJoints) {
+  // Generate fake input data to check swapJoints_ function
+  int nbJoints = roboticArm->getNbJoints();
+
+  vector<double> jointPosIn = generateRandomVector(nbJoints);
+  vector<double> jointVelIn = generateRandomVector(nbJoints);
+  vector<double> jointTorqueIn = generateRandomVector(nbJoints);
+  tuple<vector<double>, vector<double>, vector<double>> state{jointPosIn, jointVelIn, jointTorqueIn};
+
+  // Generate fake output data to check swapJoints_ function
+  vector<double> jointPosOut = jointPosIn;
+  vector<double> jointVelOut = jointVelIn;
+  vector<double> jointTorqueOut = jointTorqueIn;
+
+  // Swap the data 0 to 2 for both fake input and output data using different methods
+  swap(jointPosOut[0], jointPosOut[2]);
+  swap(jointVelOut[0], jointVelOut[2]);
+  swap(jointTorqueOut[0], jointTorqueOut[2]);
+
+  roboticArm->swapJoints_(state);
+
+  // Check if the joint positions are valid
+  EXPECT_EQ(jointPosOut, get<0>(state));
+  EXPECT_EQ(jointVelOut, get<1>(state));
+  EXPECT_EQ(jointTorqueOut, get<2>(state));
 }
 
 int main(int argc, char** argv) {

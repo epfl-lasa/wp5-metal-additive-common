@@ -31,7 +31,7 @@ include_directories(
 )
 
 # Create a library
-add_library(${PROJECT_NAME} STATIC
+add_library(${PROJECT_NAME}
   src/RosInterfaceNoetic.cpp
 )
 

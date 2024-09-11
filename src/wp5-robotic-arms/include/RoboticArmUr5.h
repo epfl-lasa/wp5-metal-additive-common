@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "IRoboticArmBase.h"
+#include "IRosInterfaceBase.h"
 #include "ik_geo.h"
 
 // clang-format off
@@ -50,7 +51,10 @@ constexpr double UR5_P_MATRIX[] = {
  */
 class RoboticArmUr5 : public IRoboticArmBase {
 public:
-  explicit RoboticArmUr5();
+  // Declare the test class as a friend to allow access to private members
+  friend class RoboticArmUr5Test_TestSwapJoints_Test;
+
+  explicit RoboticArmUr5(ROSVersion rosVersion, std::string customYamlPath = "");
   ~RoboticArmUr5();
 
   /**
@@ -77,6 +81,12 @@ public:
              const Eigen::Quaterniond& quaternion,
              const Eigen::Vector3d& position,
              std::vector<std::vector<double>>& jointPos);
+
+  /**
+   * @brief Get the current state of the robotic arm.
+   * @return Tuple containing joint positions, velocities, and torques.
+   */
+  std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> getState() override;
 
 private:
   // clang-format off
@@ -106,4 +116,6 @@ private:
   bool getIkGeoSolution_(const Eigen::Quaterniond& quaternion,
                          const Eigen::Vector3d& position,
                          std::vector<std::vector<double>>& jointPos);
+
+  void swapJoints_(std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>& currentRobotState);
 };

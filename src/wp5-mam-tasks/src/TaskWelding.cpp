@@ -8,11 +8,11 @@ TaskWelding::TaskWelding(ros::NodeHandle& nh, double freq, string robotName) : I
 }
 
 bool TaskWelding::computePath() {
-  cout << "computing path ..." << endl;
+  planner_->planTrajectory();
   return true;
 }
 
 bool TaskWelding::execute() {
-  cout << "preforming welding ..." << endl;
+  planner_->executeTrajectory();
   return true;
 }

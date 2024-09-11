@@ -21,6 +21,8 @@
 #include <variant>
 #include <vector>
 
+#include "IRosInterfaceBase.h"
+
 enum IkSolver : uint8_t {
   IK_GEO_SOLVER = 0,
   TRAC_IK_SOLVER,
@@ -37,7 +39,7 @@ public:
   /**
    * @brief Constructor for IRoboticArmBase.
    */
-  IRoboticArmBase(std::string robotName, std::string customYamlPath = "");
+  IRoboticArmBase(std::string robotName, ROSVersion rosVersion, std::string customYamlPath = "");
 
   /**
    * @brief Destructor for IRoboticArmBase.
@@ -90,11 +92,22 @@ public:
              const KDL::JntArray& nominal = KDL::JntArray(NB_JOINTS_));
 
   /**
+   * @brief Get the current state of the robotic arm.
+   * @return Tuple containing joint positions, velocities, and torques.
+   */
+  virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> getState();
+
+  /**
    * @brief Print the information for this robotic arm.
    */
   void printInfo();
 
 protected:
+  // Attributes
+  const ROSVersion rosVersion_ = ROSVersion::VERSION_UNDEFINED;
+  std::unique_ptr<IRosInterfaceBase> rosInterface_ = nullptr;
+
+  // Methods
   std::pair<Eigen::Quaterniond, Eigen::Vector3d> getTracFkSolution_(const std::vector<double>& jointPos);
   bool getTracIkSolution_(const Eigen::Quaterniond& quaternion,
                           const Eigen::Vector3d& position,

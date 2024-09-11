@@ -8,11 +8,11 @@ TaskCleaning::TaskCleaning(ros::NodeHandle& nh, double freq, string robotName) :
 }
 
 bool TaskCleaning::computePath() {
-  cout << "computing path ..." << endl;
+  planner_->planTrajectory();
   return true;
 }
 
 bool TaskCleaning::execute() {
-  cout << "preforming cleaning ..." << endl;
+  planner_->executeTrajectory();
   return true;
 }

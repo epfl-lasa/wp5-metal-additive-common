@@ -17,4 +17,5 @@
 
 using namespace std;
 
-RoboticArmCr7::RoboticArmCr7() : IRoboticArmBase(string("xMateCR7")) {}
+RoboticArmCr7::RoboticArmCr7(ROSVersion rosVersion, string customYamlPath) :
+    IRoboticArmBase(string("xMateCR7"), rosVersion, customYamlPath) {}

@@ -16,7 +16,8 @@
 
 using namespace std;
 
-RoboticArmUr5::RoboticArmUr5() : IRoboticArmBase(string("ur5_robot")) {
+RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string customYamlPath) :
+    IRoboticArmBase(string("ur5_robot"), rosVersion, customYamlPath) {
   robotGeoSolver_ = new ik_geo::Robot(ik_geo::Robot::three_parallel_two_intersecting(UR5_H_MATRIX, UR5_P_MATRIX));
 }
 
@@ -67,6 +68,13 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFkGeoSolution_(const
   return make_pair(move(quaternion), move(posVector));
 }
 
+tuple<vector<double>, vector<double>, vector<double>> RoboticArmUr5::getState() {
+  tuple<vector<double>, vector<double>, vector<double>> currentRobotState = rosInterface_->getState();
+  swapJoints_(currentRobotState);
+
+  return move(currentRobotState);
+}
+
 bool RoboticArmUr5::getIkGeoSolution_(const Eigen::Quaterniond& quaternion,
                                       const Eigen::Vector3d& position,
                                       vector<vector<double>>& jointPos) {
@@ -89,4 +97,14 @@ bool RoboticArmUr5::getIkGeoSolution_(const Eigen::Quaterniond& quaternion,
   });
 
   return true;
+}
+
+void RoboticArmUr5::swapJoints_(tuple<vector<double>, vector<double>, vector<double>>& currentRobotState) {
+  // Swap the data 0 to 2 for UR5
+  apply(
+      [](auto&... vecs) {
+        // Lambda body: Expand the tuple into a parameter pack and swap elements
+        (..., swap(vecs[0], vecs[2]));
+      },
+      currentRobotState);
 }

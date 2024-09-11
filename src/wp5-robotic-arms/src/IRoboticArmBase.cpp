@@ -17,12 +17,16 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <utility>
+
+#include "RosInterfaceNoetic.h"
 
 using namespace std;
 
 const int IRoboticArmBase::NB_JOINTS_ = 6; ///< Number of joints of the robotic arm
 
-IRoboticArmBase::IRoboticArmBase(string robotName, string customYamlPath) : robotName_(robotName) {
+IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, string customYamlPath) :
+    robotName_(robotName), rosVersion_(rosVersion) {
   string yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/../../config/arm_robot_config.yaml";
 
   if (!customYamlPath.empty()) {
@@ -51,6 +55,11 @@ IRoboticArmBase::IRoboticArmBase(string robotName, string customYamlPath) : robo
 
   if (getNbJoints() != jointNames_.size()) {
     throw runtime_error("Number of joints does not match the number of joint names");
+  }
+
+  // Initialize ROS interface
+  if (rosVersion_ == ROSVersion::ROS1_NOETIC) {
+    rosInterface_ = make_unique<RosInterfaceNoetic>(robotName_);
   }
 
   // Initialize Trac-IK solver
@@ -84,6 +93,12 @@ bool IRoboticArmBase::getIK(IkSolver ikSolver,
   }
 
   return false;
+}
+
+tuple<vector<double>, vector<double>, vector<double>> IRoboticArmBase::getState() {
+  tuple<vector<double>, vector<double>, vector<double>> currentRobotState = rosInterface_->getState();
+
+  return currentRobotState;
 }
 
 void IRoboticArmBase::printInfo() {

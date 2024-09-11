@@ -4,26 +4,40 @@
 #include <memory>
 
 #include "IRoboticArmBase.h"
+#include "IRosInterfaceBase.h"
 #include "RoboticArmCr7.h"
 #include "RoboticArmUr5.h"
 
 class RoboticArmFactory {
 public:
-  using FactoryFunction = std::function<std::unique_ptr<IRoboticArmBase>()>;
+  using FactoryFunction = std::function<std::unique_ptr<IRoboticArmBase>(ROSVersion rosVersion)>;
 
-  //TODO(lmunier) : Add compatibility with the other robotic arms
   RoboticArmFactory() {
-    registerRobotArm("ur5_robot", []() { return std::make_unique<RoboticArmUr5>(); });
-    registerRobotArm("xMateCR7", []() { return std::make_unique<RoboticArmCr7>(); });
+    registerRobotArm("ur5_robot", [](ROSVersion rosVersion) { return std::make_unique<RoboticArmUr5>(rosVersion); });
+    registerRobotArm("xMateCR7", [](ROSVersion rosVersion) { return std::make_unique<RoboticArmCr7>(rosVersion); });
   }
 
+  /**
+   * @brief Registers a robotic arm with its corresponding factory function.
+   *
+   * @param name The name of the robotic arm type.
+   * @param function The factory function that creates instances of the robotic arm type.
+   */
   void registerRobotArm(std::string name, FactoryFunction function) { factoryFunctionRegistry[name] = function; }
 
-  std::unique_ptr<IRoboticArmBase> createRoboticArm(std::string name) {
+  /**
+   * @brief Creates an instance of a robotic arm based on its name.
+   *
+   * @param name The name of the robotic arm type.
+   * @param rosVersion The ROS version to use.
+   * @return A unique pointer to the created robotic arm instance.
+   * @throws std::runtime_error if the specified robotic arm name is invalid.
+   */
+  std::unique_ptr<IRoboticArmBase> createRoboticArm(std::string name, ROSVersion rosVersion) {
     auto it = factoryFunctionRegistry.find(name);
 
     if (it != factoryFunctionRegistry.end()) {
-      return it->second();
+      return it->second(rosVersion);
     } else {
       throw std::runtime_error("Invalid name");
     }

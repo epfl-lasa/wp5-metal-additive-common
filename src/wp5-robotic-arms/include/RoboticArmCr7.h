@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "IRoboticArmBase.h"
+#include "IRosInterfaceBase.h"
 
 /**
  * @brief Child class to create all the prototype fonctions needed in the different robotic arms.
@@ -23,5 +24,5 @@
  */
 class RoboticArmCr7 : public IRoboticArmBase {
 public:
-  explicit RoboticArmCr7();
+  explicit RoboticArmCr7(ROSVersion rosVersion, std::string customYamlPath = "");
 };

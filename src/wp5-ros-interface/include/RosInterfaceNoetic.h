@@ -20,53 +20,43 @@
 #include <tuple>
 #include <vector>
 
+#include "IRosInterfaceBase.h"
+
 /**
  * @brief Class for ROS interface compatible with ROS Noetic
  */
-class RosInterfaceNoetic {
+class RosInterfaceNoetic : public IRosInterfaceBase {
 public:
   /**
    * @brief Constructor.
    * @param n Node handle for ROS.
    * @param robotName Name of the robot.
    */
-  explicit RosInterfaceNoetic(ros::NodeHandle& n, std::string robotName);
-
-  /**
-   * @brief Receives the state of the robot.
-   * @return Tuple containing joint positions, velocities, and torques.
-   */
-  std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> receiveState();
+  explicit RosInterfaceNoetic(std::string robotName);
 
   /**
    * @brief Sends the state of the robot.
    * @param data Vector containing the state data.
    */
-  void sendState(std::vector<double>& data);
-
-  /**
-   * @brief Sets the Cartesian twist of the end-effector.
-   * @param data Vector containing the twist data.
-   */
-  void setCartesianTwist(std::vector<double>& data);
-
-  /**
-   * @brief Sets the desired twist of the dynamical system.
-   * @param data Vector containing the twist data.
-   */
-  void setDesiredDsTwist(std::vector<double>& data);
+  void setState(const std::vector<double>& data);
 
   /**
    * @brief Sets the actual Pose of the end-effector.
    * @param data Vector containing the quaternion (x,y,z,w) and position (x,y,z) data.
    */
-  void setCartesianPose(std::pair<Eigen::Quaterniond, Eigen::Vector3d> pairActualQuatPos);
+  void setCartesianPose(std::pair<Eigen::Quaterniond, Eigen::Vector3d> pairActualQuatPos, std::string referenceFrame);
+
+  /**
+   * @brief Receives the state of the robot.
+   * @return Tuple containing joint positions, velocities, and torques.
+   */
+  std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> getState() const;
 
   /**
    * @brief Receives wrench data from force/torque sensor.
    * @return Vector containing wrench data.
    */
-  std::vector<double> receiveWrench();
+  const std::vector<double> getWrench() const;
 
 private:
   /**

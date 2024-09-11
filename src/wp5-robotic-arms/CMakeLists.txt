@@ -21,6 +21,7 @@ add_subdirectory(libs/ik-geo-cpp)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   trac_ik_lib
+  wp5_ros_interface
 )
 find_package(yaml-cpp REQUIRED)
 find_package(trac_ik_lib REQUIRED COMPONENTS)
@@ -30,7 +31,7 @@ find_package(Eigen3 REQUIRED)
 catkin_package(
   INCLUDE_DIRS include libs/ik-geo-cpp/include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp trac_ik_lib
+  CATKIN_DEPENDS roscpp trac_ik_lib wp5_ros_interface
   DEPENDS YAML_CPP EIGEN3 GTest
 )
 

@@ -20,7 +20,7 @@ using namespace std;
 
 MAMPlanner::MAMPlanner() : spinner_(1) {
   try {
-    robot_ = make_unique<RoboticArmUr5>();
+    robot_ = make_unique<RoboticArmUr5>(ROSVersion::ROS1_NOETIC);
     robot_->printInfo();
     initMoveit_();
 

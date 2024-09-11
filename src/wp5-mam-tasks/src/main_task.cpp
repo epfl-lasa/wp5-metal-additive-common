@@ -15,7 +15,6 @@
 #include "TaskWelding.h"
 
 using namespace std;
-using namespace Eigen;
 
 int main(int argc, char** argv) {
   bool valid = false;
@@ -27,13 +26,13 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh;
   ros::Rate loopRate(rosFreq);
 
-  std::string taskType;
+  string taskType;
   if (ros::param::get("~taskType", taskType)) {
-    std::vector<std::string> allowed_values = taskFactory.getTaskTypes();
+    vector<string> allowed_values = taskFactory.getTaskTypes();
 
-    if (std::find(allowed_values.begin(), allowed_values.end(), taskType) == allowed_values.end()) {
-      std::ostringstream oss;
-      std::copy(allowed_values.begin(), allowed_values.end() - 1, std::ostream_iterator<std::string>(oss, ", "));
+    if (find(allowed_values.begin(), allowed_values.end(), taskType) == allowed_values.end()) {
+      ostringstream oss;
+      copy(allowed_values.begin(), allowed_values.end() - 1, ostream_iterator<string>(oss, ", "));
       oss << allowed_values.back();
 
       ROS_ERROR("Invalid taskType: %s. Allowed values are %s.", taskType.c_str(), oss.str().c_str());
@@ -64,7 +63,7 @@ int main(int argc, char** argv) {
 
   // Create an unique pointer for the instance of TaskFSM
   ROS_INFO("Creating Task - %s", taskType.c_str());
-  std::shared_ptr<ITaskBase> task = taskFactory.createTask(taskType, nh, rosFreq, robotName);
+  shared_ptr<ITaskBase> task = taskFactory.createTask(taskType, nh, rosFreq, robotName);
 
   taskFsm_ internalFSM_(task);
 

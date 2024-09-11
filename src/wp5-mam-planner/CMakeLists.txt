@@ -24,6 +24,7 @@ find_package(yaml-cpp REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS
   roscpp
   moveit_core
@@ -43,12 +44,23 @@ include_directories(
   ${NLopt_INCLUDE_DIRS}
 )
 
-add_executable(wp5_mam_planner_node
+# Create a library
+add_library(${PROJECT_NAME}
+  src/MAMPlanner.cpp
+)
+
+# Set lib version
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+)
+
+# Add the main node
+add_executable(${PROJECT_NAME}_node
   src/main.cpp
   src/MAMPlanner.cpp
 )
 
-target_link_libraries(wp5_mam_planner_node
+target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${YAML_CPP_LIBRARIES}

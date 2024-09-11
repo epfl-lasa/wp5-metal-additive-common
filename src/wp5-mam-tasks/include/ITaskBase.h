@@ -12,6 +12,7 @@
 #include <memory>
 
 #include "IRoboticArmBase.h"
+#include "MAMPlanner.h"
 #include "RoboticArmUr5.h"
 #include "RosInterfaceNoetic.h"
 #include "visualization_msgs/Marker.h"
@@ -106,6 +107,7 @@ public:
   ros::Rate* getRosLoopRate_();
 
 protected:
+  std::unique_ptr<MAMPlanner> planner_ = nullptr; ///< Pointer to MAMPlanner instance.
   /**
    * @brief Gets the ROS frequency.
    * @return ROS frequency.
