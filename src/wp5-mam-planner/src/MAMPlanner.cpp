@@ -14,36 +14,31 @@
 #include <shape_msgs/SolidPrimitive.h>
 #include <std_msgs/Bool.h>
 
+#include "RoboticArmFactory.h"
+
 using namespace std;
 
 //TODO(lmunier): Implement the MAMPlanner class
 
-MAMPlanner::MAMPlanner() : spinner_(1) {
-  try {
-    robot_ = make_unique<RoboticArmUr5>(ROSVersion::ROS1_NOETIC);
-    robot_->printInfo();
-    initMoveit_();
+MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1) {
+  RoboticArmFactory armFactory = RoboticArmFactory();
+  robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
+  robot_->printInfo();
 
-    pubWeldingState_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
-    pubDisplayTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/display_planned_path", 20);
+  initMoveit_();
 
-    // Add obstacles
-    addStaticObstacles_();
+  pubWeldingState_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
+  pubDisplayTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/display_planned_path", 20);
 
-    // ikSolver_ = make_unique<TRAC_IK::TRAC_IK>(robot_base, virtual_target, "Distance", ros::Duration(0.01));
+  // Add obstacles
+  addStaticObstacles_();
 
-    // TODO: Implement tracIK solutions
-    // for each solution, start a thread and compute path planning
-    // if path planning not successful, reconfigure platform to a new position
-    // if path planning successful, execute the trajectory
+  // ikSolver_ = make_unique<TRAC_IK::TRAC_IK>(robot_base, virtual_target, "Distance", ros::Duration(0.01));
 
-  } catch (const ros::Exception& e) {
-    ROS_ERROR("ROS Exception: %s", e.what());
-  } catch (const exception& e) {
-    ROS_ERROR("Exception: %s", e.what());
-  } catch (...) {
-    ROS_ERROR("Unknown exception");
-  }
+  // TODO: Implement tracIK solutions
+  // for each solution, start a thread and compute path planning
+  // if path planning not successful, reconfigure platform to a new position
+  // if path planning successful, execute the trajectory
 }
 
 void MAMPlanner::planTrajectory() {

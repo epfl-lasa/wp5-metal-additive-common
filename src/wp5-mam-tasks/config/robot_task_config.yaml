@@ -6,5 +6,7 @@
 
 welding:
   robot_name: "ur5_robot"
+  ros_version: "noetic"
 cleaning:
   robot_name: "ur5_robot"
+  ros_version: "noetic"

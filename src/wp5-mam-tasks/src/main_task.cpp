@@ -27,24 +27,12 @@ int main(int argc, char** argv) {
   ros::Rate loopRate(rosFreq);
 
   string taskType;
-  if (ros::param::get("~taskType", taskType)) {
-    vector<string> allowed_values = taskFactory.getTaskTypes();
-
-    if (find(allowed_values.begin(), allowed_values.end(), taskType) == allowed_values.end()) {
-      ostringstream oss;
-      copy(allowed_values.begin(), allowed_values.end() - 1, ostream_iterator<string>(oss, ", "));
-      oss << allowed_values.back();
-
-      ROS_ERROR("Invalid taskType: %s. Allowed values are %s.", taskType.c_str(), oss.str().c_str());
-      return 1;
-    }
-  } else {
+  if (!ros::param::get("~taskType", taskType)) {
     ROS_ERROR("No taskType argument received");
     return 1;
   }
 
   // Load parameters from YAML file
-  string alternativeYamlPath = string(WP5_TASKS_DIR) + "/config/robot_task_config.yaml";
   string yamlPath = string(WP5_TASKS_DIR) + "/../../config/robot_task_config.yaml";
 
   // Check if the alternative YAML file exists
@@ -52,7 +40,7 @@ int main(int argc, char** argv) {
   if (originalFile.good()) {
     cout << "Using general YAML file: " << yamlPath << endl;
   } else {
-    yamlPath = alternativeYamlPath;
+    yamlPath = string(WP5_TASKS_DIR) + "/config/robot_task_config.yaml";
     cout << "Using local YAML file: " << yamlPath << endl;
   }
 
@@ -60,10 +48,12 @@ int main(int argc, char** argv) {
   YAML::Node config = YAML::LoadFile(yamlPath);
 
   string robotName = config[taskType]["robot_name"].as<string>();
+  string rosVersionName = config[taskType]["ros_version"].as<string>();
+  ROSVersion rosVersionEnum = IRosInterfaceBase::rosVersions.at(rosVersionName);
 
   // Create an unique pointer for the instance of TaskFSM
   ROS_INFO("Creating Task - %s", taskType.c_str());
-  shared_ptr<ITaskBase> task = taskFactory.createTask(taskType, nh, rosFreq, robotName);
+  shared_ptr<ITaskBase> task = taskFactory.createTask(taskType, nh, rosVersionEnum, rosFreq, robotName);
 
   taskFsm_ internalFSM_(task);
 

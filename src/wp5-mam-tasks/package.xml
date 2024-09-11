@@ -52,7 +52,6 @@
 
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
-  <depend>wp5_ros_interface</depend>
   <depend>wp5_mam_planner</depend>
   <depend>wp5_robotic_arms_drivers</depend>
 

@@ -26,7 +26,7 @@ public:
   /**
    * @brief Constructor.
    */
-  MAMPlanner();
+  MAMPlanner(ROSVersion rosVersion);
 
   /**
    * @brief Plans the trajectory of the robot.

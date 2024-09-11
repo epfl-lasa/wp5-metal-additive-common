@@ -6,12 +6,12 @@
 #include <string>
 
 #include "IRoboticArmBase.h"
+#include "IRosInterfaceBase.h"
 #include "ITaskBase.h"
-#include "RosInterfaceNoetic.h"
 
 class TaskWelding : public ITaskBase {
 public:
-  TaskWelding(ros::NodeHandle& n, double freq, std::string robotName);
+  TaskWelding(ros::NodeHandle& n, ROSVersion rosVersion, double freq, std::string robotName);
 
   bool computePath();
   bool execute();

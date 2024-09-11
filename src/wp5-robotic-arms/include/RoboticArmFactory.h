@@ -39,8 +39,31 @@ public:
     if (it != factoryFunctionRegistry.end()) {
       return it->second(rosVersion);
     } else {
-      throw std::runtime_error("Invalid name");
+      std::ostringstream errorMsg{}, oss{};
+
+      std::vector<std::string> allowedValues = getRoboticArmTypes();
+      std::copy(allowedValues.begin(), allowedValues.end() - 1, std::ostream_iterator<std::string>(oss, ", "));
+
+      oss << allowedValues.back();
+      errorMsg << "Invalid robotic arm type: " << name << ". Allowed values are " << oss.str() << ".";
+
+      throw std::runtime_error(errorMsg.str());
     }
+  }
+
+  /**
+   * @brief Retrieves the list of registered robotic arm types.
+   *
+   * @return A vector containing the names of the registered robotic arm types.
+   */
+  std::vector<std::string> getRoboticArmTypes() {
+    std::vector<std::string> keys;
+
+    for (const auto& pair : factoryFunctionRegistry) {
+      keys.push_back(pair.first);
+    }
+
+    return move(keys);
   }
 
 private:

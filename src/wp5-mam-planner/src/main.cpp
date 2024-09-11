@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "wp5_mam_planner_node");
 
   // Create an instance of MAMPlanner
-  MAMPlanner planner;
+  MAMPlanner planner(ROSVersion::ROS1_NOETIC);
 
   // Plan a trajectory
   planner.planTrajectory();

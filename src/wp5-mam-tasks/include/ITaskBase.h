@@ -12,9 +12,9 @@
 #include <memory>
 
 #include "IRoboticArmBase.h"
+#include "IRosInterfaceBase.h"
 #include "MAMPlanner.h"
 #include "RoboticArmUr5.h"
-#include "RosInterfaceNoetic.h"
 #include "visualization_msgs/Marker.h"
 
 /**
@@ -65,10 +65,11 @@ public:
   /**
    * @brief Constructor.
    * @param nh Node handle for ROS.
+   * @param rosVersion ROS version.
    * @param freq Frequency for ROS loop.
    * @param robotName Name of the robot.
    */
-  ITaskBase(ros::NodeHandle& nh, double freq, std::string robotName);
+  ITaskBase(ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName);
 
   /**
    * @brief Initializes the task.
@@ -108,58 +109,41 @@ public:
 
 protected:
   std::unique_ptr<MAMPlanner> planner_ = nullptr; ///< Pointer to MAMPlanner instance.
+
   /**
-   * @brief Gets the ROS frequency.
+   * @brief Get the ROS frequency.
    * @return ROS frequency.
    */
-  double getRosFrequency_() const;
+  double getRosFrequency_() const { return rosFreq_; }
 
   /**
-   * @brief Gets the ROS node handle.
+   * @brief Get the ROS node handle.
    * @return ROS node handle.
    */
-  ros::NodeHandle getRosNodehandle_() const;
+  ros::NodeHandle getRosNodehandle_() const { return nh_; }
 
   /**
-   * @brief Gets the home joint configuration.
+   * @brief Get the ROS version of the task.
+   * @return ROS version.
+   */
+  const ROSVersion getRosVersion_() const { return rosVersion_; }
+
+  /**
+   * @brief Get the home joint configuration.
    * @return Home joint configuration.
    */
-  std::vector<double> getHomeJoint_() const;
+  std::vector<double> getHomeJoint_() const { return homeJoint_; }
 
   /**
-   * @brief Sets the home joint configuration.
+   * @brief Set the home joint configuration.
    * @param desiredJoint Desired joint configuration.
    */
-  void setHomeJoint_(std::vector<double> desiredJoint);
-
-  /**
-   * @brief Pointer to IRoboticArmBase instance.
-   */
-  std::unique_ptr<IRoboticArmBase> roboticArm_ = nullptr;
-
-  /**
-   * @brief Pointer to RosInterfaceNoetic instance.
-   */
-  std::unique_ptr<RosInterfaceNoetic> rosInterface_ = nullptr;
+  void setHomeJoint_(std::vector<double> desiredJoint) { homeJoint_ = desiredJoint; }
 
 private:
-  /**
-   * @brief ROS node handle.
-   */
-  ros::NodeHandle nh_;
-
-  /**
-   * @brief ROS frequency.
-   */
-  double rosFreq_;
-
-  /**
-   * @brief Home joint configuration.
-   */
-  std::vector<double> homeJoint_;
-
-  /**
-   * @brief ROS loop rate.
-   */
-  ros::Rate loopRate_;
+  ros::NodeHandle nh_;            ///< ROS node handle.
+  const ROSVersion rosVersion_;   ///< ROS version.
+  double rosFreq_;                ///< ROS frequency.
+  std::vector<double> homeJoint_; ///< Home joint configuration.
+  ros::Rate loopRate_;            ///< ROS loop rate.
 };

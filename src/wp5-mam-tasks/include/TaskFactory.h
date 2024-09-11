@@ -4,6 +4,7 @@
 
 #include <ros/ros.h>
 
+#include <fstream>
 #include <functional>
 #include <map>
 #include <memory>
@@ -20,8 +21,8 @@
  */
 class TaskFactory {
 public:
-  using FactoryFunction =
-      std::function<std::unique_ptr<ITaskBase>(ros::NodeHandle& nh, double freq, std::string robotName)>;
+  using FactoryFunction = std::function<std::unique_ptr<ITaskBase>(
+      ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName)>;
 
   /**
    * @brief Constructs a TaskFactory object.
@@ -29,11 +30,11 @@ public:
    * The constructor initializes the factoryFunctionRegistry and registers the default task types.
    */
   TaskFactory() {
-    registerTask("welding", [](ros::NodeHandle& nh, double freq, std::string robotName) {
-      return std::make_unique<TaskWelding>(nh, freq, robotName);
+    registerTask("welding", [](ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName) {
+      return std::make_unique<TaskWelding>(nh, rosVersion, freq, robotName);
     });
-    registerTask("cleaning", [](ros::NodeHandle& nh, double freq, std::string robotName) {
-      return std::make_unique<TaskCleaning>(nh, freq, robotName);
+    registerTask("cleaning", [](ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName) {
+      return std::make_unique<TaskCleaning>(nh, rosVersion, freq, robotName);
     });
   }
 
@@ -50,18 +51,28 @@ public:
    *
    * @param name The name of the task type.
    * @param nh The ROS NodeHandle object.
+   * @param rosVersion The ROS version.
    * @param freq The frequency of the task.
    * @param robotName The name of the robot associated with the task.
    * @return A unique pointer to the created task instance.
    * @throws std::runtime_error if the specified task name is invalid.
    */
-  std::unique_ptr<ITaskBase> createTask(std::string name, ros::NodeHandle& nh, double freq, std::string robotName) {
+  std::unique_ptr<ITaskBase> createTask(
+      std::string name, ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName) {
     auto it = factoryFunctionRegistry.find(name);
 
     if (it != factoryFunctionRegistry.end()) {
-      return it->second(nh, freq, robotName);
+      return it->second(nh, rosVersion, freq, robotName);
     } else {
-      throw std::runtime_error("Invalid name");
+      std::ostringstream errorMsg{}, oss{};
+
+      std::vector<std::string> allowedValues = getTaskTypes();
+      std::copy(allowedValues.begin(), allowedValues.end() - 1, std::ostream_iterator<std::string>(oss, ", "));
+
+      oss << allowedValues.back();
+      errorMsg << "Invalid taskType: " << name << ". Allowed values are " << oss.str() << ".";
+
+      throw std::runtime_error(errorMsg.str());
     }
   }
 
@@ -77,7 +88,7 @@ public:
       keys.push_back(pair.first);
     }
 
-    return keys;
+    return move(keys);
   }
 
 private:

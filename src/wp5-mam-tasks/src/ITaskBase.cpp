@@ -5,32 +5,15 @@
 #include "RoboticArmFactory.h"
 
 using namespace std;
-using namespace Eigen;
 
-ITaskBase::ITaskBase(ros::NodeHandle& nh, double freq, string robotName) : nh_(nh), rosFreq_(freq), loopRate_(freq) {
-  // Create an unique pointer for the instance of RosInterfaceNoetic
-  rosInterface_ = make_unique<RosInterfaceNoetic>(robotName);
-
-  // Create an unique pointer for the instance of RosInterfaceNoetic
-  RoboticArmFactory armFactory = RoboticArmFactory();
-  roboticArm_ = armFactory.createRoboticArm(robotName, ROSVersion::ROS1_NOETIC);
-}
+ITaskBase::ITaskBase(ros::NodeHandle& nh, ROSVersion rosVersion, double freq, string robotName) :
+    nh_(nh), rosVersion_(rosVersion), rosFreq_(freq), loopRate_(freq) {}
 
 bool ITaskBase::initialize() {
-  planner_ = make_unique<MAMPlanner>();
+  planner_ = make_unique<MAMPlanner>(rosVersion_);
 
   return true;
 }
-
-double ITaskBase::getRosFrequency_() const { return rosFreq_; }
-
-ros::Rate* ITaskBase::getRosLoopRate_() { return &loopRate_; }
-
-ros::NodeHandle ITaskBase::getRosNodehandle_() const { return nh_; }
-
-vector<double> ITaskBase::getHomeJoint_() const { return homeJoint_; }
-
-void ITaskBase::setHomeJoint_(vector<double> desiredJoint) { homeJoint_ = desiredJoint; }
 
 bool ITaskBase::goHomingPosition() {
   cout << "Go Homing Position" << endl;

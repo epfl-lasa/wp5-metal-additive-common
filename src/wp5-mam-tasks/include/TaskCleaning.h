@@ -6,12 +6,12 @@
 #include <string>
 
 #include "IRoboticArmBase.h"
+#include "IRosInterfaceBase.h"
 #include "ITaskBase.h"
-#include "RosInterfaceNoetic.h"
 
 class TaskCleaning : public ITaskBase {
 public:
-  TaskCleaning(ros::NodeHandle& n, double freq, std::string robotName);
+  TaskCleaning(ros::NodeHandle& n, ROSVersion rosVersion, double freq, std::string robotName);
 
   bool computePath();
   bool execute();
