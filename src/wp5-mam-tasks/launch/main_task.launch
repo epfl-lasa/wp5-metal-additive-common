@@ -1,9 +1,11 @@
 <launch>
     <arg name="taskType" doc="Which task has to run : [welding, cleaning]" />
 
-    <node pkg="wp5_mam_tasks" type="wp5_mam_main_task_node" name="wp5_mam_main_task_node"
-        output="screen"
-        required="true">
-        <param name="taskType" value="$(arg taskType)" />
-    </node>
+    <group ns="ur5">
+        <node pkg="wp5_mam_tasks" type="wp5_mam_main_task_node" name="wp5_mam_main_task_node"
+            output="screen" required="true">
+            <param name="taskType" value="$(arg taskType)" />
+            <!-- <remap from="robot_description" to="/ur5/robot_description" /> -->
+        </node>
+    </group>
 </launch>

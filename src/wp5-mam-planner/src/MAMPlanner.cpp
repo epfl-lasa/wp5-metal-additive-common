@@ -20,7 +20,7 @@ using namespace std;
 
 //TODO(lmunier): Implement the MAMPlanner class
 
-MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1) {
+MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5") {
   RoboticArmFactory armFactory = RoboticArmFactory();
   robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
   robot_->printInfo();
@@ -55,8 +55,11 @@ void MAMPlanner::initMoveit_() {
   string robot_group = "manipulator";
   string robot_base = "base_link_inertia";
 
-  scene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
+  cout << "Initializing MoveGroupInterface..." << endl;
   moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robot_group);
+  scene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
+
+  cout << "MoveGroupInterface initialized" << endl;
   moveGroup_->setPoseReferenceFrame(robot_base);
   moveGroup_->setPlannerId("RRTConnectkConfigDefault");
   moveGroup_->setPlanningTime(5.0);

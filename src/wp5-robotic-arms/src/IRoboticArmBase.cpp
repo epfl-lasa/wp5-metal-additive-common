@@ -167,6 +167,6 @@ void IRoboticArmBase::initializeTracIkSolver_() {
     return;
   }
 
-  // Set up KDL IK
-  fkSolver_ = new KDL::ChainFkSolverPos_recursive(chain_); // Forward kinematics solver
+  // Forward kinematics solver
+  fkSolver_ = new KDL::ChainFkSolverPos_recursive(chain_);
 }
