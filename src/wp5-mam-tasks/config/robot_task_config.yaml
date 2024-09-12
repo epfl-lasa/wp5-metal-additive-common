@@ -1,12 +1,16 @@
 # Configuration to be used for the different tasks.
 # Possible robot_name to set, depending on the task :
-# - Ur5
-# - Cr7
-# Louis Munier : 2024-08-29
+# - ur5_robot
+# - xMateCR7
+# Louis Munier : 2024-09-12
 
 welding:
   robot_name: "ur5_robot"
   ros_version: "noetic"
+  ee_pos_offset: [0, 0, 0.05] # [m] x, y, z
+  ee_angle_offset: [-0.3491, 0, 0] # [rad] r, p, y
 cleaning:
   robot_name: "ur5_robot"
   ros_version: "noetic"
+  ee_pos_offset: [0, 0, 0.05] # [m] x, y, z
+  ee_angle_offset: [-0.3491, 0, 0] # [rad] r, p, y

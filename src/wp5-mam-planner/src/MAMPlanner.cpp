@@ -32,6 +32,7 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5") {
 
   // Add obstacles
   addStaticObstacles_();
+  getWaypoints_();
 
   // ikSolver_ = make_unique<TRAC_IK::TRAC_IK>(robot_base, virtual_target, "Distance", ros::Duration(0.01));
 
@@ -55,11 +56,9 @@ void MAMPlanner::initMoveit_() {
   string robot_group = "manipulator";
   string robot_base = "base_link_inertia";
 
-  cout << "Initializing MoveGroupInterface..." << endl;
   moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robot_group);
   scene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
 
-  cout << "MoveGroupInterface initialized" << endl;
   moveGroup_->setPoseReferenceFrame(robot_base);
   moveGroup_->setPlannerId("RRTConnectkConfigDefault");
   moveGroup_->setPlanningTime(5.0);
@@ -85,9 +84,7 @@ geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
   newPose.position.z = pose[2];
 
   if (pose.size() == 6) {
-    Eigen::Quaternionf q;
-    q = Eigen::AngleAxisf(pose[3], Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(pose[4], Eigen::Vector3f::UnitY())
-        * Eigen::AngleAxisf(pose[5], Eigen::Vector3f::UnitZ());
+    Eigen::Quaternionf q = eulerToQuaternion_({pose[3], pose[4], pose[5]});
 
     newPose.orientation.x = q.x();
     newPose.orientation.y = q.y();
@@ -101,6 +98,38 @@ geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
   }
 
   return newPose;
+}
+
+Eigen::Quaternionf MAMPlanner::eulerToQuaternion_(const array<double, 3>& euler) {
+  Eigen::Quaternionf q;
+  q = Eigen::AngleAxisf(euler[0], Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(euler[1], Eigen::Vector3f::UnitY())
+      * Eigen::AngleAxisf(euler[2], Eigen::Vector3f::UnitZ());
+
+  return q;
+}
+
+void MAMPlanner::getWaypoints_() {
+  string yamlPath = string(WP5_MAM_PLANNER_DIR) + "/config/waypoints.yaml";
+  YAML::Node config = YAML::LoadFile(yamlPath);
+
+  Waypoint newWaypoint;
+  std::array<double, 3> euler{};
+  Eigen::Quaternionf q{};
+
+  for (const auto& waypoint : config) {
+    newWaypoint.clear();
+    newWaypoint.frame = waypoint["frame"].as<string>();
+    newWaypoint.pos = waypoint["pos"].as<std::array<double, 3>>();
+
+    euler = waypoint["angle"].as<std::array<double, 3>>();
+    q = eulerToQuaternion_(euler);
+    newWaypoint.quat = {q.x(), q.y(), q.z(), q.w()};
+
+    newWaypoint.speed = waypoint["speed"].as<double>();
+    newWaypoint.welding = waypoint["welding"].as<bool>();
+
+    waypoints_.push_back(newWaypoint);
+  }
 }
 
 void MAMPlanner::addStaticObstacles_() {
