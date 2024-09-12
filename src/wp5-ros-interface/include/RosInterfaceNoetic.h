@@ -15,8 +15,8 @@
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 
+#include <Eigen/Dense>
 #include <cstdlib>
-#include <eigen3/Eigen/Dense>
 #include <tuple>
 #include <vector>
 

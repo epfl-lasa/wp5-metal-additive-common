@@ -2,7 +2,7 @@
  * @file MAMPlanner.cpp
  * @brief Declaration of the MAMPlanner class
  * @author [Louis Munier]
- * @date 2024-09-03
+ * @date 2024-09-12
  */
 #include "MAMPlanner.h"
 
@@ -14,11 +14,39 @@
 #include <shape_msgs/SolidPrimitive.h>
 #include <std_msgs/Bool.h>
 
+#include <thread>
+
 #include "RoboticArmFactory.h"
 
 using namespace std;
 
-//TODO(lmunier): Implement the MAMPlanner class
+const double MAMPlanner::TOLERANCE = 1e-5;
+
+std::mutex mtx_;
+std::condition_variable cv_;
+bool pathFound_ = false;
+moveit::planning_interface::MoveGroupInterface::Plan bestPlan_;
+
+void computePath(const std::string& robotGroup, const std::string& robotBase, const vector<double>& targetJoint) {
+  moveit::planning_interface::MoveGroupInterface moveGroup(robotGroup);
+  moveGroup.setPoseReferenceFrame(robotBase);
+  moveGroup.setPlannerId("RRTConnectkConfigDefault");
+  moveGroup.setPlanningTime(5.0);
+  moveGroup.setNumPlanningAttempts(10);
+  moveGroup.setGoalPositionTolerance(0.005);
+  moveGroup.setGoalOrientationTolerance(0.01);
+
+  moveGroup.setJointValueTarget(targetJoint);
+  moveit::planning_interface::MoveGroupInterface::Plan plan;
+  bool success = (moveGroup.plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
+  std::unique_lock<std::mutex> lock(mtx_);
+  if (success && !pathFound_) {
+    bestPlan_ = plan;
+    pathFound_ = true;
+    cv_.notify_all(); // Notify other threads
+  }
+}
 
 MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5") {
   RoboticArmFactory armFactory = RoboticArmFactory();
@@ -34,7 +62,7 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5") {
   addStaticObstacles_();
   getWaypoints_();
 
-  // ikSolver_ = make_unique<TRAC_IK::TRAC_IK>(robot_base, virtual_target, "Distance", ros::Duration(0.01));
+  // ikSolver_ = make_unique<TRAC_IK::TRAC_IK>(robotBase, virtualTarget, "Distance", ros::Duration(0.01));
 
   // TODO: Implement tracIK solutions
   // for each solution, start a thread and compute path planning
@@ -43,8 +71,51 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5") {
 }
 
 void MAMPlanner::planTrajectory() {
-  //TODO(lmunier): Implement the planTrajectory method
-  cout << "Planning trajectory" << endl;
+  vector<thread> threads;
+  RoboticArmUr5* robotUr5 = dynamic_cast<RoboticArmUr5*>(robot_.get());
+
+  for (auto& wpoint : waypoints_) {
+    vector<vector<double>> ikSolutions{}, ikValidated{};
+    robotUr5->getIKGeo(wpoint.quat, wpoint.pos, ikSolutions);
+
+    // Compute forward kinematics
+    int iter = 0;
+    for (const auto& sol : ikSolutions) {
+      ++iter;
+      cout << "Solution " << iter << endl;
+      pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = robotUr5->getFKGeo(sol);
+
+      bool isPosValide = arePositionsEquivalent_(fkResult.second, wpoint.pos);
+      bool isQuatValide = areQuaternionsEquivalent_(fkResult.first, wpoint.quat);
+
+      if (isPosValide && isQuatValide) {
+        ikValidated.push_back(sol);
+      }
+    }
+
+    for (const auto& pose : ikSolutions) {
+      threads.emplace_back(computePath, "manipulator", "base_link_inertia", pose);
+    }
+
+    {
+      unique_lock<mutex> lock(mtx_);
+      cv_.wait(lock, [] { return pathFound_; }); // Wait until a path is found
+    }
+
+    for (auto& thread : threads) {
+      if (thread.joinable()) {
+        thread.join(); // Join all threads
+      }
+    }
+
+    if (pathFound_) {
+      moveGroup_->execute(bestPlan_);
+      moveGroup_->stop();
+      moveGroup_->clearPoseTargets();
+    } else {
+      ROS_ERROR("No valid path found");
+    }
+  }
 }
 
 void MAMPlanner::executeTrajectory() {
@@ -53,18 +124,11 @@ void MAMPlanner::executeTrajectory() {
 }
 
 void MAMPlanner::initMoveit_() {
-  string robot_group = "manipulator";
-  string robot_base = "base_link_inertia";
-
-  moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robot_group);
+  string robotGroup = "manipulator";
+  moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robotGroup);
   scene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
 
-  moveGroup_->setPoseReferenceFrame(robot_base);
-  moveGroup_->setPlannerId("RRTConnectkConfigDefault");
-  moveGroup_->setPlanningTime(5.0);
-  moveGroup_->setNumPlanningAttempts(10);
-  moveGroup_->setGoalPositionTolerance(0.005);
-  moveGroup_->setGoalOrientationTolerance(0.01);
+  setupMovegroup_(moveGroup_.get());
 
   spinner_.start();
 
@@ -72,7 +136,16 @@ void MAMPlanner::initMoveit_() {
   ros::Duration(1.0).sleep();
 }
 
-geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
+void MAMPlanner::setupMovegroup_(moveit::planning_interface::MoveGroupInterface* mGroup) {
+  mGroup->setPoseReferenceFrame(robot_->getReferenceFrame());
+  mGroup->setPlannerId("RRTConnectkConfigDefault");
+  mGroup->setPlanningTime(5.0);
+  mGroup->setNumPlanningAttempts(10);
+  mGroup->setGoalPositionTolerance(0.005);
+  mGroup->setGoalOrientationTolerance(0.01);
+}
+
+geometry_msgs::Pose MAMPlanner::generatePose_(const vector<float>& pose) {
   if (pose.size() != 6 && pose.size() != 7) {
     ROS_ERROR("Invalid pose size it should be 6 or 7.");
     return geometry_msgs::Pose();
@@ -84,7 +157,7 @@ geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
   newPose.position.z = pose[2];
 
   if (pose.size() == 6) {
-    Eigen::Quaternionf q = eulerToQuaternion_({pose[3], pose[4], pose[5]});
+    Eigen::Quaternionf q = eulerToQuaternion_<float>({pose[3], pose[4], pose[5]});
 
     newPose.orientation.x = q.x();
     newPose.orientation.y = q.y();
@@ -100,12 +173,18 @@ geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
   return newPose;
 }
 
-Eigen::Quaternionf MAMPlanner::eulerToQuaternion_(const array<double, 3>& euler) {
-  Eigen::Quaternionf q;
-  q = Eigen::AngleAxisf(euler[0], Eigen::Vector3f::UnitX()) * Eigen::AngleAxisf(euler[1], Eigen::Vector3f::UnitY())
-      * Eigen::AngleAxisf(euler[2], Eigen::Vector3f::UnitZ());
+bool MAMPlanner::areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
+                                           const Eigen::Quaterniond& q2,
+                                           double tolerance) {
+  Eigen::Matrix3d rot1 = q1.toRotationMatrix();
+  Eigen::Matrix3d rot2 = q2.toRotationMatrix();
 
-  return q;
+  return (rot1 - rot2).norm() < tolerance;
+}
+
+// Function to check if two positions are equivalent
+bool MAMPlanner::arePositionsEquivalent_(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance) {
+  return (p1 - p2).norm() < tolerance;
 }
 
 void MAMPlanner::getWaypoints_() {
@@ -113,17 +192,18 @@ void MAMPlanner::getWaypoints_() {
   YAML::Node config = YAML::LoadFile(yamlPath);
 
   Waypoint newWaypoint;
-  std::array<double, 3> euler{};
-  Eigen::Quaternionf q{};
+  array<double, 3> euler{};
+  array<double, 3> position{};
 
   for (const auto& waypoint : config) {
     newWaypoint.clear();
     newWaypoint.frame = waypoint["frame"].as<string>();
-    newWaypoint.pos = waypoint["pos"].as<std::array<double, 3>>();
 
-    euler = waypoint["angle"].as<std::array<double, 3>>();
-    q = eulerToQuaternion_(euler);
-    newWaypoint.quat = {q.x(), q.y(), q.z(), q.w()};
+    position = waypoint["pos"].as<array<double, 3>>();
+    newWaypoint.pos = Eigen::Vector3d(position[0], position[1], position[2]);
+
+    euler = waypoint["angle"].as<array<double, 3>>();
+    newWaypoint.quat = eulerToQuaternion_<double>(euler);
 
     newWaypoint.speed = waypoint["speed"].as<double>();
     newWaypoint.welding = waypoint["welding"].as<bool>();
@@ -150,7 +230,7 @@ void MAMPlanner::addStaticObstacles_() {
     geometry_msgs::PoseStamped newObstacle;
 
     newObstacle.header.frame_id = collisionObject.header.frame_id;
-    newObstacle.pose = generatePose_(obstacle["pose"].as<vector<double>>());
+    newObstacle.pose = generatePose_(obstacle["pose"].as<vector<float>>());
 
     // Create the collision object
     if (type == "box") {

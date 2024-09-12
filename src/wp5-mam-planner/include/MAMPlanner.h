@@ -15,7 +15,10 @@
 #include <ros/ros.h>
 #include <yaml-cpp/yaml.h>
 
+#include <Eigen/Dense>
+#include <condition_variable>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include "RoboticArmCr7.h"
@@ -39,25 +42,27 @@ public:
   void executeTrajectory();
 
 private:
+  static const double TOLERANCE;
+
   struct Waypoint {
     std::string frame = "";
-    std::array<double, 3> pos = {};
-    std::array<double, 4> quat = {};
+    Eigen::Vector3d pos{};
+    Eigen::Quaterniond quat{};
     double speed = 0.0;
     bool welding = false;
 
     void clear() {
       frame.clear();
-      pos.fill(0.0);
-      quat.fill(0.0);
+      pos.setZero();
+      quat.setIdentity();
       speed = 0.0;
       welding = false;
     }
 
     void print() const {
       ROS_INFO("Frame: %s", frame.c_str());
-      ROS_INFO("Position: %f %f %f", pos[0], pos[1], pos[2]);
-      ROS_INFO("Quaternion: %f %f %f %f", quat[0], quat[1], quat[2], quat[3]);
+      ROS_INFO("Position: %f %f %f", pos.x(), pos.y(), pos.z());
+      ROS_INFO("Quaternion: %f %f %f %f", quat.x(), quat.y(), quat.z(), quat.w());
       ROS_INFO("Speed: %f", speed);
       ROS_INFO("Welding: %s", welding ? "true" : "false");
     }
@@ -75,10 +80,27 @@ private:
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
 
   void initMoveit_();
-  geometry_msgs::Pose generatePose_(const std::vector<double>& pose);
-  Eigen::Quaternionf eulerToQuaternion_(const std::array<double, 3>& euler);
+  void setupMovegroup_(moveit::planning_interface::MoveGroupInterface* mGroup);
+  geometry_msgs::Pose generatePose_(const std::vector<float>& pose);
+
+  template <typename T>
+  Eigen::Quaternion<T> eulerToQuaternion_(const std::array<T, 3>& euler) {
+    Eigen::Quaternion<T> q;
+    q = Eigen::AngleAxis<T>(euler[0], Eigen::Matrix<T, 3, 1>::UnitX())
+        * Eigen::AngleAxis<T>(euler[1], Eigen::Matrix<T, 3, 1>::UnitY())
+        * Eigen::AngleAxis<T>(euler[2], Eigen::Matrix<T, 3, 1>::UnitZ());
+
+    return q;
+  }
+
+  bool areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
+                                 const Eigen::Quaterniond& q2,
+                                 double tolerance = TOLERANCE);
+
+  bool arePositionsEquivalent_(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE);
 
   void getWaypoints_();
+  static void computePath_(const std::string& robotGroup, const geometry_msgs::Pose& targetPose);
   void addStaticObstacles_();
 
   shape_msgs::SolidPrimitive createBox_(const std::string name, const std::vector<double>& size) const;

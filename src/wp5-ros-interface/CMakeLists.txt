@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
 )
 find_package(yaml-cpp REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
@@ -28,6 +29,7 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIR}
+  ${EIGEN3_INCLUDE_DIR}
 )
 
 # Create a library
@@ -48,6 +50,7 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${roslib_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
 )
 
 # Add include and src to include path to make includes easier in the code
@@ -55,6 +58,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   include
   src
   ${YAML_CPP_INCLUDE_DIR}
+  ${EIGEN3_INCLUDE_DIR}
 )
 
 export(PACKAGE ${PROJECT_NAME})

@@ -71,28 +71,42 @@ IRoboticArmBase::~IRoboticArmBase() {
   delete fkSolver_;
 }
 
-pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFK(IkSolver ikSolver, const vector<double>& jointPos) {
-  if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
-    return getTracFkSolution_(jointPos);
-  } else {
-    ROS_ERROR("Invalid forward kinematics solver type");
+pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFK(const vector<double>& jointPos) {
+  KDL::JntArray joint_array(chain_.getNrOfJoints());
+  for (size_t i = 0; i < jointPos.size(); ++i) {
+    joint_array(i) = jointPos[i];
   }
 
-  return make_pair(Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero());
+  // Perform forward kinematics
+  KDL::Frame cartesian_pose;
+  if (fkSolver_->JntToCart(joint_array, cartesian_pose) < 0) {
+    throw runtime_error("Failed to compute forward kinematics");
+  }
+
+  // Extract position and orientation
+  Eigen::Vector3d posVector(cartesian_pose.p.data);
+  Eigen::Quaterniond quaternion{};
+  cartesian_pose.M.GetQuaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
+
+  return make_pair(move(quaternion), move(posVector));
 }
 
-bool IRoboticArmBase::getIK(IkSolver ikSolver,
-                            const Eigen::Quaterniond& quaternion,
+bool IRoboticArmBase::getIK(const Eigen::Quaterniond& quaternion,
                             const Eigen::Vector3d& position,
                             vector<double>& jointPos,
                             const KDL::JntArray& nominal) {
-  if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
-    return getTracIkSolution_(quaternion, position, jointPos, nominal);
-  } else {
-    ROS_ERROR("Invalid inverse kinematics solver type");
-  }
+  // Initialize computing materials
+  KDL::JntArray result{};
+  KDL::Frame endEffectorPose{};
 
-  return false;
+  endEffectorPose.p = KDL::Vector(position.x(), position.y(), position.z());
+  endEffectorPose.M = KDL::Rotation::Quaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
+
+  // Compute IK
+  int isValid = tracIkSolver_->CartToJnt(nominal, endEffectorPose, result);
+  jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
+
+  return isValid >= 0;
 }
 
 tuple<vector<double>, vector<double>, vector<double>> IRoboticArmBase::getState() {
@@ -119,44 +133,6 @@ void IRoboticArmBase::printInfo() {
     cout << joint << " ";
   }
   cout << endl;
-}
-
-pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getTracFkSolution_(const vector<double>& jointPos) {
-  KDL::JntArray joint_array(chain_.getNrOfJoints());
-  for (size_t i = 0; i < jointPos.size(); ++i) {
-    joint_array(i) = jointPos[i];
-  }
-
-  // Perform forward kinematics
-  KDL::Frame cartesian_pose;
-  if (fkSolver_->JntToCart(joint_array, cartesian_pose) < 0) {
-    throw runtime_error("Failed to compute forward kinematics");
-  }
-
-  // Extract position and orientation
-  Eigen::Vector3d posVector(cartesian_pose.p.data);
-  Eigen::Quaterniond quaternion{};
-  cartesian_pose.M.GetQuaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
-
-  return make_pair(move(quaternion), move(posVector));
-}
-
-bool IRoboticArmBase::getTracIkSolution_(const Eigen::Quaterniond& quaternion,
-                                         const Eigen::Vector3d& position,
-                                         vector<double>& jointPos,
-                                         const KDL::JntArray& nominal) {
-  // Initialize computing materials
-  KDL::JntArray result{};
-  KDL::Frame endEffectorPose{};
-
-  endEffectorPose.p = KDL::Vector(position.x(), position.y(), position.z());
-  endEffectorPose.M = KDL::Rotation::Quaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
-
-  // Compute IK
-  int isValid = tracIkSolver_->CartToJnt(nominal, endEffectorPose, result);
-  jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
-
-  return isValid >= 0;
 }
 
 void IRoboticArmBase::initializeTracIkSolver_() {

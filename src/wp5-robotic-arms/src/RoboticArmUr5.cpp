@@ -23,33 +23,7 @@ RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string customYamlPath) :
 
 RoboticArmUr5::~RoboticArmUr5() { delete robotGeoSolver_; }
 
-pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFK(IkSolver ikSolver, const vector<double>& jointPos) {
-  if (ikSolver == IkSolver::TRAC_IK_SOLVER) {
-    return IRoboticArmBase::getTracFkSolution_(jointPos);
-  } else if (ikSolver == IkSolver::IK_GEO_SOLVER) {
-    return getFkGeoSolution_(jointPos);
-  } else {
-    ROS_ERROR("Invalid forward kinematics solver type");
-  }
-
-  return make_pair(Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero());
-}
-
-bool RoboticArmUr5::getIK(IkSolver ikSolver,
-                          const Eigen::Quaterniond& quaternion,
-                          const Eigen::Vector3d& position,
-                          vector<vector<double>>& jointPos) {
-  if (ikSolver == IkSolver::IK_GEO_SOLVER) {
-    return getIkGeoSolution_(quaternion, position, jointPos);
-  } else {
-    ROS_ERROR("Invalid inverse kinematics solver type");
-  }
-
-  jointPos.clear();
-  return false;
-}
-
-pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFkGeoSolution_(const vector<double>& jointPos) {
+pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFKGeo(const vector<double>& jointPos) {
   // Arrays to hold the results of the forward kinematics
   array<double, 9> rotArr;
   array<double, 3> posArr;
@@ -68,16 +42,9 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFkGeoSolution_(const
   return make_pair(move(quaternion), move(posVector));
 }
 
-tuple<vector<double>, vector<double>, vector<double>> RoboticArmUr5::getState() {
-  tuple<vector<double>, vector<double>, vector<double>> currentRobotState = rosInterface_->getState();
-  swapJoints_(currentRobotState);
-
-  return move(currentRobotState);
-}
-
-bool RoboticArmUr5::getIkGeoSolution_(const Eigen::Quaterniond& quaternion,
-                                      const Eigen::Vector3d& position,
-                                      vector<vector<double>>& jointPos) {
+bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
+                             const Eigen::Vector3d& position,
+                             vector<vector<double>>& jointPos) {
   double posVector[3] = {position.x(), position.y(), position.z()};
 
   double rotMatrixArray[9]{};
@@ -97,6 +64,13 @@ bool RoboticArmUr5::getIkGeoSolution_(const Eigen::Quaterniond& quaternion,
   });
 
   return true;
+}
+
+tuple<vector<double>, vector<double>, vector<double>> RoboticArmUr5::getState() {
+  tuple<vector<double>, vector<double>, vector<double>> currentRobotState = rosInterface_->getState();
+  swapJoints_(currentRobotState);
+
+  return move(currentRobotState);
 }
 
 void RoboticArmUr5::swapJoints_(tuple<vector<double>, vector<double>, vector<double>>& currentRobotState) {

@@ -58,6 +58,12 @@ public:
   const std::vector<double> getOriginalHomeJoint() const { return originalHomeJoint_; }
 
   /**
+   * @brief Get the reference frame of the robotic arm.
+   * @return Reference frame of the robotic arm.
+   */
+  const std::string getReferenceFrame() const { return referenceFrame_; }
+
+  /**
    * @brief Get the number of joints of the robotic arm.
    * @return Number of joints of the robotic arm.
    */
@@ -71,10 +77,9 @@ public:
 
   /**
    * @brief Get the forward kinematics of the robotic arm.
-   * @param ikSolver Type of inverse kinematics solver to use.
    * @param jointPos Joint positions of the robotic arm.
    */
-  virtual std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(IkSolver ikSolver, const std::vector<double>& jointPos);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(const std::vector<double>& jointPos);
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.
@@ -85,8 +90,7 @@ public:
    * @param nominal (Optional) Nominal joint positions.
    * @return Pair of the return code and the next joint positions.
    */
-  bool getIK(IkSolver ikSolver,
-             const Eigen::Quaterniond& quaternion,
+  bool getIK(const Eigen::Quaterniond& quaternion,
              const Eigen::Vector3d& position,
              std::vector<double>& jointPos,
              const KDL::JntArray& nominal = KDL::JntArray(NB_JOINTS_));
@@ -106,13 +110,6 @@ protected:
   // Attributes
   const ROSVersion rosVersion_ = ROSVersion::VERSION_UNDEFINED;
   std::unique_ptr<IRosInterfaceBase> rosInterface_ = nullptr;
-
-  // Methods
-  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getTracFkSolution_(const std::vector<double>& jointPos);
-  bool getTracIkSolution_(const Eigen::Quaterniond& quaternion,
-                          const Eigen::Vector3d& position,
-                          std::vector<double>& jointPos,
-                          const KDL::JntArray& nominal);
 
 private:
   // Attributes

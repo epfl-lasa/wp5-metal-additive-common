@@ -58,13 +58,13 @@ protected:
   }
 
   // Function to generate a reachable random waypoint
-  static pair<Eigen::Quaterniond, Eigen::Vector3d> generateReachableWaypoint(IkSolver solver) {
+  static pair<Eigen::Quaterniond, Eigen::Vector3d> generateReachableWaypoint() {
     while (true) {
       Eigen::Quaterniond quaternion = generateRandomQuaternion();
       Eigen::Vector3d position = generateRandomPosition();
       vector<double> jointPos{};
 
-      bool isValid = roboticArm->getIK(solver, quaternion, position, jointPos);
+      bool isValid = roboticArm->getIK(quaternion, position, jointPos);
 
       // Check if the IK solver found a valid solution
       if (isValid) {
@@ -75,9 +75,8 @@ protected:
 
   // Function to generate waypoints
   static void generateWaypoints() {
-    IkSolver solver = TRAC_IK_SOLVER;
     for (int i = 0; i < NB_TESTS; ++i) {
-      waypoints.push_back(generateReachableWaypoint(solver));
+      waypoints.push_back(generateReachableWaypoint());
     }
   }
 
@@ -107,10 +106,10 @@ vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> RoboticArmUr5Test::waypoints;
 TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
   for (auto& [quaternion, position] : waypoints) {
     vector<double> jointPos{};
-    roboticArm->getIK(IkSolver::TRAC_IK_SOLVER, quaternion, position, jointPos);
+    roboticArm->getIK(quaternion, position, jointPos);
 
     // Compute forward kinematics
-    pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFK(IkSolver::TRAC_IK_SOLVER, jointPos);
+    pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFK(jointPos);
 
     areQuaternionsEquivalent(fkResult.first, quaternion, TOLERANCE);
     arePositionsEquivalent(fkResult.second, position, TOLERANCE);
@@ -122,17 +121,11 @@ TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
   for (auto& [quaternion, position] : waypoints) {
     iter++;
     vector<vector<double>> ikSolutions;
-    roboticArm->getIK(IkSolver::IK_GEO_SOLVER, quaternion, position, ikSolutions);
+    roboticArm->getIKGeo(quaternion, position, ikSolutions);
 
     // Compute forward kinematics
     for (const auto& sol : ikSolutions) {
-      pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFK(IkSolver::IK_GEO_SOLVER, sol);
-
-      // Check the position
-      if ((fkResult.second - position).norm() > TOLERANCE) {
-        cout << "Iter: " << iter << " Position: " << fkResult.second.transpose() << " != " << position.transpose()
-             << endl;
-      }
+      pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFKGeo(sol);
 
       areQuaternionsEquivalent(fkResult.first, quaternion, TOLERANCE);
       arePositionsEquivalent(fkResult.second, position, TOLERANCE);
