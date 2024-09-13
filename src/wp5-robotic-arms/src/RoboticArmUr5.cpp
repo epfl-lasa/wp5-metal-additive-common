@@ -16,6 +16,8 @@
 
 using namespace std;
 
+const double RoboticArmUr5::TOLERANCE = 1e-5;
+
 RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string customYamlPath) :
     IRoboticArmBase(string("ur5_robot"), rosVersion, customYamlPath) {
   robotGeoSolver_ = new ik_geo::Robot(ik_geo::Robot::three_parallel_two_intersecting(UR5_H_MATRIX, UR5_P_MATRIX));
@@ -53,15 +55,22 @@ bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
       rotMatrix;
 
   // Compute IK
-  vector<ik_geo::Solution> solutions;
-  robotGeoSolver_->ik(rotMatrixArray, posVector, solutions);
+  vector<ik_geo::Solution> ikSolutions;
+  robotGeoSolver_->ik(rotMatrixArray, posVector, ikSolutions);
 
+  // Call FKGeo to check the different solution and keep only the ones that match the input
   jointPos.clear();
-  jointPos.reserve(solutions.size()); // Reserve space to avoid multiple allocations
+  for (const auto& solution : ikSolutions) {
+    vector<double> solutionVector(solution.q.begin(), solution.q.end());
+    auto [quaternionSolution, positionSolution] = getFKGeo(solutionVector);
 
-  transform(solutions.begin(), solutions.end(), back_inserter(jointPos), [](const ik_geo::Solution& solution) {
-    return vector<double>(solution.q.begin(), solution.q.end());
-  });
+    bool isQuatValid = areQuaternionsEquivalent_(quaternion, quaternionSolution);
+    bool isPosValid = arePositionsEquivalent_(position, positionSolution);
+
+    if (isQuatValid && isPosValid) {
+      jointPos.push_back(solutionVector);
+    }
+  }
 
   return true;
 }
@@ -81,4 +90,18 @@ void RoboticArmUr5::swapJoints_(tuple<vector<double>, vector<double>, vector<dou
         (..., swap(vecs[0], vecs[2]));
       },
       currentRobotState);
+}
+
+bool RoboticArmUr5::areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
+                                              const Eigen::Quaterniond& q2,
+                                              double tolerance) {
+  Eigen::Matrix3d rot1 = q1.toRotationMatrix();
+  Eigen::Matrix3d rot2 = q2.toRotationMatrix();
+
+  return (rot1 - rot2).norm() < tolerance;
+}
+
+// Function to check if two positions are equivalent
+bool RoboticArmUr5::arePositionsEquivalent_(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance) {
+  return (p1 - p2).norm() < tolerance;
 }

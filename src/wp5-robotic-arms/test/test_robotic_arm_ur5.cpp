@@ -21,7 +21,7 @@ using namespace std;
 class RoboticArmUr5Test : public ::testing::Test {
 protected:
   const double TOLERANCE = 1e-4;
-  static const int NB_TESTS = 5;
+  static const int NB_TESTS = 50;
 
   static RoboticArmUr5* roboticArm;
   static mt19937 gen;

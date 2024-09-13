@@ -1,4 +1,6 @@
 <launch>
     <node name="test_robotic_arm_ur5" pkg="wp5_robotic_arms_drivers" type="test_robotic_arm_ur5"
-        output="screen" />
+        output="screen">
+        <remap from="robot_description" to="/ur5/robot_description" />
+    </node>
 </launch>

@@ -20,8 +20,6 @@
 
 using namespace std;
 
-const double MAMPlanner::TOLERANCE = 1e-5;
-
 MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5"), tfListener_(tfBuffer_) {
   RoboticArmFactory armFactory = RoboticArmFactory();
   robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
@@ -210,20 +208,6 @@ void MAMPlanner::createNewFrame_(const string& parentFrame,
   transformStamped.transform = transform;
 
   br_.sendTransform(transformStamped);
-}
-
-bool MAMPlanner::areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
-                                           const Eigen::Quaterniond& q2,
-                                           double tolerance) {
-  Eigen::Matrix3d rot1 = q1.toRotationMatrix();
-  Eigen::Matrix3d rot2 = q2.toRotationMatrix();
-
-  return (rot1 - rot2).norm() < tolerance;
-}
-
-// Function to check if two positions are equivalent
-bool MAMPlanner::arePositionsEquivalent_(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance) {
-  return (p1 - p2).norm() < tolerance;
 }
 
 void MAMPlanner::getWaypoints_() {

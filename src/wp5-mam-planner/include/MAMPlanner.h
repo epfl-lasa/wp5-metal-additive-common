@@ -53,8 +53,6 @@ public:
   void executeTrajectory();
 
 private:
-  static const double TOLERANCE;
-
   struct Waypoint {
     std::string frame = "";
     Eigen::Vector3d pos{};
@@ -131,12 +129,6 @@ private:
 
     return q;
   }
-
-  bool areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
-                                 const Eigen::Quaterniond& q2,
-                                 double tolerance = TOLERANCE);
-
-  bool arePositionsEquivalent_(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE);
 
   void getWaypoints_();
   void computePath_(const std::string& group,
