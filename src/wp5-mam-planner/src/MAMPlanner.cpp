@@ -44,18 +44,26 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5") {
   // if path planning successful, execute the trajectory
 }
 
-void MAMPlanner::computePath_(const std::string& group,
-                              const std::string& base_link,
-                              const geometry_msgs::Pose& target_pose) {
+void MAMPlanner::computePath_(const string& group,
+                              const vector<double>& startConfig,
+                              const geometry_msgs::Pose& targetPose) {
   moveit::planning_interface::MoveGroupInterface moveGroup(group);
-  moveGroup.setPoseReferenceFrame(base_link);
-  moveGroup.setPoseTarget(target_pose);
+  setupMovegroup_(&moveGroup);
+
+  // Set the starting configuration
+  robot_state::RobotState startState(*moveGroup.getCurrentState());
+  const robot_state::JointModelGroup* jointModelGroup = startState.getJointModelGroup(group);
+  startState.setJointGroupPositions(jointModelGroup, startConfig);
+  moveGroup.setStartState(startState);
+
+  // Set the target pose
+  moveGroup.setPoseTarget(targetPose);
 
   moveit::planning_interface::MoveGroupInterface::Plan plan;
   bool success = (moveGroup.plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
   if (success) {
-    std::unique_lock<std::mutex> lock(mtx_);
+    unique_lock<mutex> lock(mtx_);
     bool isBetterPlan =
         plan.trajectory_.joint_trajectory.points.size() < bestPlan_.trajectory_.joint_trajectory.points.size();
 
@@ -68,29 +76,44 @@ void MAMPlanner::computePath_(const std::string& group,
 }
 
 void MAMPlanner::planTrajectory() {
-  std::vector<geometry_msgs::Pose> ikSolutions; // Assume this is populated with IK solutions
+  cout << "Planning trajectory" << endl;
+  vector<vector<double>> ikSolutions{};
+  RoboticArmUr5* robotUr5 = dynamic_cast<RoboticArmUr5*>(robot_.get());
 
-  for (const auto& pose : ikSolutions) {
-    threads.emplace_back(&MAMPlanner::computePath_, this, "manipulator", "base_link_inertia", pose);
-  }
+  for (size_t i = 0; i < waypoints_.size() - 1; ++i) {
+    const Waypoint currentWPoint = waypoints_[i];
+    const Waypoint nextWPoint = waypoints_[i + 1];
+    geometry_msgs::Pose nextTarget = generatePose_(nextWPoint.getPoseVector<float>());
 
-  {
-    std::unique_lock<std::mutex> lock(mtx_);
-    cv_.wait(lock, [this] { return pathFound_; }); // Wait until a path is found
-  }
+    robotUr5->getIKGeo(currentWPoint.quat, currentWPoint.pos, ikSolutions);
 
-  for (auto& thread : threads) {
-    if (thread.joinable()) {
-      thread.join(); // Join all threads
+    for (const auto& sol : ikSolutions) {
+      cout << "Computing path for pose" << endl;
+      for (auto& s : sol) {
+        cout << s << " ";
+      }
+      cout << endl;
+      threads.emplace_back(&MAMPlanner::computePath_, this, "manipulator", sol, nextTarget);
     }
-  }
 
-  if (pathFound_) {
-    moveGroup_->execute(bestPlan_);
-    moveGroup_->stop();
-    moveGroup_->clearPoseTargets();
-  } else {
-    ROS_ERROR("No valid path found");
+    {
+      unique_lock<mutex> lock(mtx_);
+      cv_.wait(lock, [this] { return pathFound_; }); // Wait until a path is found
+    }
+
+    for (auto& thread : threads) {
+      if (thread.joinable()) {
+        thread.join(); // Join all threads
+      }
+    }
+
+    if (pathFound_) {
+      moveGroup_->execute(bestPlan_);
+      moveGroup_->stop();
+      moveGroup_->clearPoseTargets();
+    } else {
+      ROS_ERROR("No valid path found");
+    }
   }
 }
 
@@ -105,11 +128,14 @@ void MAMPlanner::initMoveit_() {
   scene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
   setupMovegroup_(moveGroup_.get());
 
-  robotModelLoader_ = std::make_shared<robot_model_loader::RobotModelLoader>("robot_description");
-  planningScene_ = std::make_shared<planning_scene::PlanningScene>(robotModelLoader_->getModel());
+  robotModelLoader_ = make_shared<robot_model_loader::RobotModelLoader>("robot_description");
+  planningScene_ = make_shared<planning_scene::PlanningScene>(robotModelLoader_->getModel());
+
+  // Set the planning plugin parameter
+  nh_.setParam("planning_plugin", "ompl_interface/OMPLPlanner");
 
   // Initialize the planning pipeline
-  planningPipeline_ = std::make_shared<planning_pipeline::PlanningPipeline>(
+  planningPipeline_ = make_shared<planning_pipeline::PlanningPipeline>(
       robotModelLoader_->getModel(), nh_, "planning_plugin", "request_adapters");
 
   spinner_.start();

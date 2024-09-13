@@ -66,6 +66,16 @@ private:
       welding = false;
     }
 
+    template <typename T>
+    std::vector<T> getPoseVector() const {
+      // Safety type check to allow only float, int or double
+      static_assert(std::is_same<T, float>::value || std::is_same<T, int>::value || std::is_same<T, double>::value,
+                    "Invalid type for getPoseVector, should be either int, float or double.");
+
+      std::vector<double> pose{pos.x(), pos.y(), pos.z(), quat.x(), quat.y(), quat.z(), quat.w()};
+      return std::vector<T>(pose.begin(), pose.end());
+    }
+
     void print() const {
       ROS_INFO("Frame: %s", frame.c_str());
       ROS_INFO("Position: %f %f %f", pos.x(), pos.y(), pos.z());
@@ -117,7 +127,9 @@ private:
   bool arePositionsEquivalent_(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE);
 
   void getWaypoints_();
-  void computePath_(const std::string& group, const std::string& base_link, const geometry_msgs::Pose& target_pose);
+  void computePath_(const std::string& group,
+                    const std::vector<double>& startConfig,
+                    const geometry_msgs::Pose& targetPose);
   void addStaticObstacles_();
 
   shape_msgs::SolidPrimitive createBox_(const std::string name, const std::vector<double>& size) const;
