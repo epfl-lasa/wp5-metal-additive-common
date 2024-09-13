@@ -19,6 +19,10 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <ros/ros.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
 #include <yaml-cpp/yaml.h>
 
 #include <Eigen/Dense>
@@ -59,7 +63,6 @@ private:
     bool welding = false;
 
     void clear() {
-      frame.clear();
       pos.setZero();
       quat.setIdentity();
       speed = 0.0;
@@ -87,8 +90,10 @@ private:
 
   std::unique_ptr<IRoboticArmBase> robot_ = nullptr; ///< Robotic arm
   ros::NodeHandle nh_;                               ///< ROS node handle
-  ros::AsyncSpinner spinner_;                        ///< ROS spinner to handle callbacks asynchronously
-  std::vector<Waypoint> waypoints_;                  ///< Waypoints for the robot
+  ros::AsyncSpinner spinner_;
+  tf2_ros::Buffer tfBuffer_;
+  tf2_ros::TransformListener tfListener_;
+  tf2_ros::TransformBroadcaster br_; ///< ROS spinner to handle callbacks asynchronously
 
   ros::Publisher pubWeldingState_;      ///< Publisher for the welding state
   ros::Publisher pubDisplayTrajectory_; ///< Publisher for the display trajectory
@@ -97,6 +102,7 @@ private:
   std::mutex mtx_;
   std::condition_variable cv_;
   bool pathFound_ = false;
+  std::vector<Waypoint> waypoints_; ///< Waypoints for the robot
   moveit::planning_interface::MoveGroupInterface::Plan bestPlan_;
 
   planning_pipeline::PlanningPipelinePtr planningPipeline_ = nullptr;
@@ -108,7 +114,13 @@ private:
 
   void initMoveit_();
   void setupMovegroup_(moveit::planning_interface::MoveGroupInterface* mGroup);
-  geometry_msgs::Pose generatePose_(const std::vector<float>& pose);
+  geometry_msgs::Pose generatePose_(const std::vector<double>& pose);
+  geometry_msgs::Pose projectPose_(const geometry_msgs::Pose& pose,
+                                   const std::string& fromFrame,
+                                   const std::string& toFrame);
+  void createNewFrame_(const std::string& parentFrame,
+                       const std::string& newFrame,
+                       const geometry_msgs::Transform& transform);
 
   template <typename T>
   Eigen::Quaternion<T> eulerToQuaternion_(const std::array<T, 3>& euler) {

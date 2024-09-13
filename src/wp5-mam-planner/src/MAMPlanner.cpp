@@ -22,7 +22,7 @@ using namespace std;
 
 const double MAMPlanner::TOLERANCE = 1e-5;
 
-MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5") {
+MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5"), tfListener_(tfBuffer_) {
   RoboticArmFactory armFactory = RoboticArmFactory();
   robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
   robot_->printInfo();
@@ -83,7 +83,7 @@ void MAMPlanner::planTrajectory() {
   for (size_t i = 0; i < waypoints_.size() - 1; ++i) {
     const Waypoint currentWPoint = waypoints_[i];
     const Waypoint nextWPoint = waypoints_[i + 1];
-    geometry_msgs::Pose nextTarget = generatePose_(nextWPoint.getPoseVector<float>());
+    geometry_msgs::Pose nextTarget = generatePose_(nextWPoint.getPoseVector<double>());
 
     robotUr5->getIKGeo(currentWPoint.quat, currentWPoint.pos, ikSolutions);
 
@@ -153,9 +153,9 @@ void MAMPlanner::setupMovegroup_(moveit::planning_interface::MoveGroupInterface*
   mGroup->setGoalOrientationTolerance(0.01);
 }
 
-geometry_msgs::Pose MAMPlanner::generatePose_(const vector<float>& pose) {
+geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
   if (pose.size() != 6 && pose.size() != 7) {
-    ROS_ERROR("Invalid pose size it should be 6 or 7.");
+    ROS_ERROR("Invalid pose size it should be 6 for Euler use or 7 for quaternions.");
     return geometry_msgs::Pose();
   }
 
@@ -165,7 +165,7 @@ geometry_msgs::Pose MAMPlanner::generatePose_(const vector<float>& pose) {
   newPose.position.z = pose[2];
 
   if (pose.size() == 6) {
-    Eigen::Quaternionf q = eulerToQuaternion_<float>({pose[3], pose[4], pose[5]});
+    Eigen::Quaterniond q = eulerToQuaternion_<double>({pose[3], pose[4], pose[5]});
 
     newPose.orientation.x = q.x();
     newPose.orientation.y = q.y();
@@ -179,6 +179,37 @@ geometry_msgs::Pose MAMPlanner::generatePose_(const vector<float>& pose) {
   }
 
   return newPose;
+}
+
+geometry_msgs::Pose MAMPlanner::projectPose_(const geometry_msgs::Pose& pose,
+                                             const string& fromFrame,
+                                             const string& toFrame) {
+  geometry_msgs::PoseStamped poseStamped;
+  poseStamped.pose = pose;
+  poseStamped.header.frame_id = fromFrame;
+  poseStamped.header.stamp = ros::Time::now();
+
+  geometry_msgs::PoseStamped transformedPoseStamped;
+  try {
+    tfBuffer_.transform(poseStamped, transformedPoseStamped, toFrame, ros::Duration(1.0));
+  } catch (tf2::TransformException& ex) {
+    ROS_WARN("Transform failed: %s", ex.what());
+    return pose; // Return the original pose if the transform fails
+  }
+
+  return transformedPoseStamped.pose;
+}
+
+void MAMPlanner::createNewFrame_(const string& parentFrame,
+                                 const string& newFrame,
+                                 const geometry_msgs::Transform& transform) {
+  geometry_msgs::TransformStamped transformStamped;
+  transformStamped.header.stamp = ros::Time::now();
+  transformStamped.header.frame_id = parentFrame;
+  transformStamped.child_frame_id = newFrame;
+  transformStamped.transform = transform;
+
+  br_.sendTransform(transformStamped);
 }
 
 bool MAMPlanner::areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
@@ -199,20 +230,27 @@ void MAMPlanner::getWaypoints_() {
   string yamlPath = string(WP5_MAM_PLANNER_DIR) + "/config/waypoints.yaml";
   YAML::Node config = YAML::LoadFile(yamlPath);
 
-  Waypoint newWaypoint;
-  array<double, 3> euler{};
-  array<double, 3> position{};
+  Waypoint newWaypoint{};
+  Eigen::Quaterniond tmpQuat{};
+  vector<double> pose{};
+  array<double, 3> tmpEuler{};
+  geometry_msgs::Pose newPose{};
 
   for (const auto& waypoint : config) {
-    newWaypoint.clear();
     newWaypoint.frame = waypoint["frame"].as<string>();
 
-    position = waypoint["pos"].as<array<double, 3>>();
-    newWaypoint.pos = Eigen::Vector3d(position[0], position[1], position[2]);
+    // Get the pose and orientation, convert it and project it to the robot frame
+    pose = waypoint["pos"].as<vector<double>>();
+    tmpEuler = waypoint["angle"].as<array<double, 3>>();
+    tmpQuat = eulerToQuaternion_<double>(tmpEuler);
+    pose.insert(pose.end(), {tmpQuat.x(), tmpQuat.y(), tmpQuat.z(), tmpQuat.w()});
 
-    euler = waypoint["angle"].as<array<double, 3>>();
-    newWaypoint.quat = eulerToQuaternion_<double>(euler);
+    newPose = generatePose_(pose);
+    newPose = projectPose_(newPose, newWaypoint.frame, robot_->getReferenceFrame());
 
+    newWaypoint.pos = Eigen::Vector3d{newPose.position.x, newPose.position.y, newPose.position.z};
+    newWaypoint.quat =
+        Eigen::Quaterniond{newPose.orientation.x, newPose.orientation.y, newPose.orientation.z, newPose.orientation.w};
     newWaypoint.speed = waypoint["speed"].as<double>();
     newWaypoint.welding = waypoint["welding"].as<bool>();
 
@@ -238,7 +276,7 @@ void MAMPlanner::addStaticObstacles_() {
     geometry_msgs::PoseStamped newObstacle;
 
     newObstacle.header.frame_id = collisionObject.header.frame_id;
-    newObstacle.pose = generatePose_(obstacle["pose"].as<vector<float>>());
+    newObstacle.pose = generatePose_(obstacle["pose"].as<vector<double>>());
 
     // Create the collision object
     if (type == "box") {
