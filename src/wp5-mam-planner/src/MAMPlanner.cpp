@@ -22,32 +22,6 @@ using namespace std;
 
 const double MAMPlanner::TOLERANCE = 1e-5;
 
-std::mutex mtx_;
-std::condition_variable cv_;
-bool pathFound_ = false;
-moveit::planning_interface::MoveGroupInterface::Plan bestPlan_;
-
-void computePath(const std::string& robotGroup, const std::string& robotBase, const vector<double>& targetJoint) {
-  moveit::planning_interface::MoveGroupInterface moveGroup(robotGroup);
-  moveGroup.setPoseReferenceFrame(robotBase);
-  moveGroup.setPlannerId("RRTConnectkConfigDefault");
-  moveGroup.setPlanningTime(5.0);
-  moveGroup.setNumPlanningAttempts(10);
-  moveGroup.setGoalPositionTolerance(0.005);
-  moveGroup.setGoalOrientationTolerance(0.01);
-
-  moveGroup.setJointValueTarget(targetJoint);
-  moveit::planning_interface::MoveGroupInterface::Plan plan;
-  bool success = (moveGroup.plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  std::unique_lock<std::mutex> lock(mtx_);
-  if (success && !pathFound_) {
-    bestPlan_ = plan;
-    pathFound_ = true;
-    cv_.notify_all(); // Notify other threads
-  }
-}
-
 MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5") {
   RoboticArmFactory armFactory = RoboticArmFactory();
   robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
@@ -70,51 +44,53 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5") {
   // if path planning successful, execute the trajectory
 }
 
+void MAMPlanner::computePath_(const std::string& group,
+                              const std::string& base_link,
+                              const geometry_msgs::Pose& target_pose) {
+  moveit::planning_interface::MoveGroupInterface moveGroup(group);
+  moveGroup.setPoseReferenceFrame(base_link);
+  moveGroup.setPoseTarget(target_pose);
+
+  moveit::planning_interface::MoveGroupInterface::Plan plan;
+  bool success = (moveGroup.plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
+  if (success) {
+    std::unique_lock<std::mutex> lock(mtx_);
+    bool isBetterPlan =
+        plan.trajectory_.joint_trajectory.points.size() < bestPlan_.trajectory_.joint_trajectory.points.size();
+
+    if (!pathFound_ || isBetterPlan) {
+      bestPlan_ = plan;
+      pathFound_ = true;
+      cv_.notify_all();
+    }
+  }
+}
+
 void MAMPlanner::planTrajectory() {
-  vector<thread> threads;
-  RoboticArmUr5* robotUr5 = dynamic_cast<RoboticArmUr5*>(robot_.get());
+  std::vector<geometry_msgs::Pose> ikSolutions; // Assume this is populated with IK solutions
 
-  for (auto& wpoint : waypoints_) {
-    vector<vector<double>> ikSolutions{}, ikValidated{};
-    robotUr5->getIKGeo(wpoint.quat, wpoint.pos, ikSolutions);
+  for (const auto& pose : ikSolutions) {
+    threads.emplace_back(&MAMPlanner::computePath_, this, "manipulator", "base_link_inertia", pose);
+  }
 
-    // Compute forward kinematics
-    int iter = 0;
-    for (const auto& sol : ikSolutions) {
-      ++iter;
-      cout << "Solution " << iter << endl;
-      pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = robotUr5->getFKGeo(sol);
+  {
+    std::unique_lock<std::mutex> lock(mtx_);
+    cv_.wait(lock, [this] { return pathFound_; }); // Wait until a path is found
+  }
 
-      bool isPosValide = arePositionsEquivalent_(fkResult.second, wpoint.pos);
-      bool isQuatValide = areQuaternionsEquivalent_(fkResult.first, wpoint.quat);
-
-      if (isPosValide && isQuatValide) {
-        ikValidated.push_back(sol);
-      }
+  for (auto& thread : threads) {
+    if (thread.joinable()) {
+      thread.join(); // Join all threads
     }
+  }
 
-    for (const auto& pose : ikSolutions) {
-      threads.emplace_back(computePath, "manipulator", "base_link_inertia", pose);
-    }
-
-    {
-      unique_lock<mutex> lock(mtx_);
-      cv_.wait(lock, [] { return pathFound_; }); // Wait until a path is found
-    }
-
-    for (auto& thread : threads) {
-      if (thread.joinable()) {
-        thread.join(); // Join all threads
-      }
-    }
-
-    if (pathFound_) {
-      moveGroup_->execute(bestPlan_);
-      moveGroup_->stop();
-      moveGroup_->clearPoseTargets();
-    } else {
-      ROS_ERROR("No valid path found");
-    }
+  if (pathFound_) {
+    moveGroup_->execute(bestPlan_);
+    moveGroup_->stop();
+    moveGroup_->clearPoseTargets();
+  } else {
+    ROS_ERROR("No valid path found");
   }
 }
 
@@ -127,8 +103,14 @@ void MAMPlanner::initMoveit_() {
   string robotGroup = "manipulator";
   moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robotGroup);
   scene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
-
   setupMovegroup_(moveGroup_.get());
+
+  robotModelLoader_ = std::make_shared<robot_model_loader::RobotModelLoader>("robot_description");
+  planningScene_ = std::make_shared<planning_scene::PlanningScene>(robotModelLoader_->getModel());
+
+  // Initialize the planning pipeline
+  planningPipeline_ = std::make_shared<planning_pipeline::PlanningPipeline>(
+      robotModelLoader_->getModel(), nh_, "planning_plugin", "request_adapters");
 
   spinner_.start();
 
