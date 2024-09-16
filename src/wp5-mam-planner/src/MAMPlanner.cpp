@@ -31,18 +31,9 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5"), tfListe
   // Add obstacles
   addStaticObstacles_();
   getWaypoints_();
-
-  // ikSolver_ = make_unique<TRAC_IK::TRAC_IK>(robotBase, virtualTarget, "Distance", ros::Duration(0.01));
-
-  // TODO: Implement tracIK solutions
-  // for each solution, start a thread and compute path planning
-  // if path planning not successful, reconfigure platform to a new position
-  // if path planning successful, execute the trajectory
 }
 
 bool MAMPlanner::computePath_(const vector<double>& startConfig, const geometry_msgs::Pose& targetPose) {
-  bool isPathFound = false;
-
   // Set the starting configuration
   robotState_->setJointGroupPositions(jointModelGroup_, startConfig);
   moveGroup_->setStartState(*robotState_);
@@ -54,25 +45,32 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig, const geometry_
   bool success = (moveGroup_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
   if (success) {
-    bool isBetterPlan =
-        plan.trajectory_.joint_trajectory.points.size() < bestPlan_.trajectory_.joint_trajectory.points.size();
+    if (currentWpointID_ > bestPlan_.size()) {
+      bestPlan_.push_back(plan);
+    } else {
+      bool isBetterPlan = plan.trajectory_.joint_trajectory.points.size()
+                          < bestPlan_[currentWpointID_].trajectory_.joint_trajectory.points.size();
 
-    if (!isPathFound || isBetterPlan) {
-      bestPlan_ = plan;
-      isPathFound = true;
+      if (isBetterPlan) {
+        bestPlan_[currentWpointID_] = plan;
+      }
     }
   }
 
-  return isPathFound;
+  return success;
 }
 
-void MAMPlanner::planTrajectory() {
-  bool isPathFound = false;
+bool MAMPlanner::planTrajectory() {
   cout << "Planning trajectory" << endl;
+
+  bool isPathFound = false;
   vector<vector<double>> ikSolutions{};
   RoboticArmUr5* robotUr5 = dynamic_cast<RoboticArmUr5*>(robot_.get());
 
+  currentWpointID_ = 0;
+  bestPlan_.clear();
   for (size_t i = 0; i < waypoints_.size() - 1; ++i) {
+    currentWpointID_ = i;
     const Waypoint currentWPoint = waypoints_[i];
     const Waypoint nextWPoint = waypoints_[i + 1];
     geometry_msgs::Pose nextTarget = generatePose_(nextWPoint.getPoseVector<double>());
@@ -80,27 +78,33 @@ void MAMPlanner::planTrajectory() {
     robotUr5->getIKGeo(currentWPoint.quat, currentWPoint.pos, ikSolutions);
 
     for (const auto& sol : ikSolutions) {
-      isPathFound = computePath_(sol, nextTarget);
+      isPathFound += computePath_(sol, nextTarget);
     }
 
-    if (isPathFound) {
-      moveGroup_->execute(bestPlan_);
-      moveGroup_->stop();
-      moveGroup_->clearPoseTargets();
-    } else {
-      ROS_ERROR("No valid path found");
+    if (!isPathFound) {
+      ROS_ERROR("No path found for waypoint %ld", i);
+      return false;
     }
   }
+
+  return true;
 }
 
 void MAMPlanner::executeTrajectory() {
-  //TODO(lmunier): Implement the executeTrajectory method
   cout << "Executing trajectory" << endl;
+
+  for (auto& plan : bestPlan_) {
+    moveGroup_->execute(plan);
+    moveGroup_->stop();
+    moveGroup_->clearPoseTargets();
+  }
 }
 
 void MAMPlanner::initMoveit_() {
+  cout << "Initializing MoveIt!" << endl;
   string robotGroup = "manipulator";
   moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robotGroup);
+  cout << "MoveIt! initialized" << endl;
   planningScene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
   setupMovegroup_();
 

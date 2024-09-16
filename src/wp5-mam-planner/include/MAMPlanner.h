@@ -35,7 +35,7 @@ public:
   /**
    * @brief Plans the trajectory of the robot.
    */
-  void planTrajectory();
+  bool planTrajectory();
 
   /**
    * @brief Executes the trajectory of the robot.
@@ -87,8 +87,9 @@ private:
   ros::Publisher pubDisplayTrajectory_; ///< Publisher for the display trajectory
 
   bool pathFound_ = false;
+  int currentWpointID_ = 0;
   std::vector<Waypoint> waypoints_; ///< Waypoints for the robot
-  moveit::planning_interface::MoveGroupInterface::Plan bestPlan_;
+  std::vector<moveit::planning_interface::MoveGroupInterface::Plan> bestPlan_;
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
   const moveit::core::JointModelGroup* jointModelGroup_ = nullptr;
