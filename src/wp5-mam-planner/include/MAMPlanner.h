@@ -9,15 +9,8 @@
 
 #include <geometry_msgs/Pose.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_interface/planning_interface.h>
-#include <moveit/planning_pipeline/planning_pipeline.h>
-#include <moveit/planning_scene/planning_scene.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
-#include <moveit_msgs/AttachedCollisionObject.h>
 #include <moveit_msgs/CollisionObject.h>
-#include <moveit_msgs/DisplayTrajectory.h>
-#include <moveit_msgs/PlanningScene.h>
 #include <ros/ros.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/buffer.h>
@@ -26,10 +19,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <Eigen/Dense>
-#include <condition_variable>
 #include <memory>
-#include <mutex>
-#include <thread>
 #include <vector>
 
 #include "RoboticArmCr7.h"
@@ -96,22 +86,17 @@ private:
   ros::Publisher pubWeldingState_;      ///< Publisher for the welding state
   ros::Publisher pubDisplayTrajectory_; ///< Publisher for the display trajectory
 
-  std::vector<std::thread> threads;
-  std::mutex mtx_;
-  std::condition_variable cv_;
   bool pathFound_ = false;
   std::vector<Waypoint> waypoints_; ///< Waypoints for the robot
   moveit::planning_interface::MoveGroupInterface::Plan bestPlan_;
 
-  planning_pipeline::PlanningPipelinePtr planningPipeline_ = nullptr;
-  planning_scene::PlanningScenePtr planningScene_ = nullptr;
-  robot_model_loader::RobotModelLoaderPtr robotModelLoader_ = nullptr;
-
-  std::unique_ptr<moveit::planning_interface::PlanningSceneInterface> scene_ = nullptr; ///< Planning scene
-  std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
+  moveit::core::RobotStatePtr robotState_ = nullptr;
+  const moveit::core::JointModelGroup* jointModelGroup_ = nullptr;
+  std::unique_ptr<moveit::planning_interface::PlanningSceneInterface> planningScene_ = nullptr; ///< Planning scene
+  std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr;         ///< MoveGroup interface
 
   void initMoveit_();
-  void setupMovegroup_(moveit::planning_interface::MoveGroupInterface* mGroup);
+  void setupMovegroup_();
   geometry_msgs::Pose generatePose_(const std::vector<double>& pose);
   geometry_msgs::Pose projectPose_(const geometry_msgs::Pose& pose,
                                    const std::string& fromFrame,
@@ -131,9 +116,7 @@ private:
   }
 
   void getWaypoints_();
-  void computePath_(const std::string& group,
-                    const std::vector<double>& startConfig,
-                    const geometry_msgs::Pose& targetPose);
+  bool computePath_(const std::vector<double>& startConfig, const geometry_msgs::Pose& targetPose);
   void addStaticObstacles_();
 
   shape_msgs::SolidPrimitive createBox_(const std::string name, const std::vector<double>& size) const;

@@ -14,8 +14,6 @@
 #include <shape_msgs/SolidPrimitive.h>
 #include <std_msgs/Bool.h>
 
-#include <thread>
-
 #include "RoboticArmFactory.h"
 
 using namespace std;
@@ -42,38 +40,34 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5"), tfListe
   // if path planning successful, execute the trajectory
 }
 
-void MAMPlanner::computePath_(const string& group,
-                              const vector<double>& startConfig,
-                              const geometry_msgs::Pose& targetPose) {
-  moveit::planning_interface::MoveGroupInterface moveGroup(group);
-  setupMovegroup_(&moveGroup);
+bool MAMPlanner::computePath_(const vector<double>& startConfig, const geometry_msgs::Pose& targetPose) {
+  bool isPathFound = false;
 
   // Set the starting configuration
-  robot_state::RobotState startState(*moveGroup.getCurrentState());
-  const robot_state::JointModelGroup* jointModelGroup = startState.getJointModelGroup(group);
-  startState.setJointGroupPositions(jointModelGroup, startConfig);
-  moveGroup.setStartState(startState);
+  robotState_->setJointGroupPositions(jointModelGroup_, startConfig);
+  moveGroup_->setStartState(*robotState_);
 
   // Set the target pose
-  moveGroup.setPoseTarget(targetPose);
+  moveGroup_->setPoseTarget(targetPose);
 
   moveit::planning_interface::MoveGroupInterface::Plan plan;
-  bool success = (moveGroup.plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  bool success = (moveGroup_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
   if (success) {
-    unique_lock<mutex> lock(mtx_);
     bool isBetterPlan =
         plan.trajectory_.joint_trajectory.points.size() < bestPlan_.trajectory_.joint_trajectory.points.size();
 
-    if (!pathFound_ || isBetterPlan) {
+    if (!isPathFound || isBetterPlan) {
       bestPlan_ = plan;
-      pathFound_ = true;
-      cv_.notify_all();
+      isPathFound = true;
     }
   }
+
+  return isPathFound;
 }
 
 void MAMPlanner::planTrajectory() {
+  bool isPathFound = false;
   cout << "Planning trajectory" << endl;
   vector<vector<double>> ikSolutions{};
   RoboticArmUr5* robotUr5 = dynamic_cast<RoboticArmUr5*>(robot_.get());
@@ -86,26 +80,10 @@ void MAMPlanner::planTrajectory() {
     robotUr5->getIKGeo(currentWPoint.quat, currentWPoint.pos, ikSolutions);
 
     for (const auto& sol : ikSolutions) {
-      cout << "Computing path for pose" << endl;
-      for (auto& s : sol) {
-        cout << s << " ";
-      }
-      cout << endl;
-      threads.emplace_back(&MAMPlanner::computePath_, this, "manipulator", sol, nextTarget);
+      isPathFound = computePath_(sol, nextTarget);
     }
 
-    {
-      unique_lock<mutex> lock(mtx_);
-      cv_.wait(lock, [this] { return pathFound_; }); // Wait until a path is found
-    }
-
-    for (auto& thread : threads) {
-      if (thread.joinable()) {
-        thread.join(); // Join all threads
-      }
-    }
-
-    if (pathFound_) {
+    if (isPathFound) {
       moveGroup_->execute(bestPlan_);
       moveGroup_->stop();
       moveGroup_->clearPoseTargets();
@@ -123,18 +101,11 @@ void MAMPlanner::executeTrajectory() {
 void MAMPlanner::initMoveit_() {
   string robotGroup = "manipulator";
   moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robotGroup);
-  scene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
-  setupMovegroup_(moveGroup_.get());
+  planningScene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
+  setupMovegroup_();
 
-  robotModelLoader_ = make_shared<robot_model_loader::RobotModelLoader>("robot_description");
-  planningScene_ = make_shared<planning_scene::PlanningScene>(robotModelLoader_->getModel());
-
-  // Set the planning plugin parameter
-  nh_.setParam("planning_plugin", "ompl_interface/OMPLPlanner");
-
-  // Initialize the planning pipeline
-  planningPipeline_ = make_shared<planning_pipeline::PlanningPipeline>(
-      robotModelLoader_->getModel(), nh_, "planning_plugin", "request_adapters");
+  robotState_ = moveGroup_->getCurrentState();
+  jointModelGroup_ = moveGroup_->getCurrentState()->getJointModelGroup(robotGroup);
 
   spinner_.start();
 
@@ -142,13 +113,13 @@ void MAMPlanner::initMoveit_() {
   ros::Duration(1.0).sleep();
 }
 
-void MAMPlanner::setupMovegroup_(moveit::planning_interface::MoveGroupInterface* mGroup) {
-  mGroup->setPoseReferenceFrame(robot_->getReferenceFrame());
-  mGroup->setPlannerId("RRTConnectkConfigDefault");
-  mGroup->setPlanningTime(5.0);
-  mGroup->setNumPlanningAttempts(10);
-  mGroup->setGoalPositionTolerance(0.005);
-  mGroup->setGoalOrientationTolerance(0.01);
+void MAMPlanner::setupMovegroup_() {
+  moveGroup_->setPoseReferenceFrame(robot_->getReferenceFrame());
+  moveGroup_->setPlannerId("RRTConnectkConfigDefault");
+  moveGroup_->setPlanningTime(5.0);
+  moveGroup_->setNumPlanningAttempts(10);
+  moveGroup_->setGoalPositionTolerance(0.005);
+  moveGroup_->setGoalOrientationTolerance(0.01);
 }
 
 geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
@@ -296,7 +267,7 @@ void MAMPlanner::addStaticObstacles_() {
     collisionObjects.push_back(collisionObject);
   }
 
-  scene_->applyCollisionObjects(collisionObjects);
+  planningScene_->applyCollisionObjects(collisionObjects);
 }
 
 shape_msgs::SolidPrimitive MAMPlanner::MAMPlanner::createBox_(const string name, const vector<double>& size) const {
