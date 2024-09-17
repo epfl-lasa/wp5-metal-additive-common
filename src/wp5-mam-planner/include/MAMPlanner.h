@@ -9,6 +9,7 @@
 
 #include <geometry_msgs/Pose.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <ros/ros.h>
@@ -16,6 +17,7 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
+#include <visualization_msgs/Marker.h>
 #include <yaml-cpp/yaml.h>
 
 #include <Eigen/Dense>
@@ -31,6 +33,11 @@ public:
    * @brief Constructor.
    */
   MAMPlanner(ROSVersion rosVersion);
+
+  /**
+   * @brief Destructor.
+   */
+  ~MAMPlanner();
 
   /**
    * @brief Plans the trajectory of the robot.
@@ -85,6 +92,7 @@ private:
 
   ros::Publisher pubWeldingState_;      ///< Publisher for the welding state
   ros::Publisher pubDisplayTrajectory_; ///< Publisher for the display trajectory
+  ros::Publisher waypointPub_;
 
   bool pathFound_ = false;
   int currentWpointID_ = 0;
@@ -92,7 +100,6 @@ private:
   std::vector<moveit::planning_interface::MoveGroupInterface::Plan> bestPlan_;
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
-  const moveit::core::JointModelGroup* jointModelGroup_ = nullptr;
   std::unique_ptr<moveit::planning_interface::PlanningSceneInterface> planningScene_ = nullptr; ///< Planning scene
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr;         ///< MoveGroup interface
 
@@ -117,6 +124,7 @@ private:
   }
 
   void getWaypoints_();
+  void publishWaypoint_(const geometry_msgs::Pose& pose, const std::string& frameId, const int id);
   bool computePath_(const std::vector<double>& startConfig, const geometry_msgs::Pose& targetPose);
   void addStaticObstacles_();
 
