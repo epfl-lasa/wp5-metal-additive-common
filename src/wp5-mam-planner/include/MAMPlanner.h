@@ -7,21 +7,26 @@
 
 #pragma once
 
+#include <geometric_shapes/mesh_operations.h>
+#include <geometric_shapes/shape_operations.h>
 #include <geometry_msgs/Pose.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_interface/planning_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
-#include <moveit_msgs/CollisionObject.h>
-#include <ros/ros.h>
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit_msgs/RobotTrajectory.h>
+#include <moveit_visual_tools/moveit_visual_tools.h>
+#include <shape_msgs/Mesh.h>
+#include <shape_msgs/SolidPrimitive.h>
+#include <std_msgs/Bool.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
-#include <visualization_msgs/Marker.h>
 #include <yaml-cpp/yaml.h>
 
-#include <Eigen/Dense>
+#include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "RoboticArmCr7.h"
@@ -37,7 +42,7 @@ public:
   /**
    * @brief Destructor.
    */
-  ~MAMPlanner();
+  ~MAMPlanner() = default;
 
   /**
    * @brief Plans the trajectory of the robot.
@@ -92,12 +97,12 @@ private:
 
   ros::Publisher pubWeldingState_;      ///< Publisher for the welding state
   ros::Publisher pubDisplayTrajectory_; ///< Publisher for the display trajectory
-  ros::Publisher waypointPub_;
+  ros::Publisher pubWaypoint_;
 
   bool pathFound_ = false;
-  int currentWpointID_ = 0;
+  int currentWPointID_ = 0;
   std::vector<Waypoint> waypoints_; ///< Waypoints for the robot
-  std::vector<moveit::planning_interface::MoveGroupInterface::Plan> bestPlan_;
+  std::vector<moveit_msgs::RobotTrajectory> bestPlan_;
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
   std::unique_ptr<moveit::planning_interface::PlanningSceneInterface> planningScene_ = nullptr; ///< Planning scene
@@ -105,6 +110,11 @@ private:
 
   void initMoveit_();
   void setupMovegroup_();
+  bool computePath_(const std::vector<double>& startConfig,
+                    const geometry_msgs::Pose& currentPose,
+                    const geometry_msgs::Pose& targetPose,
+                    const bool isWeldging = false);
+
   geometry_msgs::Pose generatePose_(const std::vector<double>& pose);
   geometry_msgs::Pose projectPose_(const geometry_msgs::Pose& pose,
                                    const std::string& fromFrame,
@@ -124,10 +134,15 @@ private:
   }
 
   void getWaypoints_();
-  void publishWaypoint_(const geometry_msgs::Pose& pose, const std::string& frameId, const int id);
-  bool computePath_(const std::vector<double>& startConfig, const geometry_msgs::Pose& targetPose);
-  void addStaticObstacles_();
+  void publishWaypoint_(const geometry_msgs::Pose& pose, const std::string& frameId);
 
+  Eigen::Vector3d geometryToEigen_(const geometry_msgs::Point& point);
+  Eigen::Quaterniond geometryToEigen_(const geometry_msgs::Quaternion& orientation);
+
+  geometry_msgs::Point eigenToGeometry_(const Eigen::Vector3d& position);
+  geometry_msgs::Quaternion eigenToGeometry_(const Eigen::Quaterniond& orientation);
+
+  void addStaticObstacles_();
   shape_msgs::SolidPrimitive createBox_(const std::string name, const std::vector<double>& size) const;
   shape_msgs::SolidPrimitive createCylinder_(const std::string name, const double height, const double radius) const;
   shape_msgs::SolidPrimitive createSphere_(const std::string name, const double radius) const;

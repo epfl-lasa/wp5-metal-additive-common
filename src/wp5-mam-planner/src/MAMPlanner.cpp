@@ -6,19 +6,11 @@
  */
 #include "MAMPlanner.h"
 
-#include <geometric_shapes/mesh_operations.h>
-#include <geometric_shapes/shape_operations.h>
-#include <moveit_msgs/DisplayRobotState.h>
-#include <moveit_msgs/DisplayTrajectory.h>
-#include <shape_msgs/Mesh.h>
-#include <shape_msgs/SolidPrimitive.h>
-#include <std_msgs/Bool.h>
-
 #include "RoboticArmFactory.h"
 
 using namespace std;
 
-MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5"), tfListener_(tfBuffer_) {
+MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_(), tfListener_(tfBuffer_) {
   RoboticArmFactory armFactory = RoboticArmFactory();
   robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
   robot_->printInfo();
@@ -27,60 +19,11 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_("ur5"), tfListe
 
   pubWeldingState_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
   pubDisplayTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/display_planned_path", 20);
-  waypointPub_ = nh_.advertise<visualization_msgs::Marker>("/visualization_marker", 10);
+  pubWaypoint_ = nh_.advertise<geometry_msgs::PointStamped>("debug_waypoint", 10);
 
   // Add obstacles
-  addStaticObstacles_();
+  // addStaticObstacles_();
   getWaypoints_();
-}
-
-MAMPlanner::~MAMPlanner() { /*delete jointModelGroup_; */
-}
-
-bool MAMPlanner::computePath_(const vector<double>& startConfig, const geometry_msgs::Pose& targetPose) {
-  // Set the starting configuration
-  const string robotGroup = "manipulator";
-  const moveit::core::JointModelGroup* jointModelGroup = moveGroup_->getCurrentState()->getJointModelGroup(robotGroup);
-
-  moveGroup_->clearPoseTargets();
-  // moveGroup_->getCurrentState()->setJointGroupPositions(jointModelGroup, startConfig);
-
-  // Set the joint positions to the provided start configuration
-  moveGroup_->setJointValueTarget(startConfig);
-
-  // Plan and execute the motion to the starting configuration
-  moveit::planning_interface::MoveGroupInterface::Plan startPlan;
-  bool startSuccess = (moveGroup_->plan(startPlan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  if (startSuccess) {
-    moveGroup_->move();
-  } else {
-    ROS_WARN("Failed to plan to the starting configuration");
-    return false;
-  }
-
-  // moveGroup_->setStartState(*moveGroup_->getCurrentState());
-
-  // Set the target pose
-  moveGroup_->setPoseTarget(targetPose);
-
-  moveit::planning_interface::MoveGroupInterface::Plan plan;
-  bool success = (moveGroup_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  if (success) {
-    if (currentWpointID_ > bestPlan_.size()) {
-      bestPlan_.push_back(plan);
-    } else {
-      bool isBetterPlan = plan.trajectory_.joint_trajectory.points.size()
-                          < bestPlan_[currentWpointID_].trajectory_.joint_trajectory.points.size();
-
-      if (isBetterPlan) {
-        bestPlan_[currentWpointID_] = plan;
-      }
-    }
-  }
-
-  return success;
 }
 
 bool MAMPlanner::planTrajectory() {
@@ -92,27 +35,29 @@ bool MAMPlanner::planTrajectory() {
   // TODO(lmunier): Avoid using dynamic_cast
   RoboticArmUr5* robotUr5 = dynamic_cast<RoboticArmUr5*>(robot_.get());
 
-  currentWpointID_ = 0;
+  currentWPointID_ = 0;
   bestPlan_.clear();
-  for (size_t i = 0; i < waypoints_.size() - 1; ++i) {
-    currentWpointID_ = i;
-    const Waypoint currentWPoint = waypoints_[i];
-    const Waypoint nextWPoint = waypoints_[i + 1];
-    geometry_msgs::Pose nextTarget = generatePose_(nextWPoint.getPoseVector<double>());
+  geometry_msgs::Pose currentPose = moveGroup_->getCurrentPose().pose;
+  for (size_t i = 0; i < waypoints_.size(); ++i) {
+    currentWPointID_ = i;
+    const Waypoint wPoint = waypoints_[i];
+    geometry_msgs::Pose nextPose = generatePose_(wPoint.getPoseVector<double>());
 
-    publishWaypoint_(nextTarget, "base_link_inertia", currentWpointID_);
+    publishWaypoint_(nextPose, "base_link_inertia");
 
-    robotUr5->getIKGeo(currentWPoint.quat, currentWPoint.pos, ikSolutions);
+    robotUr5->getIKGeo(geometryToEigen_(currentPose.orientation), geometryToEigen_(currentPose.position), ikSolutions);
 
-    for (const auto& sol : ikSolutions) {
-      cout << "Computing path for waypoint " << i << endl;
-      isPathFound += computePath_(sol, nextTarget);
+    for (const auto& ikSol : ikSolutions) {
+      cout << "Computing path for waypoints " << i << " to " << i + 1 << endl;
+      isPathFound += computePath_(ikSol, currentPose, nextPose, wPoint.welding);
     }
 
     if (!isPathFound) {
       ROS_ERROR("No path found for waypoint %ld", i);
       return false;
     }
+
+    currentPose = nextPose;
   }
 
   return true;
@@ -121,8 +66,20 @@ bool MAMPlanner::planTrajectory() {
 void MAMPlanner::executeTrajectory() {
   cout << "Executing trajectory" << endl;
 
-  for (auto& plan : bestPlan_) {
-    moveGroup_->execute(plan);
+  if (bestPlan_.empty()) {
+    ROS_ERROR("No trajectory to execute");
+    return;
+  }
+
+  for (const auto& trajectory : bestPlan_) {
+    moveit::core::MoveItErrorCode success = moveGroup_->execute(trajectory);
+
+    if (success == moveit::core::MoveItErrorCode::SUCCESS) {
+      ROS_INFO("Trajectory executed successfully");
+    } else {
+      ROS_ERROR("Failed to execute trajectory");
+    }
+
     moveGroup_->stop();
     moveGroup_->clearPoseTargets();
   }
@@ -156,6 +113,57 @@ void MAMPlanner::setupMovegroup_() {
   moveGroup_->setNumPlanningAttempts(10);
   moveGroup_->setGoalPositionTolerance(0.005);
   moveGroup_->setGoalOrientationTolerance(0.01);
+}
+
+bool MAMPlanner::computePath_(const vector<double>& startConfig,
+                              const geometry_msgs::Pose& currentPose,
+                              const geometry_msgs::Pose& targetPose,
+                              const bool isWeldging) {
+  bool success = false;
+  const string robotGroup = "manipulator";
+  moveit_msgs::RobotTrajectory planCartesianTrajectory{};
+
+  if (isWeldging) {
+    // Create a RobotState object and set it to the desired starting joint configuration
+    moveit::core::RobotState startState(*moveGroup_->getCurrentState());
+    startState.setJointGroupPositions(robotGroup, startConfig);
+
+    // Set the starting state in the planning scene
+    moveGroup_->setStartState(startState);
+
+    // Compute Cartesian path
+    vector<geometry_msgs::Pose> waypoints{};
+    waypoints.push_back(currentPose);
+    waypoints.push_back(targetPose);
+
+    double fraction = moveGroup_->computeCartesianPath(waypoints, 0.01, 0.0, planCartesianTrajectory, true);
+    success = fraction == 1.0; // Path fully computed
+    cout << "Fraction: " << fraction << endl;
+  } else {
+    // Set the target pose
+    moveGroup_->setPoseTarget(targetPose);
+
+    // Plan the trajectory
+    moveit::planning_interface::MoveGroupInterface::Plan plan;
+    success = moveGroup_->plan(plan) == moveit::core::MoveItErrorCode::SUCCESS;
+    moveGroup_->execute(plan);
+    planCartesianTrajectory = plan.trajectory_;
+  }
+
+  if (success) {
+    if (currentWPointID_ >= bestPlan_.size()) {
+      bestPlan_.push_back(planCartesianTrajectory);
+    } else {
+      double currentPlanSize = planCartesianTrajectory.joint_trajectory.points.size();
+      double bestPlanSize = bestPlan_[currentWPointID_].joint_trajectory.points.size();
+
+      if (currentPlanSize < bestPlanSize) {
+        bestPlan_[currentWPointID_] = planCartesianTrajectory;
+      }
+    }
+  }
+
+  return success;
 }
 
 geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
@@ -224,25 +232,26 @@ void MAMPlanner::getWaypoints_() {
   YAML::Node config = YAML::LoadFile(yamlPath);
 
   Waypoint newWaypoint{};
-  Eigen::Quaterniond tmpQuat{};
   vector<double> pose{};
-  array<double, 3> tmpEuler{};
+  vector<double> tmpOrientation{};
   geometry_msgs::Pose newPose{};
 
   for (const auto& waypoint : config) {
+    newWaypoint.clear();
     newWaypoint.frame = waypoint["frame"].as<string>();
 
     // Get the pose and orientation, convert it and project it to the robot frame
     pose = waypoint["pos"].as<vector<double>>();
-    tmpEuler = waypoint["angle"].as<array<double, 3>>();
-    pose.insert(pose.end(), tmpEuler.begin(), tmpEuler.end());
+    tmpOrientation = waypoint["angle"].as<vector<double>>();
+    pose.insert(pose.end(), tmpOrientation.begin(), tmpOrientation.end());
 
     newPose = generatePose_(pose);
-    newPose = projectPose_(newPose, newWaypoint.frame, robot_->getReferenceFrame());
+    // TODO(lmunier): Fix the frame projection, use it when planning only to take into account the robot position
+    //newPose = projectPose_(newPose, newWaypoint.frame, robot_->getReferenceFrame());
 
-    newWaypoint.pos = Eigen::Vector3d{newPose.position.x, newPose.position.y, newPose.position.z};
-    newWaypoint.quat =
-        Eigen::Quaterniond{newPose.orientation.w, newPose.orientation.x, newPose.orientation.y, newPose.orientation.z};
+    // Store the waypoint
+    newWaypoint.pos = geometryToEigen_(newPose.position);
+    newWaypoint.quat = geometryToEigen_(newPose.orientation);
     newWaypoint.speed = waypoint["speed"].as<double>();
     newWaypoint.welding = waypoint["welding"].as<bool>();
 
@@ -250,27 +259,42 @@ void MAMPlanner::getWaypoints_() {
   }
 }
 
-void MAMPlanner::publishWaypoint_(const geometry_msgs::Pose& pose, const string& frameId, const int id) {
-  visualization_msgs::Marker marker;
-  marker.header.frame_id = frameId;
-  marker.header.stamp = ros::Time::now();
-  marker.ns = "waypoints";
-  marker.id = id;
-  marker.type = visualization_msgs::Marker::SPHERE;
-  marker.action = visualization_msgs::Marker::ADD;
-  marker.pose = pose;
-  marker.lifetime = ros::Duration(30);
+void MAMPlanner::publishWaypoint_(const geometry_msgs::Pose& pose, const string& frameId) {
+  geometry_msgs::PointStamped pointStamped;
+  pointStamped.header.frame_id = frameId;
+  pointStamped.header.stamp = ros::Time::now();
+  pointStamped.point = pose.position;
 
-  marker.scale.x = 0.1;
-  marker.scale.y = 0.1;
-  marker.scale.z = 0.1;
+  for (int i = 0; i < 10; ++i) {
+    pubWaypoint_.publish(pointStamped);
+  }
+}
 
-  marker.color.a = 1.0;
-  marker.color.r = 1.0;
-  marker.color.g = 0.0;
-  marker.color.b = 1.0;
+Eigen::Vector3d MAMPlanner::geometryToEigen_(const geometry_msgs::Point& point) {
+  return Eigen::Vector3d{point.x, point.y, point.z};
+}
 
-  waypointPub_.publish(marker);
+Eigen::Quaterniond MAMPlanner::geometryToEigen_(const geometry_msgs::Quaternion& orientation) {
+  return Eigen::Quaterniond{orientation.w, orientation.x, orientation.y, orientation.z};
+}
+
+geometry_msgs::Point MAMPlanner::eigenToGeometry_(const Eigen::Vector3d& position) {
+  geometry_msgs::Point point;
+  point.x = position.x();
+  point.y = position.y();
+  point.z = position.z();
+
+  return move(point);
+}
+
+geometry_msgs::Quaternion MAMPlanner::eigenToGeometry_(const Eigen::Quaterniond& orientation) {
+  geometry_msgs::Quaternion quat;
+  quat.x = orientation.x();
+  quat.y = orientation.y();
+  quat.z = orientation.z();
+  quat.w = orientation.w();
+
+  return move(quat);
 }
 
 void MAMPlanner::addStaticObstacles_() {

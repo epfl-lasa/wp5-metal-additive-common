@@ -1,20 +1,31 @@
-- frame: tool0
-  pos: [0, 0, 0.05] # [m]
-  angle: [0, 0, 0] # [rad]
+# - frame: virtual_link
+#   pos: [0, 0, 0.05] # [m] x,y,z
+#   angle: [0, 0, 0] # [rad] euler r,p,y or quaternion x,y,z,w
+#   speed: 0.1 # [m/s]
+#   welding: false # [-]
+# - frame: virtual_link
+#   pos: [0.1, 0, 0] # [m] x,y,z
+#   angle: [0, 0, 0] # [rad] euler r,p,y or quaternion x,y,z,w
+#   speed: 0.01 # [m/s]
+#   welding: true # [-]
+# - frame: virtual_link
+#   pos: [0, 0, -0.05] # [m] x,y,z
+#   angle: [0, 0, 0] # [rad] euler r,p,y or quaternion x,y,z,w
+#   speed: 0.5 # [m/s]
+#   welding: false # [-]
+# - frame: virtual_link
+#   pos: [-0.1, 0.05, 0] # [m] x,y,z
+#   angle: [0, 0, 0] # [rad] euler r,p,y or quaternion x,y,z,w
+#   speed: 0.1 # [m/s]
+#   welding: false # [-]
+
+- frame: virtual_link
+  pos: [-0.0206378, -0.467279, 0.146959] # [m] x,y,z
+  angle: [0.00866335, 0.715668, -0.698327, 0.009155] # [rad] euler r,p,y or quaternion x,y,z,w
   speed: 0.1 # [m/s]
   welding: false # [-]
-- frame: tool0
-  pos: [0.1, 0, 0] # [m]
-  angle: [0, 0, 0] # [rad]
-  speed: 0.01 # [m/s]
+- frame: virtual_link
+  pos: [-0.0206378, -0.467279, 0.2] # [m] x,y,z
+  angle: [0.00866335, 0.715668, -0.698327, 0.009155] # [rad] euler r,p,y or quaternion x,y,z,w
+  speed: 0.1 # [m/s]
   welding: true # [-]
-- frame: tool0
-  pos: [0, 0, -0.05] # [m]
-  angle: [0, 0, 0] # [rad]
-  speed: 0.5 # [m/s]
-  welding: false # [-]
-- frame: tool0
-  pos: [-0.1, 0.05, 0]
-  angle: [0, 0, 0] # [rad]
-  speed: 0.1 # [m/s]
-  welding: false # [-]
