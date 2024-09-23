@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="simu" doc="Simulation or real robot : [ON, OFF]" default="ON" />
-    <arg
-        name="environment"
+    <arg name="environment"
         doc="Which environment is it running on : [ridgeback, robot_pc, desktop_pc]"
         default="desktop_pc" />
     <arg name="camera" doc="Realsens camera to run : [1, 2, all, none]"
@@ -12,19 +11,14 @@
         value="ur5" />
     <param name="robot_type" value="$(arg robot_type)" />
 
-    <arg name="ee_tool"
-        default="none"
-        doc="Add the end effector tool to consider on the robot to have it in collision / visual. [none, logi_laser]" />
+    <arg name="ee_tool" default="none" doc="Add the end effector tool to consider on the robot to have it in collision / visual. [none, logi_laser]" />
 
     <!-- Setup Robot ip -->
-    <arg
-        unless="$(eval simu=='ON')" name="robot_ip" value="192.168.131.17" />
-    <arg
-        if="$(eval simu=='ON')" name="robot_ip" value="127.0.0.1" />
+    <arg unless="$(eval simu=='ON')" name="robot_ip" value="192.168.131.17" />
+    <arg if="$(eval simu=='ON')" name="robot_ip" value="127.0.0.1" />
 
     <!-- Run bring up robot -->
-    <include
-        file="$(find ur_lasa)/launch/ur5_bringup_moveit.launch">
+    <include file="$(find ur_lasa)/launch/ur5_bringup_moveit.launch">
         <arg name="simu" value="$(arg simu)" />
         <arg name="ee_tool" value="$(arg ee_tool)" />
         <arg name="robot_ip" value="$(arg robot_ip)" />

@@ -19,8 +19,11 @@ services:
               capabilities: [ gpu ]
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - .clang-format:/home/${ROS_USER}/catkin_ws/.clang-format
+      - .vscode:/home/${ROS_USER}/catkin_ws/.vscode
       - ./src:/home/${ROS_USER}/catkin_ws/src
-      - ./scripts:/home/${ROS_USER}/scripts
     stdin_open: true
     tty: true
   simulation:
@@ -43,6 +46,8 @@ services:
               capabilities: [ gpu ]
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
       - ./src:/home/${ROS_USER}/catkin_ws/src
       - ./simulation:/home/${SIMU_USER}/simulation
       - ./tools/docker_ros_coppeliasim/scripts:/home/${SIMU_USER}/scripts
