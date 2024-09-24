@@ -10,7 +10,7 @@ ITaskBase::ITaskBase(ros::NodeHandle& nh, ROSVersion rosVersion, double freq, st
     nh_(nh), rosVersion_(rosVersion), rosFreq_(freq), loopRate_(freq) {}
 
 bool ITaskBase::initialize() {
-  planner_ = make_unique<MAMPlanner>(rosVersion_);
+  planner_ = make_unique<MAMPlanner>(rosVersion_, nh_);
 
   return true;
 }

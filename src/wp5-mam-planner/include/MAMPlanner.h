@@ -10,6 +10,7 @@
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/DisplayTrajectory.h>
@@ -37,7 +38,7 @@ public:
   /**
    * @brief Constructor.
    */
-  MAMPlanner(ROSVersion rosVersion);
+  MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh);
 
   /**
    * @brief Destructor.

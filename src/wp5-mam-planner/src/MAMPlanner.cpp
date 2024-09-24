@@ -8,9 +8,11 @@
 
 #include "RoboticArmFactory.h"
 
+// TODO(lmunier): Double check MoveIt! configuration, especially references frames and planning groups
+
 using namespace std;
 
-MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_(), tfListener_(tfBuffer_) {
+MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) : spinner_(1), nh_(nh), tfListener_(tfBuffer_) {
   RoboticArmFactory armFactory = RoboticArmFactory();
   robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
   robot_->printInfo();
@@ -19,7 +21,7 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion) : spinner_(1), nh_(), tfListener_(
 
   pubWeldingState_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
   pubDisplayTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/display_planned_path", 20);
-  pubWaypoint_ = nh_.advertise<geometry_msgs::PointStamped>("debug_waypoint", 10);
+  pubWaypoint_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_waypoint", 10);
 
   // Add obstacles
   // addStaticObstacles_();
@@ -43,7 +45,8 @@ bool MAMPlanner::planTrajectory() {
     const Waypoint wPoint = waypoints_[i];
     geometry_msgs::Pose nextPose = generatePose_(wPoint.getPoseVector<double>());
 
-    publishWaypoint_(nextPose, "base_link_inertia");
+    publishWaypoint_(currentPose, "base_link");
+    publishWaypoint_(nextPose, "base_link");
 
     robotUr5->getIKGeo(geometryToEigen_(currentPose.orientation), geometryToEigen_(currentPose.position), ikSolutions);
 
@@ -109,7 +112,7 @@ void MAMPlanner::initMoveit_() {
 void MAMPlanner::setupMovegroup_() {
   moveGroup_->setPoseReferenceFrame(robot_->getReferenceFrame());
   moveGroup_->setPlannerId("RRTConnect");
-  moveGroup_->setPlanningTime(5.0);
+  moveGroup_->setPlanningTime(10.0);
   moveGroup_->setNumPlanningAttempts(10);
   moveGroup_->setGoalPositionTolerance(0.005);
   moveGroup_->setGoalOrientationTolerance(0.01);
@@ -122,6 +125,7 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
   bool success = false;
   const string robotGroup = "manipulator";
   moveit_msgs::RobotTrajectory planCartesianTrajectory{};
+  moveGroup_->clearPoseTargets();
 
   if (isWeldging) {
     // Create a RobotState object and set it to the desired starting joint configuration
@@ -259,14 +263,18 @@ void MAMPlanner::getWaypoints_() {
   }
 }
 
-void MAMPlanner::publishWaypoint_(const geometry_msgs::Pose& pose, const string& frameId) {
-  geometry_msgs::PointStamped pointStamped;
-  pointStamped.header.frame_id = frameId;
-  pointStamped.header.stamp = ros::Time::now();
-  pointStamped.point = pose.position;
+void MAMPlanner::publishWaypoint_(const geometry_msgs::Pose& pose, const std::string& frameId) {
+  float TIME_WAIT = 0.2;
+  size_t NB_PUBLISH = 3;
 
-  for (int i = 0; i < 10; ++i) {
-    pubWaypoint_.publish(pointStamped);
+  geometry_msgs::PoseStamped poseStamped;
+  poseStamped.header.frame_id = frameId;
+  poseStamped.header.stamp = ros::Time::now();
+  poseStamped.pose = pose;
+
+  for (size_t i = 0; i < NB_PUBLISH; ++i) {
+    pubWaypoint_.publish(poseStamped);
+    ros::Duration(TIME_WAIT).sleep();
   }
 }
 
