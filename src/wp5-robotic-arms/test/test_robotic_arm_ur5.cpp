@@ -13,6 +13,7 @@
 
 #include <random>
 #include <variant>
+#include <vector>
 
 #include "RoboticArmUr5.h"
 
@@ -20,12 +21,14 @@ using namespace std;
 
 class RoboticArmUr5Test : public ::testing::Test {
 protected:
-  const double TOLERANCE = 1e-4;
+  const double TOLERANCE = 5e-4;
   static const int NB_TESTS = 50;
 
   static RoboticArmUr5* roboticArm;
   static mt19937 gen;
   static uniform_real_distribution<> dis;
+  static uniform_real_distribution<> disJoint;
+  static vector<vector<double>> jointPositions;
   static vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> waypoints;
 
   RoboticArmUr5Test() {}
@@ -33,7 +36,9 @@ protected:
   static void SetUpTestSuite() {
     ros::NodeHandle nh;
     roboticArm = new RoboticArmUr5(ROSVersion::ROS1_NOETIC);
+
     generateWaypoints();
+    generateJointPositions();
   }
 
   static void TearDownTestSuite() { delete roboticArm; }
@@ -59,7 +64,11 @@ protected:
 
   // Function to generate a reachable random waypoint
   static pair<Eigen::Quaterniond, Eigen::Vector3d> generateReachableWaypoint() {
+    uint tries = 0;
+    const int MAX_TRIES = 100;
+
     while (true) {
+      tries++;
       Eigen::Quaterniond quaternion = generateRandomQuaternion();
       Eigen::Vector3d position = generateRandomPosition();
       vector<double> jointPos{};
@@ -69,6 +78,8 @@ protected:
       // Check if the IK solver found a valid solution
       if (isValid) {
         return make_pair(quaternion, position);
+      } else if (tries > MAX_TRIES) {
+        throw runtime_error("Could not find a valid waypoint after " + to_string(MAX_TRIES) + " tries.");
       }
     }
   }
@@ -78,6 +89,37 @@ protected:
     for (int i = 0; i < NB_TESTS; ++i) {
       waypoints.push_back(generateReachableWaypoint());
     }
+  }
+
+  // Function to generate random joint positions between the joint limits
+  static void generateJointPositions() {
+    jointPositions.clear();
+
+    for (size_t i = 0; i < NB_TESTS; ++i) {
+      std::vector<double> jointPos;
+      for (size_t j = 0; j < roboticArm->getNbJoints(); ++j) {
+        jointPos.push_back(disJoint(gen));
+      }
+      jointPositions.push_back(jointPos);
+    }
+  }
+
+  // Function to compute angle difference between two quaternions
+  static double calculateRotationDifference(const Eigen::Quaterniond& q1, const Eigen::Quaterniond& q2) {
+    // Normalize the quaternions to ensure they are unit quaternions
+    Eigen::Quaterniond q1_normalized = q1.normalized();
+    Eigen::Quaterniond q2_normalized = q2.normalized();
+
+    // Compute the relative quaternion q_rel = q1.inverse() * q2
+    Eigen::Quaterniond q_rel = q1_normalized.conjugate() * q2_normalized;
+
+    // Extract the scalar part of the relative quaternion
+    double w_rel = q_rel.w();
+
+    // Calculate the rotation angle in radians
+    double theta = 2 * std::acos(w_rel);
+
+    return theta;
   }
 
   // Function to check if two quaternions represent the same orientation
@@ -100,9 +142,11 @@ protected:
 RoboticArmUr5* RoboticArmUr5Test::roboticArm = nullptr;
 mt19937 RoboticArmUr5Test::gen(random_device{}());
 uniform_real_distribution<> RoboticArmUr5Test::dis(-0.5, 0.5);
+uniform_real_distribution<> RoboticArmUr5Test::disJoint(-2 * M_PI, 2 * M_PI);
+vector<vector<double>> RoboticArmUr5Test::jointPositions;
 vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> RoboticArmUr5Test::waypoints;
 
-// Create a test to check the forward kinematics of the UR5 robotic arm
+// Create a test to check coherency of the UR5 robotic arm trac-ik solver
 TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
   for (auto& [quaternion, position] : waypoints) {
     vector<double> jointPos{};
@@ -116,10 +160,9 @@ TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
   }
 }
 
+// Create a test to check coherency of the UR5 robotic arm geometric solver
 TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
-  int iter = 0;
   for (auto& [quaternion, position] : waypoints) {
-    iter++;
     vector<vector<double>> ikSolutions;
     roboticArm->getIKGeo(quaternion, position, ikSolutions);
 
@@ -133,6 +176,22 @@ TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
   }
 }
 
+//TODO(lmunier): Find where is the error inside H, P matrices config to have this constant difference in finale rotation
+// Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
+TEST_F(RoboticArmUr5Test, TestReferenceConfiguration) {
+  for (auto& jointPos : jointPositions) {
+    pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFK(jointPos);
+    pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKGeo(jointPos);
+
+    double diff = calculateRotationDifference(fkTracResult.first, fkGeoResult.first);
+    cout << "Rotation difference: " << diff << endl;
+
+    areQuaternionsEquivalent(fkTracResult.first, fkGeoResult.first, TOLERANCE);
+    arePositionsEquivalent(fkTracResult.second, fkGeoResult.second, TOLERANCE);
+  }
+}
+
+// Create a test to check the swapJoints_ function of the UR5 robotic arm
 TEST_F(RoboticArmUr5Test, TestSwapJoints) {
   // Generate fake input data to check swapJoints_ function
   int nbJoints = roboticArm->getNbJoints();

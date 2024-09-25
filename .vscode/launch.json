@@ -13,6 +13,13 @@
                 "taskType:=welding"
             ],
             "preLaunchTask": "build debug"
+        },
+        {
+            "name": "ROS: Launch Test Robotic Arm",
+            "type": "ros",
+            "request": "launch",
+            "target": "/home/${ROS_USER}/catkin_ws/src/wp5-robotic-arms/launch/test_robotic_arm_ur5.launch",
+            "preLaunchTask": "build debug"
         }
     ]
 }
