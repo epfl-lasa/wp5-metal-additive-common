@@ -8,8 +8,6 @@
 
 #include "RoboticArmFactory.h"
 
-// TODO(lmunier): Double check MoveIt! configuration, especially references frames and planning groups
-
 using namespace std;
 
 MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) : spinner_(1), nh_(nh), tfListener_(tfBuffer_) {
@@ -52,7 +50,11 @@ bool MAMPlanner::planTrajectory() {
 
     for (const auto& ikSol : ikSolutions) {
       cout << "Computing path for waypoints " << i << " to " << i + 1 << endl;
-      isPathFound += computePath_(ikSol, currentPose, nextPose, wPoint.welding);
+      vector<double> startConfig = ikSol;
+
+      // TODO(lmunier): Solve the issue with the first joint
+      startConfig[0] -= M_PI_2; // Adjust the first joint to match the robot's configuration
+      isPathFound += computePath_(startConfig, currentPose, nextPose, wPoint.welding);
     }
 
     if (!isPathFound) {
@@ -67,6 +69,8 @@ bool MAMPlanner::planTrajectory() {
 }
 
 void MAMPlanner::executeTrajectory() {
+  bool success = false;
+  vector<double> firstJointConfig{};
   cout << "Executing trajectory" << endl;
 
   if (bestPlan_.empty()) {
@@ -75,9 +79,23 @@ void MAMPlanner::executeTrajectory() {
   }
 
   for (const auto& trajectory : bestPlan_) {
-    moveit::core::MoveItErrorCode success = moveGroup_->execute(trajectory);
+    firstJointConfig = trajectory.joint_trajectory.points[0].positions;
 
-    if (success == moveit::core::MoveItErrorCode::SUCCESS) {
+    if (!robot_->isAtJointPosition(firstJointConfig)) {
+      moveGroup_->setJointValueTarget(firstJointConfig);
+      success = (moveGroup_->move() == moveit::core::MoveItErrorCode::SUCCESS);
+
+      if (!success) {
+        ROS_ERROR("Failed to move to the starting joint configuration.");
+        return;
+      }
+    }
+
+    moveGroup_->stop();
+    moveGroup_->clearPoseTargets();
+    success = moveGroup_->execute(trajectory) == moveit::core::MoveItErrorCode::SUCCESS;
+
+    if (success) {
       ROS_INFO("Trajectory executed successfully");
     } else {
       ROS_ERROR("Failed to execute trajectory");
@@ -112,7 +130,7 @@ void MAMPlanner::initMoveit_() {
 void MAMPlanner::setupMovegroup_() {
   moveGroup_->setPoseReferenceFrame(robot_->getReferenceFrame());
   moveGroup_->setPlannerId("RRTConnect");
-  moveGroup_->setPlanningTime(10.0);
+  moveGroup_->setPlanningTime(2.0);
   moveGroup_->setNumPlanningAttempts(10);
   moveGroup_->setGoalPositionTolerance(0.005);
   moveGroup_->setGoalOrientationTolerance(0.01);
@@ -127,14 +145,14 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
   moveit_msgs::RobotTrajectory planCartesianTrajectory{};
   moveGroup_->clearPoseTargets();
 
+  // Create a RobotState object and set it to the desired starting joint configuration
+  moveit::core::RobotState startState(*moveGroup_->getCurrentState());
+  startState.setJointGroupPositions(robotGroup, startConfig);
+
+  // Set the starting state in the planning scene
+  moveGroup_->setStartState(startState);
+
   if (isWeldging) {
-    // Create a RobotState object and set it to the desired starting joint configuration
-    moveit::core::RobotState startState(*moveGroup_->getCurrentState());
-    startState.setJointGroupPositions(robotGroup, startConfig);
-
-    // Set the starting state in the planning scene
-    moveGroup_->setStartState(startState);
-
     // Compute Cartesian path
     vector<geometry_msgs::Pose> waypoints{};
     waypoints.push_back(currentPose);
@@ -150,7 +168,6 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
     // Plan the trajectory
     moveit::planning_interface::MoveGroupInterface::Plan plan;
     success = moveGroup_->plan(plan) == moveit::core::MoveItErrorCode::SUCCESS;
-    moveGroup_->execute(plan);
     planCartesianTrajectory = plan.trajectory_;
   }
 

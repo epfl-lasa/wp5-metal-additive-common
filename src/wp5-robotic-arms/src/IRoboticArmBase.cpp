@@ -9,6 +9,7 @@
  * @copyright Copyright (c) 2024 - EPFL
  *
  */
+
 #include "IRoboticArmBase.h"
 
 #include <ros/ros.h>
@@ -17,7 +18,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <utility>
 
 #include "RosInterfaceNoetic.h"
 
@@ -113,6 +113,12 @@ tuple<vector<double>, vector<double>, vector<double>> IRoboticArmBase::getState(
   tuple<vector<double>, vector<double>, vector<double>> currentRobotState = rosInterface_->getState();
 
   return currentRobotState;
+}
+
+bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos) {
+  vector<double> currentJointPos = get<0>(getState());
+
+  return equal(jointPos.begin(), jointPos.end(), currentJointPos.begin(), currentJointPos.end());
 }
 
 void IRoboticArmBase::printInfo() {

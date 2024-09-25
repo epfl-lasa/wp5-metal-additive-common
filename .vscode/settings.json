@@ -73,7 +73,10 @@
         "cinttypes": "cpp",
         "typeindex": "cpp",
         "core": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "forward_list": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp"
     },
     "python.autoComplete.extraPaths": [
         "/home/ros/catkin_ws/devel/lib/python3/dist-packages",

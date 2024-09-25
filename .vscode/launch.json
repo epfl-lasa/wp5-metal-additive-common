@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "ROS: Launch",
+            "name": "ROS: Launch Task",
             "type": "ros",
             "request": "launch",
             "target": "/home/${ROS_USER}/catkin_ws/src/wp5-mam-tasks/launch/main_task.launch",

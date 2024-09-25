@@ -19,12 +19,12 @@
 #   speed: 0.1 # [m/s]
 #   welding: false # [-]
 
-- frame: virtual_link
+- frame: sensor
   pos: [-0.0206378, -0.467279, 0.146959] # [m] x,y,z
   angle: [0.00866335, 0.715668, -0.698327, 0.009155] # [rad] euler r,p,y or quaternion x,y,z,w
   speed: 0.1 # [m/s]
   welding: false # [-]
-- frame: virtual_link
+- frame: sensor
   pos: [-0.0206378, -0.467279, 0.2] # [m] x,y,z
   angle: [0.00866335, 0.715668, -0.698327, 0.009155] # [rad] euler r,p,y or quaternion x,y,z,w
   speed: 0.1 # [m/s]

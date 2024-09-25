@@ -1,29 +1,29 @@
 {
-    "configurations": [
-        {
-            "browse": {
-                "databaseFilename": "${default}",
-                "limitSymbolsToIncludedHeaders": false
-            },
-            "includePath": [
-                "/home/ros/catkin_ws/devel/include/**",
-                "/opt/ros/noetic/include/**",
-                "/home/ros/catkin_ws/src/rokae_ros_package/rokae_hardware/include/**",
-                "/home/ros/catkin_ws/src/ur5_lasa/src/ur_calibration/include/**",
-                "/home/ros/catkin_ws/src/ur5_lasa/src/ur_kinematics/include/**",
-                "/home/ros/catkin_ws/src/ur5_lasa/src/ur_robot_driver/include/**",
-                "/home/ros/catkin_ws/src/wp5-mam-planner/include/**",
-                "/home/ros/catkin_ws/src/wp5-mam-tasks/include/**",
-                "/home/ros/catkin_ws/src/wp5-robotic-arms/include/**",
-                "/home/ros/catkin_ws/src/wp5-ros-interface/include/**",
-                "/usr/include/**"
-            ],
-            "name": "ROS",
-            "intelliSenseMode": "gcc-x64",
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "gnu11",
-            "cppStandard": "c++14"
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/ros/catkin_ws/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/ros/catkin_ws/src/rokae_ros_package/rokae_hardware/include/**",
+        "/home/ros/catkin_ws/src/ur5_lasa/src/ur_calibration/include/**",
+        "/home/ros/catkin_ws/src/ur5_lasa/src/ur_kinematics/include/**",
+        "/home/ros/catkin_ws/src/ur5_lasa/src/ur_robot_driver/include/**",
+        "/home/ros/catkin_ws/src/wp5-mam-planner/include/**",
+        "/home/ros/catkin_ws/src/wp5-mam-tasks/include/**",
+        "/home/ros/catkin_ws/src/wp5-robotic-arms/include/**",
+        "/home/ros/catkin_ws/src/wp5-ros-interface/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
 }

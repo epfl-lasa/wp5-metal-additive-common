@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 #include <trac_ik/trac_ik.hpp>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -90,6 +91,7 @@ public:
    * @param nominal (Optional) Nominal joint positions.
    * @return Pair of the return code and the next joint positions.
    */
+  //TODO(lmunier): Solve NB_JOINTS_ hard coded dependencies
   bool getIK(const Eigen::Quaterniond& quaternion,
              const Eigen::Vector3d& position,
              std::vector<double>& jointPos,
@@ -100,6 +102,14 @@ public:
    * @return Tuple containing joint positions, velocities, and torques.
    */
   virtual std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> getState();
+
+  /**
+   * @brief Check if the robotic arm is already in a given joint configuration.
+   *
+   * @param jointPos Joint positions to check.
+   * @return True if the robotic arm is in the given joint configuration, false otherwise.
+   */
+  bool isAtJointPosition(const std::vector<double>& jointPos);
 
   /**
    * @brief Print the information for this robotic arm.
