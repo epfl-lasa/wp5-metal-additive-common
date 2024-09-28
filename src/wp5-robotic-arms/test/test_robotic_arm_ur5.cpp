@@ -104,6 +104,29 @@ protected:
     }
   }
 
+  static void quaternionToAxisAngle(const Eigen::Quaterniond& q, Eigen::Vector3d& axis, double& angle) {
+    // Ensure the quaternion is normalized
+    Eigen::Quaterniond normalized_q = q.normalized();
+
+    // Extract the components of the quaternion
+    double w = normalized_q.w();
+    double x = normalized_q.x();
+    double y = normalized_q.y();
+    double z = normalized_q.z();
+
+    // Compute the angle
+    angle = 2.0 * std::acos(w);
+
+    // Compute the axis
+    double sin_half_angle = std::sqrt(1.0 - w * w);
+    if (sin_half_angle < 1e-6) {
+      // If the angle is very small, the axis is not well-defined
+      axis = Eigen::Vector3d(1.0, 0.0, 0.0); // Default axis
+    } else {
+      axis = Eigen::Vector3d(x, y, z) / sin_half_angle;
+    }
+  }
+
   // Function to compute angle difference between two quaternions
   static double calculateRotationDifference(const Eigen::Quaterniond& q1, const Eigen::Quaterniond& q2) {
     // Normalize the quaternions to ensure they are unit quaternions
@@ -120,6 +143,21 @@ protected:
     double theta = 2 * std::acos(w_rel);
 
     return theta;
+  }
+
+  static void calculateAxisAngleDifference(const Eigen::Quaterniond& q1,
+                                           const Eigen::Quaterniond& q2,
+                                           Eigen::Vector3d& axis,
+                                           double& angle) {
+    // Normalize the quaternions to ensure they are unit quaternions
+    Eigen::Quaterniond q1_normalized = q1.normalized();
+    Eigen::Quaterniond q2_normalized = q2.normalized();
+
+    // Compute the relative quaternion q_rel = q1.inverse() * q2
+    Eigen::Quaterniond q_rel = q1_normalized.conjugate() * q2_normalized;
+
+    // Convert the relative quaternion to axis-angle representation
+    quaternionToAxisAngle(q_rel, axis, angle);
   }
 
   // Function to check if two quaternions represent the same orientation
@@ -145,51 +183,6 @@ uniform_real_distribution<> RoboticArmUr5Test::dis(-0.5, 0.5);
 uniform_real_distribution<> RoboticArmUr5Test::disJoint(-2 * M_PI, 2 * M_PI);
 vector<vector<double>> RoboticArmUr5Test::jointPositions;
 vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> RoboticArmUr5Test::waypoints;
-
-// Create a test to check coherency of the UR5 robotic arm trac-ik solver
-TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
-  for (auto& [quaternion, position] : waypoints) {
-    vector<double> jointPos{};
-    roboticArm->getIK(quaternion, position, jointPos);
-
-    // Compute forward kinematics
-    pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFK(jointPos);
-
-    areQuaternionsEquivalent(fkResult.first, quaternion, TOLERANCE);
-    arePositionsEquivalent(fkResult.second, position, TOLERANCE);
-  }
-}
-
-// Create a test to check coherency of the UR5 robotic arm geometric solver
-TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
-  for (auto& [quaternion, position] : waypoints) {
-    vector<vector<double>> ikSolutions;
-    roboticArm->getIKGeo(quaternion, position, ikSolutions);
-
-    // Compute forward kinematics
-    for (const auto& sol : ikSolutions) {
-      pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFKGeo(sol);
-
-      areQuaternionsEquivalent(fkResult.first, quaternion, TOLERANCE);
-      arePositionsEquivalent(fkResult.second, position, TOLERANCE);
-    }
-  }
-}
-
-//TODO(lmunier): Find where is the error inside H, P matrices config to have this constant difference in finale rotation
-// Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
-TEST_F(RoboticArmUr5Test, TestReferenceConfiguration) {
-  for (auto& jointPos : jointPositions) {
-    pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFK(jointPos);
-    pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKGeo(jointPos);
-
-    double diff = calculateRotationDifference(fkTracResult.first, fkGeoResult.first);
-    cout << "Rotation difference: " << diff << endl;
-
-    areQuaternionsEquivalent(fkTracResult.first, fkGeoResult.first, TOLERANCE);
-    arePositionsEquivalent(fkTracResult.second, fkGeoResult.second, TOLERANCE);
-  }
-}
 
 // Create a test to check the swapJoints_ function of the UR5 robotic arm
 TEST_F(RoboticArmUr5Test, TestSwapJoints) {
@@ -217,6 +210,48 @@ TEST_F(RoboticArmUr5Test, TestSwapJoints) {
   EXPECT_EQ(jointPosOut, get<0>(state));
   EXPECT_EQ(jointVelOut, get<1>(state));
   EXPECT_EQ(jointTorqueOut, get<2>(state));
+}
+
+// Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
+TEST_F(RoboticArmUr5Test, TestReferenceConfiguration) {
+  for (auto& jointPos : jointPositions) {
+    //TODO(lmunier): Fix the interchangeability of both IKs => reference issue
+    pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFK(jointPos);
+    pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKGeo(jointPos);
+
+    areQuaternionsEquivalent(fkTracResult.first, fkGeoResult.first, TOLERANCE);
+    arePositionsEquivalent(fkTracResult.second, fkGeoResult.second, TOLERANCE);
+  }
+}
+
+// Create a test to check coherency of the UR5 robotic arm trac-ik solver
+TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
+  for (auto& [quaternion, position] : waypoints) {
+    vector<double> jointPos{};
+    roboticArm->getIK(quaternion, position, jointPos);
+
+    // Compute forward kinematics
+    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFK(jointPos);
+
+    areQuaternionsEquivalent(tracFKResult.first, quaternion, TOLERANCE);
+    arePositionsEquivalent(tracFKResult.second, position, TOLERANCE);
+  }
+}
+
+// Create a test to check coherency of the UR5 robotic arm geometric solver
+TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
+  for (auto& [quaternion, position] : waypoints) {
+    vector<vector<double>> ikSolutions;
+    roboticArm->getIKGeo(quaternion, position, ikSolutions);
+
+    // Compute forward kinematics
+    for (const auto& sol : ikSolutions) {
+      pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFKGeo(sol);
+
+      areQuaternionsEquivalent(geoFKResult.first, quaternion, TOLERANCE);
+      arePositionsEquivalent(geoFKResult.second, position, TOLERANCE);
+    }
+  }
 }
 
 int main(int argc, char** argv) {

@@ -47,6 +47,8 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFKGeo(const vector<d
 bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
                              const Eigen::Vector3d& position,
                              vector<vector<double>>& jointPos) {
+  uint totSolutions = 0;
+  const uint MAX_REJECTIONS = 90; // percentage of rejected solutions
   double posVector[3] = {position.x(), position.y(), position.z()};
 
   double rotMatrixArray[9]{};
@@ -58,7 +60,7 @@ bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
   vector<ik_geo::Solution> ikSolutions;
   robotGeoSolver_->ik(rotMatrixArray, posVector, ikSolutions);
 
-  // Call FKGeo to check the different solution and keep only the ones that match the input
+  // Check if the IK solver found valid solutions
   jointPos.clear();
   for (const auto& solution : ikSolutions) {
     vector<double> solutionVector(solution.q.begin(), solution.q.end());
@@ -70,6 +72,13 @@ bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
     if (isQuatValid && isPosValid) {
       jointPos.push_back(solutionVector);
     }
+  }
+
+  // Check wether the number of rejected solutions is not too high
+  totSolutions = ikSolutions.size();
+  if (totSolutions < MAX_REJECTIONS * jointPos.size() / 100) {
+    ROS_WARN("Too many solutions were rejected.");
+    return false;
   }
 
   return true;

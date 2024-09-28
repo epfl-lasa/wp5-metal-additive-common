@@ -43,8 +43,8 @@ bool MAMPlanner::planTrajectory() {
     const Waypoint wPoint = waypoints_[i];
     geometry_msgs::Pose nextPose = generatePose_(wPoint.getPoseVector<double>());
 
-    publishWaypoint_(currentPose, "base_link");
-    publishWaypoint_(nextPose, "base_link");
+    publishWaypoint_(currentPose, "base_link_inertia");
+    publishWaypoint_(nextPose, "base_link_inertia");
 
     robotUr5->getIKGeo(geometryToEigen_(currentPose.orientation), geometryToEigen_(currentPose.position), ikSolutions);
 
