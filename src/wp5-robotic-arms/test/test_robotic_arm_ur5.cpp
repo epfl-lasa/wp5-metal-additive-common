@@ -215,12 +215,68 @@ TEST_F(RoboticArmUr5Test, TestSwapJoints) {
 // Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
 TEST_F(RoboticArmUr5Test, TestReferenceConfiguration) {
   for (auto& jointPos : jointPositions) {
+    cout << "== Forward comparison ===========================================" << endl;
     //TODO(lmunier): Fix the interchangeability of both IKs => reference issue
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFK(jointPos);
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKGeo(jointPos);
 
+    // Check forward kinematixs results and compare angles
+    cout << "Quaternions difference: " << (fkTracResult.first.conjugate() * fkGeoResult.first).coeffs().transpose()
+         << endl;
+    cout << "TracIK: " << fkTracResult.first.coeffs().transpose() << endl;
+    cout << "GeoIK: " << fkGeoResult.first.coeffs().transpose() << endl << endl;
+
+    cout << "Positions :" << endl;
+    cout << "TracIK: " << fkTracResult.second.transpose() << endl;
+    cout << "GeoIK: " << fkGeoResult.second.transpose() << endl;
+
     areQuaternionsEquivalent(fkTracResult.first, fkGeoResult.first, TOLERANCE);
     arePositionsEquivalent(fkTracResult.second, fkGeoResult.second, TOLERANCE);
+    cout << "=============================================" << endl;
+  }
+
+  for (auto& [quaternion, position] : waypoints) {
+    cout << "== Inverse comparison ===========================================" << endl;
+    vector<double> tracJointPos{};
+    roboticArm->getIK(quaternion, position, tracJointPos);
+
+    vector<vector<double>> ikSolutions;
+    roboticArm->getIKGeo(quaternion, position, ikSolutions);
+    vector<double> geoJointPos = ikSolutions[0];
+
+    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFK(tracJointPos);
+    pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFK(geoJointPos);
+
+    // Check forward kinematixs results and compare angles
+    cout << "Base quaternions difference: " << (quaternion.conjugate() * geoFKResult.first).coeffs().transpose()
+         << endl;
+    cout << "Quaternions difference: " << (tracFKResult.first.conjugate() * geoFKResult.first).coeffs().transpose()
+         << endl;
+    cout << "TracIK: " << tracFKResult.first.coeffs().transpose() << endl;
+    cout << "GeoIK: " << geoFKResult.first.coeffs().transpose() << endl << endl;
+
+    cout << "Positions :" << endl;
+    cout << "TracIK: " << tracFKResult.second.transpose() << endl;
+    cout << "GeoIK: " << geoFKResult.second.transpose() << endl;
+
+    tracFKResult = roboticArm->getFKGeo(tracJointPos);
+    geoFKResult = roboticArm->getFKGeo(geoJointPos);
+
+    // Check forward kinematixs results and compare angles
+    cout << "Base quaternions difference: " << (quaternion.conjugate() * geoFKResult.first).coeffs().transpose()
+         << endl;
+    cout << "Quaternions difference: " << (tracFKResult.first.conjugate() * geoFKResult.first).coeffs().transpose()
+         << endl;
+    cout << "TracIK: " << tracFKResult.first.coeffs().transpose() << endl;
+    cout << "GeoIK: " << geoFKResult.first.coeffs().transpose() << endl << endl;
+
+    cout << "Positions :" << endl;
+    cout << "TracIK: " << tracFKResult.second.transpose() << endl;
+    cout << "GeoIK: " << geoFKResult.second.transpose() << endl;
+
+    areQuaternionsEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE);
+    arePositionsEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE);
+    cout << "=============================================" << endl;
   }
 }
 
