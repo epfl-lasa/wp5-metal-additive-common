@@ -26,6 +26,9 @@ RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string customYamlPath) :
 RoboticArmUr5::~RoboticArmUr5() { delete robotGeoSolver_; }
 
 pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFKGeo(const vector<double>& jointPos) {
+  // Offset to fix convention between trac-ik (the basic one to use) and ik-geo solvers
+  Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, 0.5, 0.5, 0.5);
+
   // Arrays to hold the results of the forward kinematics
   array<double, 9> rotArr;
   array<double, 3> posArr;
@@ -41,18 +44,22 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFKGeo(const vector<d
   Eigen::Quaterniond quaternion(Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(rotArr.data()));
 
   // Return the position and quaternion
+  quaternion = quaternion * offset;
   return make_pair(move(quaternion), move(posVector));
 }
 
 bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
                              const Eigen::Vector3d& position,
                              vector<vector<double>>& jointPos) {
+  // Offset to fix convention between trac-ik (the basic one to use) and ik-geo solvers
+  Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, -0.5, -0.5, -0.5);
+
   uint totSolutions = 0;
   const uint MAX_REJECTIONS = 90; // percentage of rejected solutions
   double posVector[3] = {position.x(), position.y(), position.z()};
 
   double rotMatrixArray[9]{};
-  Eigen::Matrix3d rotMatrix = quaternion.toRotationMatrix();
+  Eigen::Matrix3d rotMatrix = (quaternion * offset).toRotationMatrix();
   Eigen::Map<Eigen::Matrix<double, 3, 3, Eigen::RowMajor>>(rotMatrixArray, rotMatrix.rows(), rotMatrix.cols()) =
       rotMatrix;
 

@@ -73,7 +73,7 @@ IRoboticArmBase::~IRoboticArmBase() {
 
 pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFK(const vector<double>& jointPos) {
   KDL::JntArray joint_array(chain_.getNrOfJoints());
-  for (size_t i = 0; i < jointPos.size(); ++i) {
+  for (size_t i = 0; i < chain_.getNrOfJoints(); ++i) {
     joint_array(i) = jointPos[i];
   }
 

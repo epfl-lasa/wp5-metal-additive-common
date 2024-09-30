@@ -71,6 +71,13 @@ public:
 
 private:
   // clang-format off
+  /**
+   * @brief UR5 H matrix.
+   *
+   * The H matrix defines the orientation of the joint axis, in the reference frame (identity frame),
+   * in its home position.
+   * => define the rotation axis for each joint, in the base frame.
+   */
   static constexpr double UR5_H_MATRIX[] = {
       0.0, 0.0, 1.0,
       1.0, 0.0, 0.0,
@@ -80,9 +87,16 @@ private:
       1.0, 0.0, 0.0
   };
 
+  /**
+   * @brief UR5 P matrix.
+   *
+   * The P matrix defines the position of the joint axis, in the reference frame (identity frame),
+   * in its home position.
+   * => define the position of each joint, with respect to the previous one, in the base frame.
+   */
   static constexpr double UR5_P_MATRIX[] = {
       0.0, 0.0, 0.0,
-      0.0, 0.0, 0.089159,
+      0.0, 0.0, 0.0892,
       0.0, -0.425, 0.0,
       0.0, -0.3922, 0.0,
       0.1091, 0.0, 0.0,

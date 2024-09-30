@@ -11,5 +11,3 @@ ur5_robot:
   reference_frame: "base_link"
   chain_start: "base_link"
   chain_end: "sensor"
-  tip_link: "tool0"
-
