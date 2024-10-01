@@ -34,7 +34,7 @@ class RoboticArmUr5Test : public ::testing::Test {
 protected:
   static void SetUpTestSuite() {
     ros::NodeHandle nh;
-    roboticArm = new RoboticArmUr5(ROSVersion::ROS1_NOETIC);
+    roboticArm = new RoboticArmUr5(ROSVersion::ROS1_NOETIC, "robotic_arm.yaml");
 
     generateWaypoints();
     generateJointPositions();

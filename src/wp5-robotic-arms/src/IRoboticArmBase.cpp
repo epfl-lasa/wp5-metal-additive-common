@@ -20,19 +20,20 @@
 #include <iostream>
 
 #include "RosInterfaceNoetic.h"
+#include "wp5_common_utilities/YamlTools.h"
 
 using namespace std;
 
-IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, string customYamlPath) :
+IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, string configFileName) :
     rosVersion_(rosVersion),
     robotName_(robotName),
-    yamlPath_(determineYamlPath_(customYamlPath)),
-    pathUrdf_(loadYamlValue_<string>(robotName, "path_urdf")),
-    jointNames_(loadYamlValue_<vector<string>>(robotName, "joint_names")),
-    chainStart_(loadYamlValue_<string>(robotName, "chain_start")),
-    chainEnd_(loadYamlValue_<string>(robotName, "chain_end")),
-    referenceFrame_(loadYamlValue_<string>(robotName, "reference_frame")),
-    originalHomeJoint_(loadYamlValue_<vector<double>>(robotName, "original_home_joint")) {
+    yamlPath_(YamlTools::getYamlPath_(configFileName, string(WP5_ROBOTIC_ARMS_DIR))),
+    pathUrdf_(YamlTools::loadYamlValue_<string>(yamlPath_, robotName, "path_urdf")),
+    jointNames_(YamlTools::loadYamlValue_<vector<string>>(yamlPath_, robotName, "joint_names")),
+    chainStart_(YamlTools::loadYamlValue_<string>(yamlPath_, robotName, "chain_start")),
+    chainEnd_(YamlTools::loadYamlValue_<string>(yamlPath_, robotName, "chain_end")),
+    referenceFrame_(YamlTools::loadYamlValue_<string>(yamlPath_, robotName, "reference_frame")),
+    originalHomeJoint_(YamlTools::loadYamlValue_<vector<double>>(yamlPath_, robotName, "original_home_joint")) {
   // Initialize Trac-IK solver
   initializeTracIkSolver_();
 
@@ -132,29 +133,4 @@ void IRoboticArmBase::initializeTracIkSolver_() {
 
   // Forward kinematics solver
   tracFkSolver_ = make_unique<KDL::ChainFkSolverPos_recursive>(chain_);
-}
-
-string IRoboticArmBase::determineYamlPath_(const string& customYamlPath) {
-  string yamlFile = "general";
-  string yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/../config/arm_robot_config.yaml";
-
-  if (!customYamlPath.empty()) {
-    yamlFile = "custom";
-    yamlPath = customYamlPath;
-  } else {
-    if (!filesystem::exists(yamlPath)) {
-      yamlFile = "local";
-      yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/config/arm_robot_config.yaml";
-    }
-  }
-
-  // Check if the file is valid
-  ifstream file(yamlPath);
-  if (!file.good()) {
-    throw runtime_error("Failed to open " + yamlFile + " YAML file: " + yamlPath);
-  } else {
-    ROS_INFO_STREAM("Using " << yamlFile << " YAML file: " << yamlPath);
-  }
-
-  return yamlPath;
 }

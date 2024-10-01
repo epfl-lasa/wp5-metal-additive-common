@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <package format="2">
-    <name>wp5_robotic_arms_drivers</name>
+    <name>wp5_common_utilities</name>
     <version>1.0.0</version>
-    <description>Drivers to use different robotic arms</description>
+    <description>Common utilities for WP5</description>
 
     <!-- One maintainer tag required, multiple allowed, one person per tag -->
     <maintainer email="lmunier@protonmail.com">Louis Munier</maintainer>
     <maintainer email="tristan_bonato@hotmail.com">Tristan Bonato</maintainer>
 
     <license>BSD</license>
-
     <buildtool_depend>catkin</buildtool_depend>
 
     <depend>roscpp</depend>
-    <depend>trac_ik_lib</depend>
-    <depend>wp5_common_utilities</depend>
-    <depend>wp5_ros_interface</depend>
+
+    <export>
+        <build_type>cmake</build_type>
+    </export>
 </package>

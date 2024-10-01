@@ -76,7 +76,9 @@
         "*.ipp": "cpp",
         "forward_list": "cpp",
         "hash_map": "cpp",
-        "hash_set": "cpp"
+        "hash_set": "cpp",
+        "codecvt": "cpp",
+        "filesystem": "cpp"
     },
     "python.autoComplete.extraPaths": [
         "/home/ros/catkin_ws/devel/lib/python3/dist-packages",

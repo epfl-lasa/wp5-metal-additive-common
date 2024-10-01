@@ -16,8 +16,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # Apply the compile options based on the build type
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}}")
-add_compile_options(${CMAKE_CXX_FLAGS})
+add_compile_options(${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}})
 
 # Save the path during compilation to solve inclusion problems with linked files
 add_definitions("-DWP5_ROBOTIC_ARMS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
@@ -29,6 +28,7 @@ add_subdirectory(libs/ik-geo-cpp)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   trac_ik_lib
+  wp5_common_utilities
   wp5_ros_interface
 )
 find_package(yaml-cpp REQUIRED)
@@ -47,9 +47,9 @@ include_directories(
   include
   urdf
   ${catkin_INCLUDE_DIRS}
-  ${YAML_CPP_INCLUDE_DIR}
+  ${YAML_CPP_INCLUDE_DIRS}
   ${trac_ik_lib_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIR}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}
@@ -68,9 +68,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   include
   urdf
   src
-  ${YAML_CPP_INCLUDE_DIR}
+  ${YAML_CPP_INCLUDE_DIRS}
   ${trac_ik_lib_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIR}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 # Link the INTERFACE library to the STATIC library

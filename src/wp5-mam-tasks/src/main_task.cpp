@@ -33,15 +33,14 @@ int main(int argc, char** argv) {
   }
 
   // Load parameters from YAML file
-  string yamlPath =
-      string(WP5_TASKS_DIR) + "/../../config/robot_task_config.yaml";
+  string yamlPath = string(WP5_TASKS_DIR) + "/../../config/robot_task.yaml";
 
   // Check if the alternative YAML file exists
   ifstream originalFile(yamlPath);
   if (originalFile.good()) {
     cout << "Using general YAML file: " << yamlPath << endl;
   } else {
-    yamlPath = string(WP5_TASKS_DIR) + "/config/robot_task_config.yaml";
+    yamlPath = string(WP5_TASKS_DIR) + "/config/robot_task.yaml";
     cout << "Using local YAML file: " << yamlPath << endl;
   }
 
@@ -54,8 +53,7 @@ int main(int argc, char** argv) {
 
   // Create an unique pointer for the instance of TaskFSM
   ROS_INFO("Creating Task - %s", taskType.c_str());
-  shared_ptr<ITaskBase> task =
-      taskFactory.createTask(taskType, nh, rosVersionEnum, rosFreq, robotName);
+  shared_ptr<ITaskBase> task = taskFactory.createTask(taskType, nh, rosVersionEnum, rosFreq, robotName);
 
   taskFsm_ internalFSM_(task);
 

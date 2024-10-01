@@ -33,7 +33,7 @@ public:
   // Declare the test class as a friend to allow access to private members
   friend class RoboticArmUr5Test_TestSwapJoints_Test;
 
-  explicit RoboticArmUr5(ROSVersion rosVersion, std::string customYamlPath = "");
+  explicit RoboticArmUr5(ROSVersion rosVersion, std::string configFileName);
   ~RoboticArmUr5();
 
   /**

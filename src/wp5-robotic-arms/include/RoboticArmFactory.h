@@ -13,8 +13,12 @@ public:
   using FactoryFunction = std::function<std::unique_ptr<IRoboticArmBase>(ROSVersion rosVersion)>;
 
   RoboticArmFactory() {
-    registerRobotArm("ur5_robot", [](ROSVersion rosVersion) { return std::make_unique<RoboticArmUr5>(rosVersion); });
-    registerRobotArm("xMateCR7", [](ROSVersion rosVersion) { return std::make_unique<RoboticArmCr7>(rosVersion); });
+    registerRobotArm("ur5_robot", [](ROSVersion rosVersion) {
+      return std::make_unique<RoboticArmUr5>(rosVersion, std::string("robotic_arm.yaml"));
+    });
+    registerRobotArm("xMateCR7", [](ROSVersion rosVersion) {
+      return std::make_unique<RoboticArmCr7>(rosVersion, std::string("robotic_arm.yaml"));
+    });
   }
 
   /**

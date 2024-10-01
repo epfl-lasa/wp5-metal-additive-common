@@ -42,7 +42,7 @@ public:
   /**
    * @brief Constructor for IRoboticArmBase.
    */
-  IRoboticArmBase(std::string robotName, ROSVersion rosVersion, std::string customYamlPath = "");
+  IRoboticArmBase(std::string robotName, ROSVersion rosVersion, std::string configFileName);
 
   /**
    * @brief Destructor for IRoboticArmBase.
@@ -145,11 +145,4 @@ private:
 
   // Methods
   void initializeTracIkSolver_();
-  std::string determineYamlPath_(const std::string& customYamlPath);
-
-  template <typename T>
-  T loadYamlValue_(const std::string& robotName, const std::string& key) const {
-    YAML::Node robotConfig = YAML::LoadFile(yamlPath_)[robotName];
-    return robotConfig[key].as<T>();
-  }
 };

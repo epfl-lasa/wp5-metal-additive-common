@@ -18,8 +18,8 @@ using namespace std;
 
 const double RoboticArmUr5::TOLERANCE = 1e-5;
 
-RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string customYamlPath) :
-    IRoboticArmBase(string("ur5_robot"), rosVersion, customYamlPath) {
+RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string configFileName) :
+    IRoboticArmBase(string("ur5_robot"), rosVersion, configFileName) {
   robotGeoSolver_ = new ik_geo::Robot(ik_geo::Robot::three_parallel_two_intersecting(UR5_H_MATRIX, UR5_P_MATRIX));
 }
 
