@@ -2,8 +2,8 @@
  * @file RoboticArmUr5.cpp
  * @author Louis Munier (lmunier@protonmail.com)
  * @brief
- * @version 0.1
- * @date 2024-09-09
+ * @version 0.2
+ * @date 2024-10-01
  *
  * @copyright Copyright (c) 2024 - EPFL
  *
@@ -19,20 +19,19 @@
 
 using namespace std;
 
+// Static member initialization
+const double TOLERANCE = 2e-4;
+static const int NB_TESTS = 50;
+
+static RoboticArmUr5* roboticArm = nullptr;
+static mt19937 gen(random_device{}());
+static uniform_real_distribution<> dis(-0.5, 0.5);
+static uniform_real_distribution<> disJoint(-2 * M_PI, 2 * M_PI);
+static vector<vector<double>> jointPositions;
+static vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> waypoints;
+
 class RoboticArmUr5Test : public ::testing::Test {
 protected:
-  const double TOLERANCE = 5e-4;
-  static const int NB_TESTS = 50;
-
-  static RoboticArmUr5* roboticArm;
-  static mt19937 gen;
-  static uniform_real_distribution<> dis;
-  static uniform_real_distribution<> disJoint;
-  static vector<vector<double>> jointPositions;
-  static vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> waypoints;
-
-  RoboticArmUr5Test() {}
-
   static void SetUpTestSuite() {
     ros::NodeHandle nh;
     roboticArm = new RoboticArmUr5(ROSVersion::ROS1_NOETIC);
@@ -175,14 +174,6 @@ protected:
     EXPECT_LT((p1 - p2).norm(), tolerance);
   }
 };
-
-// Static member initialization
-RoboticArmUr5* RoboticArmUr5Test::roboticArm = nullptr;
-mt19937 RoboticArmUr5Test::gen(random_device{}());
-uniform_real_distribution<> RoboticArmUr5Test::dis(-0.5, 0.5);
-uniform_real_distribution<> RoboticArmUr5Test::disJoint(-2 * M_PI, 2 * M_PI);
-vector<vector<double>> RoboticArmUr5Test::jointPositions;
-vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> RoboticArmUr5Test::waypoints;
 
 // Create a test to check the swapJoints_ function of the UR5 robotic arm
 TEST_F(RoboticArmUr5Test, TestSwapJoints) {

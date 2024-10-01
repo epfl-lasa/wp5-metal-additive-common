@@ -3,8 +3,8 @@
  * @author Louis Munier (lmunier@protonmail.com)
  * @author Tristan Bonato (tristan_bonato@hotmail.com)
  * @brief
- * @version 0.1
- * @date 2024-09-09
+ * @version 0.2
+ * @date 2024-10-01
  *
  * @copyright Copyright (c) 2024 - EPFL
  *
@@ -25,7 +25,7 @@ RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string customYamlPath) :
 
 RoboticArmUr5::~RoboticArmUr5() { delete robotGeoSolver_; }
 
-pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFKGeo(const vector<double>& jointPos) {
+const pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFKGeo(const vector<double>& jointPos) {
   // Offset to fix convention between trac-ik (the basic one to use) and ik-geo solvers
   Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, 0.5, 0.5, 0.5);
 
@@ -48,9 +48,9 @@ pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFKGeo(const vector<d
   return make_pair(move(quaternion), move(posVector));
 }
 
-bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
-                             const Eigen::Vector3d& position,
-                             vector<vector<double>>& jointPos) {
+const bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
+                                   const Eigen::Vector3d& position,
+                                   vector<vector<double>>& jointPos) {
   // Offset to fix convention between trac-ik (the basic one to use) and ik-geo solvers
   Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, -0.5, -0.5, -0.5);
 
@@ -108,9 +108,9 @@ void RoboticArmUr5::swapJoints_(tuple<vector<double>, vector<double>, vector<dou
       currentRobotState);
 }
 
-bool RoboticArmUr5::areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
-                                              const Eigen::Quaterniond& q2,
-                                              double tolerance) {
+const bool RoboticArmUr5::areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
+                                                    const Eigen::Quaterniond& q2,
+                                                    double tolerance) const {
   Eigen::Matrix3d rot1 = q1.toRotationMatrix();
   Eigen::Matrix3d rot2 = q2.toRotationMatrix();
 
@@ -118,6 +118,8 @@ bool RoboticArmUr5::areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
 }
 
 // Function to check if two positions are equivalent
-bool RoboticArmUr5::arePositionsEquivalent_(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance) {
+const bool RoboticArmUr5::arePositionsEquivalent_(const Eigen::Vector3d& p1,
+                                                  const Eigen::Vector3d& p2,
+                                                  double tolerance) const {
   return (p1 - p2).norm() < tolerance;
 }

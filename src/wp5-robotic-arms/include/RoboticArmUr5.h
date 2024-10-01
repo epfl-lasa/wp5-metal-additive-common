@@ -45,7 +45,7 @@ public:
    * @brief Get the forward kinematics of the robotic arm.
    * @param jointPos Joint positions of the robotic arm.
    */
-  std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFKGeo(const std::vector<double>& jointPos);
+  const std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFKGeo(const std::vector<double>& jointPos);
 
   /**
    * @brief Bring the getIK function from the parent class.
@@ -59,9 +59,9 @@ public:
    * @param jointPos Vector of joint positions of the robotic arm.
    * @return Pair of the return code and the next joint positions.
    */
-  bool getIKGeo(const Eigen::Quaterniond& quaternion,
-                const Eigen::Vector3d& position,
-                std::vector<std::vector<double>>& jointPos);
+  const bool getIKGeo(const Eigen::Quaterniond& quaternion,
+                      const Eigen::Vector3d& position,
+                      std::vector<std::vector<double>>& jointPos);
 
   /**
    * @brief Get the current state of the robotic arm.
@@ -110,9 +110,11 @@ private:
 
   void swapJoints_(std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>& currentRobotState);
 
-  bool areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
-                                 const Eigen::Quaterniond& q2,
-                                 double tolerance = TOLERANCE);
+  const bool areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
+                                       const Eigen::Quaterniond& q2,
+                                       double tolerance = TOLERANCE) const;
 
-  bool arePositionsEquivalent_(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE);
+  const bool arePositionsEquivalent_(const Eigen::Vector3d& p1,
+                                     const Eigen::Vector3d& p2,
+                                     double tolerance = TOLERANCE) const;
 };

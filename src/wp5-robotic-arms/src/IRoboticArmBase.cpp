@@ -3,8 +3,8 @@
  * @author Louis Munier (lmunier@protonmail.com)
  * @author Tristan Bonato (tristan_bonato@hotmail.com)
  * @brief
- * @version 0.1
- * @date 2024-09-09
+ * @version 0.2
+ * @date 2024-10-01
  *
  * @copyright Copyright (c) 2024 - EPFL
  *
@@ -13,9 +13,9 @@
 #include "IRoboticArmBase.h"
 
 #include <ros/ros.h>
-#include <yaml-cpp/yaml.h>
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -23,78 +23,59 @@
 
 using namespace std;
 
-const int IRoboticArmBase::NB_JOINTS_ = 6; ///< Number of joints of the robotic arm
-
 IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, string customYamlPath) :
-    robotName_(robotName), rosVersion_(rosVersion) {
-  string yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/../../config/arm_robot_config.yaml";
+    rosVersion_(rosVersion),
+    robotName_(robotName),
+    yamlPath_(determineYamlPath_(customYamlPath)),
+    pathUrdf_(loadYamlValue_<string>(robotName, "path_urdf")),
+    jointNames_(loadYamlValue_<vector<string>>(robotName, "joint_names")),
+    chainStart_(loadYamlValue_<string>(robotName, "chain_start")),
+    chainEnd_(loadYamlValue_<string>(robotName, "chain_end")),
+    referenceFrame_(loadYamlValue_<string>(robotName, "reference_frame")),
+    originalHomeJoint_(loadYamlValue_<vector<double>>(robotName, "original_home_joint")) {
+  // Initialize Trac-IK solver
+  initializeTracIkSolver_();
 
-  if (!customYamlPath.empty()) {
-    yamlPath = customYamlPath;
-    cout << "Using custom YAML file: " << yamlPath << endl;
-  }
-
-  ifstream originalFile(yamlPath);
-  if (originalFile.good()) {
-    cout << "Using general YAML file: " << yamlPath << endl;
-  } else {
-    yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/config/arm_robot_config.yaml";
-    cout << "Using local YAML file: " << yamlPath << endl;
-  }
-
-  // Load parameters from YAML file
-  YAML::Node robotConfig = YAML::LoadFile(yamlPath)[robotName_];
-
-  chainStart_ = robotConfig["chain_start"].as<string>();
-  chainEnd_ = robotConfig["chain_end"].as<string>();
-
-  pathUrdf_ = robotConfig["path_urdf"].as<string>();
-  jointNames_ = robotConfig["joint_names"].as<vector<string>>();
-  originalHomeJoint_ = robotConfig["original_home_joint"].as<vector<double>>();
-  referenceFrame_ = robotConfig["reference_frame"].as<string>();
-
-  if (getNbJoints() != jointNames_.size()) {
-    throw runtime_error("Number of joints does not match the number of joint names");
+  if (getNbJoints() != chain_.getNrOfJoints()) {
+    throw runtime_error("Number of joints in the kinematic chain does not match the number of joint names");
   }
 
   // Initialize ROS interface
   if (rosVersion_ == ROSVersion::ROS1_NOETIC) {
     rosInterface_ = make_unique<RosInterfaceNoetic>(robotName_);
   }
-
-  // Initialize Trac-IK solver
-  initializeTracIkSolver_();
 }
 
-IRoboticArmBase::~IRoboticArmBase() {
-  delete tracIkSolver_;
-  delete fkSolver_;
-}
-
-pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFK(const vector<double>& jointPos) {
-  KDL::JntArray joint_array(chain_.getNrOfJoints());
-  for (size_t i = 0; i < chain_.getNrOfJoints(); ++i) {
-    joint_array(i) = jointPos[i];
+const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFK(const vector<double>& jointPos) {
+  KDL::JntArray jointArray(getNbJoints());
+  for (size_t i = 0; i < getNbJoints(); ++i) {
+    jointArray(i) = jointPos[i];
   }
 
   // Perform forward kinematics
-  KDL::Frame cartesian_pose;
-  if (fkSolver_->JntToCart(joint_array, cartesian_pose) < 0) {
+  KDL::Frame cartesianPose;
+  if (tracFkSolver_->JntToCart(jointArray, cartesianPose) < 0) {
     throw runtime_error("Failed to compute forward kinematics");
   }
 
   // Extract position and orientation
-  Eigen::Vector3d posVector(cartesian_pose.p.data);
+  Eigen::Vector3d posVector(cartesianPose.p.data);
   Eigen::Quaterniond quaternion{};
-  cartesian_pose.M.GetQuaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
+  cartesianPose.M.GetQuaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 
   return make_pair(move(quaternion), move(posVector));
 }
 
-bool IRoboticArmBase::getIK(const Eigen::Quaterniond& quaternion,
-                            const Eigen::Vector3d& position,
-                            vector<double>& jointPos,
-                            const KDL::JntArray& nominal) {
+const bool IRoboticArmBase::getIK(const Eigen::Quaterniond& quaternion,
+                                  const Eigen::Vector3d& position,
+                                  vector<double>& jointPos,
+                                  const KDL::JntArray& nominal) {
+  // Ensure that the joint position vector has the correct size
+  KDL::JntArray nominalArray = nominal;
+  if (nominalArray.rows() != getNbJoints()) {
+    nominalArray = KDL::JntArray(getNbJoints());
+  }
+
   // Initialize computing materials
   KDL::JntArray result{};
   KDL::Frame endEffectorPose{};
@@ -103,7 +84,7 @@ bool IRoboticArmBase::getIK(const Eigen::Quaterniond& quaternion,
   endEffectorPose.M = KDL::Rotation::Quaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 
   // Compute IK
-  int isValid = tracIkSolver_->CartToJnt(nominal, endEffectorPose, result);
+  int isValid = tracIkSolver_->CartToJnt(nominalArray, endEffectorPose, result);
   jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
 
   return isValid >= 0;
@@ -115,34 +96,34 @@ tuple<vector<double>, vector<double>, vector<double>> IRoboticArmBase::getState(
   return currentRobotState;
 }
 
-bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos) {
+const bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos) {
   vector<double> currentJointPos = get<0>(getState());
 
   return equal(jointPos.begin(), jointPos.end(), currentJointPos.begin(), currentJointPos.end());
 }
 
-void IRoboticArmBase::printInfo() {
-  cout << "Robot name: " << robotName_ << endl;
-  cout << "URDF Path: " << pathUrdf_ << endl;
-  cout << "Number of joints: " << getNbJoints() << endl;
+void IRoboticArmBase::printInfo() const {
+  string tmpString = "";
+  ROS_INFO_STREAM("Robot name: " << robotName_);
+  ROS_INFO_STREAM("URDF Path: " << pathUrdf_);
+  ROS_INFO_STREAM("Number of joints: " << getNbJoints());
 
-  cout << "Joint names: ";
+  tmpString = "Joint names: [";
   for (const string& jointName : jointNames_) {
-    cout << jointName << " ";
+    tmpString += jointName + ", ";
   }
-  cout << endl;
+  ROS_INFO_STREAM(tmpString << "]");
+  ROS_INFO_STREAM("Reference frame: " << referenceFrame_);
 
-  cout << "Reference frame: " << referenceFrame_ << endl;
-
-  cout << "Original home joint: ";
+  tmpString = "Original home joint: [";
   for (double joint : originalHomeJoint_) {
-    cout << joint << " ";
+    tmpString += to_string(joint) + ", ";
   }
-  cout << endl;
+  ROS_INFO_STREAM(tmpString << "]");
 }
 
 void IRoboticArmBase::initializeTracIkSolver_() {
-  tracIkSolver_ = new TRAC_IK::TRAC_IK(chainStart_, chainEnd_, pathUrdf_, timeout_, epsilon_, solverType_);
+  tracIkSolver_ = make_unique<TRAC_IK::TRAC_IK>(chainStart_, chainEnd_, pathUrdf_, timeout_, epsilon_, solverType_);
 
   if (!tracIkSolver_->getKDLChain(chain_)) {
     ROS_ERROR("There was no valid KDL chain found");
@@ -150,5 +131,30 @@ void IRoboticArmBase::initializeTracIkSolver_() {
   }
 
   // Forward kinematics solver
-  fkSolver_ = new KDL::ChainFkSolverPos_recursive(chain_);
+  tracFkSolver_ = make_unique<KDL::ChainFkSolverPos_recursive>(chain_);
+}
+
+string IRoboticArmBase::determineYamlPath_(const string& customYamlPath) {
+  string yamlFile = "general";
+  string yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/../config/arm_robot_config.yaml";
+
+  if (!customYamlPath.empty()) {
+    yamlFile = "custom";
+    yamlPath = customYamlPath;
+  } else {
+    if (!filesystem::exists(yamlPath)) {
+      yamlFile = "local";
+      yamlPath = string(WP5_ROBOTIC_ARMS_DIR) + "/config/arm_robot_config.yaml";
+    }
+  }
+
+  // Check if the file is valid
+  ifstream file(yamlPath);
+  if (!file.good()) {
+    throw runtime_error("Failed to open " + yamlFile + " YAML file: " + yamlPath);
+  } else {
+    ROS_INFO_STREAM("Using " << yamlFile << " YAML file: " << yamlPath);
+  }
+
+  return yamlPath;
 }

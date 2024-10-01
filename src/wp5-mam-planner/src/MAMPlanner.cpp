@@ -49,11 +49,7 @@ bool MAMPlanner::planTrajectory() {
     robotUr5->getIKGeo(geometryToEigen_(currentPose.orientation), geometryToEigen_(currentPose.position), ikSolutions);
 
     for (const auto& ikSol : ikSolutions) {
-      cout << "Computing path for waypoints " << i << " to " << i + 1 << endl;
       vector<double> startConfig = ikSol;
-
-      // TODO(lmunier): Solve the issue with the first joint
-      startConfig[0] -= M_PI_2; // Adjust the first joint to match the robot's configuration
       isPathFound += computePath_(startConfig, currentPose, nextPose, wPoint.welding);
     }
 
