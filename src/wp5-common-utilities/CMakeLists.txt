@@ -31,7 +31,7 @@ include_directories(
   ${YAML_CPP_INCLUDE_DIRS}
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
+install(DIRECTORY include/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
 )
