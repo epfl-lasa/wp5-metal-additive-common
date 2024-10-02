@@ -19,6 +19,7 @@ add_definitions("-DWP5_TASKS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  wp5_common_utilities
   wp5_mam_planner
   wp5_robotic_arms_drivers
 )

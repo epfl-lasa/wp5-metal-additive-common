@@ -63,6 +63,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     VERSION ${PROJECT_VERSION}
 )
 
+# Install include files
+install(DIRECTORY include/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+)
+
 # Add include and src to include path to make includes easier in the code
 target_include_directories(${PROJECT_NAME} PRIVATE
   include

@@ -4,7 +4,6 @@
     <version>1.0.0</version>
     <description>Common utilities for WP5</description>
 
-    <!-- One maintainer tag required, multiple allowed, one person per tag -->
     <maintainer email="lmunier@protonmail.com">Louis Munier</maintainer>
     <maintainer email="tristan_bonato@hotmail.com">Tristan Bonato</maintainer>
 
@@ -12,8 +11,4 @@
     <buildtool_depend>catkin</buildtool_depend>
 
     <depend>roscpp</depend>
-
-    <export>
-        <build_type>cmake</build_type>
-    </export>
 </package>

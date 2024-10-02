@@ -1,13 +1,16 @@
-// clang off
 #include "ITaskBase.h"
-// clang on
 
 #include "RoboticArmFactory.h"
+#include "yaml_tools.h"
 
 using namespace std;
 
-ITaskBase::ITaskBase(ros::NodeHandle& nh, ROSVersion rosVersion, double freq, string robotName) :
-    nh_(nh), rosVersion_(rosVersion), rosFreq_(freq), loopRate_(freq) {}
+ITaskBase::ITaskBase(ros::NodeHandle& nh, const YAML::Node& config) :
+    nh_(nh),
+    robotName_(YamlTools::loadYamlValue<string>(config, "robot_name")),
+    rosVersion_(IRosInterfaceBase::rosVersionsMap.at(YamlTools::loadYamlValue<string>(config, "ros_version"))),
+    eePosOffset_(YamlTools::loadYamlValue<vector<double>>(config, "ee_pos_offset")),
+    eeAngleOffset_(YamlTools::loadYamlValue<vector<double>>(config, "ee_angle_offset")) {}
 
 bool ITaskBase::initialize() {
   planner_ = make_unique<MAMPlanner>(rosVersion_, nh_);

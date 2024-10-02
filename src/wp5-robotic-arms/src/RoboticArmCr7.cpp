@@ -15,7 +15,12 @@
 
 #include <iostream>
 
+#include "IRosInterfaceBase.h"
+#include "yaml_tools.h"
+
 using namespace std;
 
-RoboticArmCr7::RoboticArmCr7(ROSVersion rosVersion, string customYamlPath) :
-    IRoboticArmBase(string("xMateCR7"), rosVersion, customYamlPath) {}
+RoboticArmCr7::RoboticArmCr7(ROSVersion rosVersion, string configFilename) :
+    IRoboticArmBase(string("xMateCR7"),
+                    rosVersion,
+                    YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_ROBOTIC_ARMS_DIR)))) {}

@@ -21,8 +21,7 @@
  */
 class TaskFactory {
 public:
-  using FactoryFunction = std::function<std::unique_ptr<ITaskBase>(
-      ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName)>;
+  using FactoryFunction = std::function<std::unique_ptr<ITaskBase>(ros::NodeHandle& nh, std::string configFilename)>;
 
   /**
    * @brief Constructs a TaskFactory object.
@@ -30,39 +29,36 @@ public:
    * The constructor initializes the factoryFunctionRegistry and registers the default task types.
    */
   TaskFactory() {
-    registerTask("welding", [](ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName) {
-      return std::make_unique<TaskWelding>(nh, rosVersion, freq, robotName);
+    registerTask("welding", [](ros::NodeHandle& nh, std::string configFilename) {
+      return std::make_unique<TaskWelding>(nh, configFilename);
     });
-    registerTask("cleaning", [](ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName) {
-      return std::make_unique<TaskCleaning>(nh, rosVersion, freq, robotName);
+    registerTask("cleaning", [](ros::NodeHandle& nh, std::string configFilename) {
+      return std::make_unique<TaskCleaning>(nh, configFilename);
     });
   }
 
   /**
    * @brief Registers a task type with its corresponding factory function.
    *
-   * @param name The name of the task type.
-   * @param function The factory function that creates instances of the task type.
+   * @param name Name of the task type.
+   * @param function Factory function that creates instances of the task type.
    */
   void registerTask(std::string name, FactoryFunction function) { factoryFunctionRegistry[name] = function; }
 
   /**
    * @brief Creates an instance of a task based on its name.
    *
-   * @param name The name of the task type.
-   * @param nh The ROS NodeHandle object.
-   * @param rosVersion The ROS version.
-   * @param freq The frequency of the task.
-   * @param robotName The name of the robot associated with the task.
+   * @param name Name of the task type.
+   * @param nh ROS NodeHandle object.
+   * @param configFilename Name of the YAML configuration file.
    * @return A unique pointer to the created task instance.
    * @throws std::runtime_error if the specified task name is invalid.
    */
-  std::unique_ptr<ITaskBase> createTask(
-      std::string name, ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName) {
+  std::unique_ptr<ITaskBase> createTask(std::string name, ros::NodeHandle& nh, std::string configFilename) {
     auto it = factoryFunctionRegistry.find(name);
 
     if (it != factoryFunctionRegistry.end()) {
-      return it->second(nh, rosVersion, freq, robotName);
+      return it->second(nh, configFilename);
     } else {
       std::ostringstream errorMsg{}, oss{};
 

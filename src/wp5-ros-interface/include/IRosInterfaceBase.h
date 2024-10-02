@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <tuple>
 #include <vector>
 
@@ -17,12 +18,13 @@ public:
   /**
    * @brief Map of task names to TaskType enums.
    */
-  inline static const std::map<std::string, ROSVersion> rosVersions{{"noetic", ROS1_NOETIC}, {"humble", ROS2_HUMBLE}};
+  inline static const std::map<std::string, ROSVersion> rosVersionsMap{{"noetic", ROS1_NOETIC},
+                                                                       {"humble", ROS2_HUMBLE}};
 
   /**
    * @brief Constructor for IRosInterfaceBase.
    */
-  IRosInterfaceBase(ROSVersion rosVersion) : rosVersion_(rosVersion){};
+  IRosInterfaceBase(ROSVersion rosVersion) : rosVersion_(rosVersion) {};
 
   /**
    * @brief Get the ROS version.

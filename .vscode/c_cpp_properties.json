@@ -12,6 +12,7 @@
         "/home/ros/catkin_ws/src/ur5_lasa/src/ur_calibration/include/**",
         "/home/ros/catkin_ws/src/ur5_lasa/src/ur_kinematics/include/**",
         "/home/ros/catkin_ws/src/ur5_lasa/src/ur_robot_driver/include/**",
+        "/home/ros/catkin_ws/src/wp5-common-utilities/include/**",
         "/home/ros/catkin_ws/src/wp5-mam-planner/include/**",
         "/home/ros/catkin_ws/src/wp5-mam-tasks/include/**",
         "/home/ros/catkin_ws/src/wp5-robotic-arms/include/**",

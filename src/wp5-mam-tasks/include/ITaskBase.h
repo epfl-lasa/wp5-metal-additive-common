@@ -10,12 +10,13 @@
 
 #include <map>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "IRoboticArmBase.h"
 #include "IRosInterfaceBase.h"
 #include "MAMPlanner.h"
 #include "RoboticArmUr5.h"
-#include "visualization_msgs/Marker.h"
 
 /**
  * @brief Enum representing different types of tasks.
@@ -35,7 +36,7 @@ public:
   /**
    * @brief Map of task names to TaskType enums.
    */
-  inline static const std::map<std::string, TaskType> taskTypes{{"welding", WELDING}, {"cleaning", CLEANING}};
+  inline static const std::map<std::string, TaskType> taskTypesMap{{"welding", WELDING}, {"cleaning", CLEANING}};
 
   /**
    * @brief Flag indicating if initialization has been checked.
@@ -65,11 +66,9 @@ public:
   /**
    * @brief Constructor.
    * @param nh Node handle for ROS.
-   * @param rosVersion ROS version.
-   * @param freq Frequency for ROS loop.
-   * @param robotName Name of the robot.
+   * @param config YAML node configuration for the task.
    */
-  ITaskBase(ros::NodeHandle& nh, ROSVersion rosVersion, double freq, std::string robotName);
+  ITaskBase(ros::NodeHandle& nh, const YAML::Node& config);
 
   /**
    * @brief Initializes the task.
@@ -101,20 +100,8 @@ public:
    */
   virtual bool goWorkingPosition();
 
-  /**
-   * @brief Gets the ROS loop rate by reference.
-   * @return ROS loop rate.
-   */
-  ros::Rate* getRosLoopRate_();
-
 protected:
   std::unique_ptr<MAMPlanner> planner_ = nullptr; ///< Pointer to MAMPlanner instance.
-
-  /**
-   * @brief Get the ROS frequency.
-   * @return ROS frequency.
-   */
-  double getRosFrequency_() const { return rosFreq_; }
 
   /**
    * @brief Get the ROS node handle.
@@ -141,9 +128,11 @@ protected:
   void setHomeJoint_(std::vector<double> desiredJoint) { homeJoint_ = desiredJoint; }
 
 private:
-  ros::NodeHandle nh_;            ///< ROS node handle.
-  const ROSVersion rosVersion_;   ///< ROS version.
-  double rosFreq_;                ///< ROS frequency.
-  std::vector<double> homeJoint_; ///< Home joint configuration.
-  ros::Rate loopRate_;            ///< ROS loop rate.
+  ros::NodeHandle nh_{};                      ///< ROS node handle.
+  const std::string robotName_{};             ///< Robot name.
+  const ROSVersion rosVersion_{};             ///< ROS version.
+  const std::vector<double> eePosOffset_{};   ///< End effector position offset.
+  const std::vector<double> eeAngleOffset_{}; ///< End effector angle offset.
+
+  std::vector<double> homeJoint_{}; ///< Home joint configuration.
 };

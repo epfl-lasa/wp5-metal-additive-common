@@ -1,11 +1,11 @@
 #include "TaskCleaning.h"
 
+#include "yaml_tools.h"
+
 using namespace std;
 
-TaskCleaning::TaskCleaning(ros::NodeHandle& nh, ROSVersion rosVersion, double freq, string robotName) :
-    ITaskBase(nh, rosVersion, freq, robotName) {
-  ros::NodeHandle nodeHandle = getRosNodehandle_();
-}
+TaskCleaning::TaskCleaning(ros::NodeHandle& nh, string configFilename) :
+    ITaskBase(nh, YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_TASKS_DIR)))["cleaning"]) {}
 
 bool TaskCleaning::computePath() {
   planner_->planTrajectory();

@@ -24,5 +24,5 @@
  */
 class RoboticArmCr7 : public IRoboticArmBase {
 public:
-  explicit RoboticArmCr7(ROSVersion rosVersion, std::string customYamlPath = "");
+  explicit RoboticArmCr7(ROSVersion rosVersion, std::string configFilename);
 };

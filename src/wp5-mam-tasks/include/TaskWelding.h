@@ -11,10 +11,11 @@
 
 class TaskWelding : public ITaskBase {
 public:
-  TaskWelding(ros::NodeHandle& n, ROSVersion rosVersion, double freq, std::string robotName);
+  TaskWelding(ros::NodeHandle& nh, std::string configFilename);
 
   bool computePath();
   bool execute();
 
 private:
+  const TaskType taskType_ = WELDING; ///< Task type.
 };

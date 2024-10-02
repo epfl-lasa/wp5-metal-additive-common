@@ -4,7 +4,9 @@
   <version>0.0.0</version>
   <description>The wp5-mam-planner package</description>
 
-  <maintainer email="ros@todo.todo">ros</maintainer>
+  <maintainer email="lmunier@protonmail.com">Louis Munier</maintainer>
+  <maintainer email="tristan_bonato@hotmail.com">Tristan Bonato</maintainer>
+
   <license>TODO</license>
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -14,6 +16,7 @@
   <depend>moveit_ros_planning_interface</depend>
   <depend>moveit_ros_move_group</depend>
   <depend>std_msgs</depend>
+  <depend>wp5_common_utilities</depend>
   <depend>wp5_robotic_arms_drivers</depend>
   <depend>wp5_ros_interface</depend>
 </package>

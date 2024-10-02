@@ -1,4 +1,5 @@
 ur5_robot:
+  controller_frequency: 125 # [Hz]
   path_urdf: "robot_description"
   joint_names:
   - "shoulder_pan_joint"

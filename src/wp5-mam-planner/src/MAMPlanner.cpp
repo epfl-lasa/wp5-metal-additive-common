@@ -7,6 +7,7 @@
 #include "MAMPlanner.h"
 
 #include "RoboticArmFactory.h"
+#include "yaml_tools.h"
 
 using namespace std;
 
@@ -245,7 +246,7 @@ void MAMPlanner::createNewFrame_(const string& parentFrame,
 }
 
 void MAMPlanner::getWaypoints_() {
-  string yamlPath = string(WP5_MAM_PLANNER_DIR) + "/config/waypoints.yaml";
+  string yamlPath = YamlTools::getYamlPath("waypoints.yaml", string(WP5_MAM_PLANNER_DIR));
   YAML::Node config = YAML::LoadFile(yamlPath);
 
   Waypoint newWaypoint{};
@@ -326,7 +327,7 @@ void MAMPlanner::addStaticObstacles_() {
   collisionObject.header.frame_id = moveGroup_->getPlanningFrame();
 
   // Get obstacles from the config file
-  string yamlPath = string(WP5_MAM_PLANNER_DIR) + "/config/obstacles.yaml";
+  string yamlPath = YamlTools::getYamlPath("obstacles.yaml", string(WP5_MAM_PLANNER_DIR));
   YAML::Node config = YAML::LoadFile(yamlPath);
   vector<YAML::Node> obstacles = config["obstacles"].as<vector<YAML::Node>>();
 

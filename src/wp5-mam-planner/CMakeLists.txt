@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_planning_interface
   moveit_ros_move_group
+  wp5_common_utilities
   wp5_ros_interface
   wp5_robotic_arms_drivers
 )

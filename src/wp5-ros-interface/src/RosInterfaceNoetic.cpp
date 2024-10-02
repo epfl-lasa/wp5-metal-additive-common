@@ -20,6 +20,8 @@
 
 #include <fstream>
 
+#include "yaml_tools.h"
+
 using namespace std;
 
 RosInterfaceNoetic::RosInterfaceNoetic(string robotName) : IRosInterfaceBase(ROSVersion::ROS1_NOETIC) {
@@ -27,18 +29,7 @@ RosInterfaceNoetic::RosInterfaceNoetic(string robotName) : IRosInterfaceBase(ROS
 
   try {
     // Load parameters from YAML file
-    string yamlPath = string(WP5_ROS_INTERFACE_DIR) + "/../../config/ros_interface_config.yaml";
-
-    // Check if the alternative YAML file exists
-    ifstream originalFile(yamlPath);
-    if (originalFile.good()) {
-      cout << "Using general YAML file: " << yamlPath << endl;
-    } else {
-      yamlPath = string(WP5_ROS_INTERFACE_DIR) + "/config/ros_interface_config.yaml";
-      cout << "Using local YAML file: " << yamlPath << endl;
-    }
-
-    // Load parameters from YAML file
+    string yamlPath = YamlTools::getYamlPath("ros_interface_config.yaml", string(WP5_ROS_INTERFACE_DIR));
     YAML::Node config = YAML::LoadFile(yamlPath);
 
     // Print information about robotName_ field

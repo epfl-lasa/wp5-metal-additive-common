@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   geometry_msgs
+  wp5_common_utilities
 )
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)

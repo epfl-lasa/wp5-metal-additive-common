@@ -42,7 +42,7 @@ public:
   /**
    * @brief Constructor for IRoboticArmBase.
    */
-  IRoboticArmBase(std::string robotName, ROSVersion rosVersion, std::string configFileName);
+  IRoboticArmBase(std::string robotName, ROSVersion rosVersion, const YAML::Node& config);
 
   /**
    * @brief Destructor for IRoboticArmBase.
@@ -126,6 +126,7 @@ private:
   // Attributes
   const std::string robotName_ = "";            ///< Name of the robotic arm
   const std::string yamlPath_ = "";             ///< Path to the YAML file to use
+  const uint contFreq_ = 0;                     ///< Control frequency of the robotic arm
   const std::string pathUrdf_ = "";             ///< Path to the URDF file to use
   const std::vector<std::string> jointNames_{}; ///< Names of the joints of the robotic arm
 

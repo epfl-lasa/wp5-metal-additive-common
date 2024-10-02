@@ -14,12 +14,17 @@
 
 #include <ros/ros.h>
 
+#include "IRosInterfaceBase.h"
+#include "yaml_tools.h"
+
 using namespace std;
 
 const double RoboticArmUr5::TOLERANCE = 1e-5;
 
-RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string configFileName) :
-    IRoboticArmBase(string("ur5_robot"), rosVersion, configFileName) {
+RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string configFilename) :
+    IRoboticArmBase(string("ur5_robot"),
+                    rosVersion,
+                    YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_ROBOTIC_ARMS_DIR)))) {
   robotGeoSolver_ = new ik_geo::Robot(ik_geo::Robot::three_parallel_two_intersecting(UR5_H_MATRIX, UR5_P_MATRIX));
 }
 

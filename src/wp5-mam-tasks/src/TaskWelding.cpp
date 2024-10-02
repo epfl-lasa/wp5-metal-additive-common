@@ -1,11 +1,11 @@
 #include "TaskWelding.h"
 
+#include "yaml_tools.h"
+
 using namespace std;
 
-TaskWelding::TaskWelding(ros::NodeHandle& nh, ROSVersion rosVersion, double freq, string robotName) :
-    ITaskBase(nh, rosVersion, freq, robotName) {
-  ros::NodeHandle nodeHandle = getRosNodehandle_();
-}
+TaskWelding::TaskWelding(ros::NodeHandle& nh, string configFilename) :
+    ITaskBase(nh, YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_TASKS_DIR)))["welding"]) {}
 
 bool TaskWelding::computePath() {
   planner_->planTrajectory();
