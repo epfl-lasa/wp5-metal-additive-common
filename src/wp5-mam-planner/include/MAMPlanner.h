@@ -56,6 +56,8 @@ public:
   void executeTrajectory();
 
 private:
+  //TODO(Elise): Move to its own class
+  // Waypoints (ROS string message) : H1,X1,Y1,Z1,X2,Y2,Z2
   struct Waypoint {
     std::string frame = "";
     Eigen::Vector3d pos{};
