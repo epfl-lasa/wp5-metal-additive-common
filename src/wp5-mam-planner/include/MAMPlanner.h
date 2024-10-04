@@ -10,6 +10,7 @@
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
@@ -98,9 +99,10 @@ private:
   tf2_ros::TransformListener tfListener_;
   tf2_ros::TransformBroadcaster br_; ///< ROS spinner to handle callbacks asynchronously
 
-  ros::Publisher pubWeldingState_;      ///< Publisher for the welding state
-  ros::Publisher pubDisplayTrajectory_; ///< Publisher for the display trajectory
-  ros::Publisher pubWaypoint_;
+  ros::Publisher pubWeldingState_;        ///< Publisher for the welding state
+  ros::Publisher pubDisplayTrajectory_;   ///< Publisher for the display trajectory
+  ros::Publisher pubWaypointRviz_;        ///< Publisher for the waypoint in Rviz
+  ros::Publisher pubWaypointCoppeliasim_; ///< Publisher for the waypoint in CoppeliaSim
 
   bool pathFound_ = false;
   int currentWPointID_ = 0;
@@ -137,7 +139,8 @@ private:
   }
 
   void getWaypoints_();
-  void publishWaypoint_(const geometry_msgs::Pose& pose, const std::string& frameId);
+  void publishWaypointRviz_(const geometry_msgs::Pose& pose, const std::string& frameId);
+  void publishWaypointCoppeliasim_(const geometry_msgs::Pose& pose, const std::string& frameId);
 
   Eigen::Vector3d geometryToEigen_(const geometry_msgs::Point& point);
   Eigen::Quaterniond geometryToEigen_(const geometry_msgs::Quaternion& orientation);

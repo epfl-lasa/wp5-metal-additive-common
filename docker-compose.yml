@@ -31,9 +31,9 @@ services:
     env_file: .env
     network_mode: host
     build:
-      context: .
+      context: ./tools/docker_ros_coppeliasim
       network: host
-      dockerfile: tools/docker_ros_coppeliasim/docker/Dockerfile
+      dockerfile: docker/Dockerfile
       args:
         ROS_DISTRO: noetic
         USER: ${SIMU_USER}

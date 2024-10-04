@@ -20,10 +20,11 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) : spinner_(1)
 
   pubWeldingState_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
   pubDisplayTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/display_planned_path", 20);
-  pubWaypoint_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_waypoint", 10);
+  pubWaypointRviz_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_waypoint", 10);
+  pubWaypointCoppeliasim_ = nh_.advertise<geometry_msgs::PoseArray>("/visualisation/waypoints", 10);
 
   // Add obstacles
-  // addStaticObstacles_();
+  addStaticObstacles_();
   getWaypoints_();
 }
 
@@ -44,8 +45,11 @@ bool MAMPlanner::planTrajectory() {
     const Waypoint wPoint = waypoints_[i];
     geometry_msgs::Pose nextPose = generatePose_(wPoint.getPoseVector<double>());
 
-    publishWaypoint_(currentPose, "base_link_inertia");
-    publishWaypoint_(nextPose, "base_link_inertia");
+    publishWaypointRviz_(currentPose, "base_link_inertia");
+    publishWaypointRviz_(nextPose, "base_link_inertia");
+
+    publishWaypointCoppeliasim_(currentPose, "base_link_inertia");
+    publishWaypointCoppeliasim_(nextPose, "base_link_inertia");
 
     robotUr5->getIKGeo(geometryToEigen_(currentPose.orientation), geometryToEigen_(currentPose.position), ikSolutions);
 
@@ -277,7 +281,7 @@ void MAMPlanner::getWaypoints_() {
   }
 }
 
-void MAMPlanner::publishWaypoint_(const geometry_msgs::Pose& pose, const std::string& frameId) {
+void MAMPlanner::publishWaypointRviz_(const geometry_msgs::Pose& pose, const std::string& frameId) {
   float TIME_WAIT = 0.2;
   size_t NB_PUBLISH = 3;
 
@@ -287,9 +291,19 @@ void MAMPlanner::publishWaypoint_(const geometry_msgs::Pose& pose, const std::st
   poseStamped.pose = pose;
 
   for (size_t i = 0; i < NB_PUBLISH; ++i) {
-    pubWaypoint_.publish(poseStamped);
+    pubWaypointRviz_.publish(poseStamped);
     ros::Duration(TIME_WAIT).sleep();
   }
+}
+
+void MAMPlanner::publishWaypointCoppeliasim_(const geometry_msgs::Pose& pose, const std::string& frameId) {
+  // Publish the geometry::PoseArry waypoint to CoppeliaSim
+  geometry_msgs::PoseArray poseArray;
+  poseArray.header.frame_id = frameId;
+  poseArray.header.stamp = ros::Time::now();
+  poseArray.poses.push_back(pose);
+
+  pubWaypointCoppeliasim_.publish(poseArray);
 }
 
 Eigen::Vector3d MAMPlanner::geometryToEigen_(const geometry_msgs::Point& point) {
