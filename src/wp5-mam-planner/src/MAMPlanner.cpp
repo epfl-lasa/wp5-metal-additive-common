@@ -11,7 +11,8 @@
 
 using namespace std;
 
-MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) : spinner_(1), nh_(nh), tfListener_(tfBuffer_) {
+MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) :
+    spinner_(1), nh_(nh), tfListener_(tfBuffer_), subTask_(make_unique<Subtask>(nh_)) {
   RoboticArmFactory armFactory = RoboticArmFactory();
   robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
   robot_->printInfo();
@@ -23,15 +24,14 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) : spinner_(1)
   pubWaypoint_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_waypoint", 10);
 
   // Add obstacles
+
   // addStaticObstacles_();
-  getWaypoints_();
+
+  // getWaypoints_(); // Elise
 }
 
 bool MAMPlanner::planTrajectory() {
   cout << "Planning trajectory" << endl;
-
-  bool isPathFound = false;
-  vector<vector<double>> ikSolutions{};
 
   // TODO(lmunier): Avoid using dynamic_cast
   RoboticArmUr5* robotUr5 = dynamic_cast<RoboticArmUr5*>(robot_.get());
@@ -39,29 +39,54 @@ bool MAMPlanner::planTrajectory() {
   currentWPointID_ = 0;
   bestPlan_.clear();
   geometry_msgs::Pose currentPose = moveGroup_->getCurrentPose().pose;
-  for (size_t i = 0; i < waypoints_.size(); ++i) {
-    currentWPointID_ = i;
-    const Waypoint wPoint = waypoints_[i];
-    geometry_msgs::Pose nextPose = generatePose_(wPoint.getPoseVector<double>());
 
-    publishWaypoint_(currentPose, "base_link_inertia");
-    publishWaypoint_(nextPose, "base_link_inertia");
+  bool pathFound = false;
 
-    robotUr5->getIKGeo(geometryToEigen_(currentPose.orientation), geometryToEigen_(currentPose.position), ikSolutions);
-
-    for (const auto& ikSol : ikSolutions) {
-      vector<double> startConfig = ikSol;
-      isPathFound += computePath_(startConfig, currentPose, nextPose, wPoint.welding);
-    }
-
-    if (!isPathFound) {
-      ROS_ERROR("No path found for waypoint %ld", i);
-      return false;
-    }
-
-    currentPose = nextPose;
+  while (subTask_->isSubtaskEmpty()) {
+    float TIME_WAIT = 0.2;
+    ROS_WARN("Waiting for Waypoints");
+    ros::Duration(TIME_WAIT).sleep();
   }
 
+  while (!subTask_->isSubtaskEmpty()) {
+    std::vector<std::vector<double>> waypoint = subTask_->getROI<double>();
+    geometry_msgs::Pose startTaskPose = generatePose_(waypoint[0]);
+    geometry_msgs::Pose endTaskPose = generatePose_(waypoint[1]);
+    publishWaypoint_(currentPose, "base_link_inertia");
+    publishWaypoint_(startTaskPose, "base_link_inertia");
+
+    // Robot goes to start pose
+    pathFound = computeTrajectory_(currentPose, startTaskPose, false, robotUr5);
+    if (!pathFound) {
+      return pathFound;
+    }
+
+    // Robot welding task
+    pathFound = computeTrajectory_(startTaskPose, endTaskPose, true, robotUr5);
+    if (!pathFound) {
+      return pathFound;
+    }
+  }
+
+  return true;
+}
+
+bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
+                                    const geometry_msgs::Pose nextPose,
+                                    const bool welding,
+                                    RoboticArmUr5* robotUr5) {
+  vector<vector<double>> ikSolutions{};
+  bool isPathFound = false;
+
+  robotUr5->getIKGeo(geometryToEigen_(currentPose.orientation), geometryToEigen_(currentPose.position), ikSolutions);
+  for (const auto& ikSol : ikSolutions) {
+    vector<double> startConfig = ikSol;
+    isPathFound += computePath_(startConfig, currentPose, nextPose, welding);
+  }
+  if (!isPathFound) {
+    ROS_ERROR("No path found to go to start waypoint");
+    return false;
+  }
   return true;
 }
 
@@ -245,37 +270,37 @@ void MAMPlanner::createNewFrame_(const string& parentFrame,
   br_.sendTransform(transformStamped);
 }
 
-void MAMPlanner::getWaypoints_() {
-  string yamlPath = YamlTools::getYamlPath("waypoints.yaml", string(WP5_MAM_PLANNER_DIR));
-  YAML::Node config = YAML::LoadFile(yamlPath);
+// void MAMPlanner::getWaypoints_() {
+//   string yamlPath = YamlTools::getYamlPath("waypoints.yaml", string(WP5_MAM_PLANNER_DIR));
+//   YAML::Node config = YAML::LoadFile(yamlPath);
 
-  Waypoint newWaypoint{};
-  vector<double> pose{};
-  vector<double> tmpOrientation{};
-  geometry_msgs::Pose newPose{};
+//   Waypoint newWaypoint{};
+//   vector<double> pose{};
+//   vector<double> tmpOrientation{};
+//   geometry_msgs::Pose newPose{};
 
-  for (const auto& waypoint : config) {
-    newWaypoint.clear();
-    newWaypoint.frame = waypoint["frame"].as<string>();
+//   for (const auto& waypoint : config) {
+//     newWaypoint.clear();
+//     newWaypoint.frame = waypoint["frame"].as<string>();
 
-    // Get the pose and orientation, convert it and project it to the robot frame
-    pose = waypoint["pos"].as<vector<double>>();
-    tmpOrientation = waypoint["angle"].as<vector<double>>();
-    pose.insert(pose.end(), tmpOrientation.begin(), tmpOrientation.end());
+//     // Get the pose and orientation, convert it and project it to the robot frame
+//     pose = waypoint["pos"].as<vector<double>>();
+//     tmpOrientation = waypoint["angle"].as<vector<double>>();
+//     pose.insert(pose.end(), tmpOrientation.begin(), tmpOrientation.end());
 
-    newPose = generatePose_(pose);
-    // TODO(lmunier): Fix the frame projection, use it when planning only to take into account the robot position
-    //newPose = projectPose_(newPose, newWaypoint.frame, robot_->getReferenceFrame());
+//     newPose = generatePose_(pose);
+//     // TODO(lmunier): Fix the frame projection, use it when planning only to take into account the robot position
+//     //newPose = projectPose_(newPose, newWaypoint.frame, robot_->getReferenceFrame());
 
-    // Store the waypoint
-    newWaypoint.pos = geometryToEigen_(newPose.position);
-    newWaypoint.quat = geometryToEigen_(newPose.orientation);
-    newWaypoint.speed = waypoint["speed"].as<double>();
-    newWaypoint.welding = waypoint["welding"].as<bool>();
+//     // Store the waypoint
+//     newWaypoint.pos = geometryToEigen_(newPose.position);
+//     newWaypoint.quat = geometryToEigen_(newPose.orientation);
+//     newWaypoint.speed = waypoint["speed"].as<double>();
+//     newWaypoint.welding = waypoint["welding"].as<bool>();
 
-    waypoints_.push_back(newWaypoint);
-  }
-}
+//     waypoints_.push_back(newWaypoint);
+//   }
+// }
 
 void MAMPlanner::publishWaypoint_(const geometry_msgs::Pose& pose, const std::string& frameId) {
   float TIME_WAIT = 0.2;

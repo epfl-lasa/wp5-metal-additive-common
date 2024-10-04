@@ -32,6 +32,7 @@
 
 #include "RoboticArmCr7.h"
 #include "RoboticArmUr5.h"
+#include "Subtask.h"
 
 class MAMPlanner {
 public:
@@ -73,7 +74,7 @@ private:
     }
 
     template <typename T>
-    std::vector<T> getPoseVector() const {
+    std::vector<double> getPoseVector() const {
       // Safety type check to allow only float, int or double
       static_assert(std::is_same<T, float>::value || std::is_same<T, int>::value || std::is_same<T, double>::value,
                     "Invalid type for getPoseVector, should be either int, float or double.");
@@ -98,6 +99,8 @@ private:
   tf2_ros::TransformListener tfListener_;
   tf2_ros::TransformBroadcaster br_; ///< ROS spinner to handle callbacks asynchronously
 
+  std::unique_ptr<Subtask> subTask_ = nullptr;
+
   ros::Publisher pubWeldingState_;      ///< Publisher for the welding state
   ros::Publisher pubDisplayTrajectory_; ///< Publisher for the display trajectory
   ros::Publisher pubWaypoint_;
@@ -117,6 +120,11 @@ private:
                     const geometry_msgs::Pose& currentPose,
                     const geometry_msgs::Pose& targetPose,
                     const bool isWeldging = false);
+
+  bool computeTrajectory_(const geometry_msgs::Pose currentPose,
+                          const geometry_msgs::Pose nextPose,
+                          const bool welding,
+                          RoboticArmUr5* robotUr5);
 
   geometry_msgs::Pose generatePose_(const std::vector<double>& pose);
   geometry_msgs::Pose projectPose_(const geometry_msgs::Pose& pose,

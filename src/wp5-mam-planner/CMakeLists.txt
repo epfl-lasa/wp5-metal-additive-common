@@ -56,6 +56,7 @@ include_directories(
 # Create a library
 add_library(${PROJECT_NAME}
   src/MAMPlanner.cpp
+  src/Subtask.cpp
 )
 
 # Set lib version
@@ -67,6 +68,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 add_executable(${PROJECT_NAME}_node
   src/main.cpp
   src/MAMPlanner.cpp
+  src/Subtask.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node
