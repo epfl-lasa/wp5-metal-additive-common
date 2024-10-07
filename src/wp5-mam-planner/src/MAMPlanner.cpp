@@ -40,10 +40,6 @@ bool MAMPlanner::planTrajectory() {
   geometry_msgs::Pose currentPose = moveGroup_->getCurrentPose().pose;
 
   publishWaypointRviz_(currentPose, "base_link_inertia");
-  publishWaypointRviz_(nextPose, "base_link_inertia");
-
-  publishWaypointCoppeliasim_(currentPose, "base_link_inertia");
-  publishWaypointCoppeliasim_(nextPose, "base_link_inertia");
 
   bool pathFound = false;
   while (subTask_->isSubtaskEmpty()) {
@@ -56,8 +52,8 @@ bool MAMPlanner::planTrajectory() {
     std::vector<std::vector<double>> waypoint = subTask_->getROI<double>();
     geometry_msgs::Pose startTaskPose = generatePose_(waypoint[0]);
     geometry_msgs::Pose endTaskPose = generatePose_(waypoint[1]);
-    publishWaypoint_(currentPose, "base_link_inertia");
-    publishWaypoint_(startTaskPose, "base_link_inertia");
+    publishWaypointRviz_(currentPose, "base_link_inertia");
+    publishWaypointRviz_(startTaskPose, "base_link_inertia");
 
     // Robot goes to start pose
     pathFound = computeTrajectory_(currentPose, startTaskPose, false, robotUr5);
@@ -184,7 +180,7 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
     waypoints.push_back(currentPose);
     waypoints.push_back(targetPose);
 
-    double fraction = moveGroup_->computeCartesianPath(waypoints, 0.01, 0.0, planCartesianTrajectory, true);
+    double fraction = moveGroup_->computeCartesianPath(waypoints, 0.01, planCartesianTrajectory, true);
     success = fraction == 1.0; // Path fully computed
     cout << "Fraction: " << fraction << endl;
   } else {
