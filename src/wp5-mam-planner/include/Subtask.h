@@ -2,7 +2,8 @@
  * @file Subtask.h
  * @brief Declaration of the Subtask class
  * @author [Elise Jeandupeux]
- * @date 2024-10-03
+ * @author [Louis Munier] - lmunier@protonmail.com
+ * @date 2024-10-08
  */
 
 #pragma once
@@ -13,8 +14,56 @@
 #include <std_msgs/String.h>
 
 #include <Eigen/Dense>
+#include <array>
+#include <deque>
+#include <string>
+#include <vector>
 
 class Subtask {
+private:
+  struct ROI {
+    std::string id{};
+    Eigen::Vector3d posStart{};
+    Eigen::Vector3d posEnd{};
+    Eigen::Quaterniond quat{};
+
+    // Function to check if the ROI is empty
+    bool empty() const { return id.empty(); }
+
+    // Function to clear the ROI
+    void clear() {
+      id.clear();
+      posStart.setZero();
+      posEnd.setZero();
+      quat.setIdentity();
+    }
+
+    // Function to print the ROI
+    void print() const {
+      ROS_INFO_STREAM("ID: " << id.c_str());
+      ROS_INFO_STREAM("Starting Position: " << posStart.x() << posStart.y() << posStart.z());
+      ROS_INFO_STREAM("Ending Position: " << posEnd.x() << posEnd.y() << posEnd.z());
+      ROS_INFO_STREAM("Quaternion: " << quat.x() << quat.y() << quat.z() << quat.w());
+    }
+
+    // Function to get the pose vector
+    std::vector<double> getPoseVector(std::string posType) const {
+      Eigen::Vector3d pos{};
+      Eigen::Quaterniond identity = Eigen::Quaterniond::Identity();
+
+      if (posType == "start") {
+        pos = posStart;
+      } else if (posType == "end") {
+        pos = posEnd;
+      } else {
+        ROS_ERROR("Invalid position type, should be either 'start' or 'end'.");
+        return std::vector<double>();
+      }
+
+      return {pos.x(), pos.y(), pos.z(), identity.x(), identity.y(), identity.z(), identity.w()};
+    }
+  };
+
 public:
   /**
    * @brief Constructor.
@@ -27,76 +76,39 @@ public:
   ~Subtask() = default;
 
   /**
-   * @brief Callback to get the region of interests.
-   */
-  void roiCallback(const std_msgs::String::ConstPtr& msg);
-
-  /**
    * @brief Delete all stored ROI
    */
-  bool clearROI();
+  void clearROI();
 
   /**
    * @brief True if no region of interest
+   * @return bool True if no region of interest
    */
-  bool isSubtaskEmpty();
+  const bool empty() const;
 
   /**
    * @brief Get the first region of interest and deletes it
    */
-  template <typename T>
-  std::vector<std::vector<double>> getROI() {
-    if (!roiMap_.empty()) {
-      auto iterROI = roiMap_.begin();
-
-      // Access the first element's value and remove it from the map
-      ROI value = iterROI->second;
-      roiMap_.erase(iterROI);
-
-      // return value;
-      std::vector<double> pose1{value.pos1.x(),
-                                value.pos1.y(),
-                                value.pos1.z(),
-                                value.quat.x(),
-                                value.quat.y(),
-                                value.quat.z(),
-                                value.quat.w()};
-      std::vector<T> pose2{value.pos2.x(),
-                           value.pos2.y(),
-                           value.pos2.z(),
-                           value.quat.x(),
-                           value.quat.y(),
-                           value.quat.z(),
-                           value.quat.w()};
-      return {pose1, pose2};
-    } else {
-      ROS_ERROR("[Subtask] - No stored region of interest ");
-      return {{}, {}};
-    }
-  };
+  const ROI getROI();
 
 private:
-  struct ROI {
-    Eigen::Vector3d pos1{};
-    Eigen::Vector3d pos2{};
-    Eigen::Quaterniond quat{};
-  };
-
   ros::NodeHandle nh_;
   ros::Subscriber subROI_;
-  std::map<double, ROI> roiMap_;
+  std::deque<ROI> dequeROI_;
 
   const Eigen::Vector3d robotPos_ = Eigen::Vector3d(0, 0, 0);
   const Eigen::Vector3d refVector_ = Eigen::Vector3d(1.0, 0.0, 0.0);
-  const double theta_ = -30 * M_PI / 180;
+  static constexpr double theta_ = -30 * M_PI / 180;
 
-  bool parseROI_(const std::string& str);
-  std::vector<double> splitString_(const std::string& str, const char delimiter);
-  Eigen::Quaterniond rotateVectorInPlan_(const Eigen::Vector3d point1,
-                                         const Eigen::Vector3d point2,
-                                         const Eigen::Vector3d point3,
-                                         const Eigen::Vector3d refVector,
-                                         const double theta);
+  void parseROI_(const std::string& str);
+  const bool isIdStored_(const std::string& id) const;
+  void splitString_(const std::string& str,
+                    const char delimiter,
+                    std::string& waypointID,
+                    std::vector<double>& waypointsPos);
+  const Eigen::Quaterniond rotateVectorInPlan_(const std::array<Eigen::Vector3d, 3>& pointsArray,
+                                               const Eigen::Vector3d refVector,
+                                               const double theta = theta_);
   // Debug
   ros::Publisher pubWaypoint1_;
   ros::Publisher pubWaypoint2_;
@@ -104,4 +116,9 @@ private:
   ros::Publisher pubComputedQuat_;
   void publishPose_(const Eigen::Vector3d& pos, const Eigen::Quaterniond quat, ros::Publisher pub);
   void publishWaypoint_(const Eigen::Vector3d& pose, ros::Publisher pub);
+
+  /**
+   * @brief Callback to get the region of interests.
+   */
+  void cbkROI_(const std_msgs::String::ConstPtr& msg);
 };

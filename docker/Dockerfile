@@ -147,6 +147,7 @@ COPY src/ ${HOME}/catkin_ws/src/
 RUN rosdep update
 
 USER root
+RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN rosdep install --from-paths ${HOME}/catkin_ws/src --ignore-src -r -y
 
 # Ensure correct ownership of the workspace

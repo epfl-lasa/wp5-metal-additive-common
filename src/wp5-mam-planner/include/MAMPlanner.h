@@ -60,38 +60,38 @@ public:
 private:
   //TODO(Elise): Move to its own class
   // Waypoints (ROS string message) : H1,X1,Y1,Z1,X2,Y2,Z2
-  struct Waypoint {
-    std::string frame = "";
-    Eigen::Vector3d pos{};
-    Eigen::Quaterniond quat{};
-    double speed = 0.0;
-    bool welding = false;
+  // struct Waypoint {
+  //   std::string frame = "";
+  //   Eigen::Vector3d pos{};
+  //   Eigen::Quaterniond quat{};
+  //   double speed = 0.0;
+  //   bool welding = false;
 
-    void clear() {
-      pos.setZero();
-      quat.setIdentity();
-      speed = 0.0;
-      welding = false;
-    }
+  //   void clear() {
+  //     pos.setZero();
+  //     quat.setIdentity();
+  //     speed = 0.0;
+  //     welding = false;
+  //   }
 
-    template <typename T>
-    std::vector<double> getPoseVector() const {
-      // Safety type check to allow only float, int or double
-      static_assert(std::is_same<T, float>::value || std::is_same<T, int>::value || std::is_same<T, double>::value,
-                    "Invalid type for getPoseVector, should be either int, float or double.");
+  //   template <typename T>
+  //   std::vector<double> getPoseVector() const {
+  //     // Safety type check to allow only float, int or double
+  //     static_assert(std::is_same<T, float>::value || std::is_same<T, int>::value || std::is_same<T, double>::value,
+  //                   "Invalid type for getPoseVector, should be either int, float or double.");
 
-      std::vector<double> pose{pos.x(), pos.y(), pos.z(), quat.x(), quat.y(), quat.z(), quat.w()};
-      return std::vector<T>(pose.begin(), pose.end());
-    }
+  //     std::vector<double> pose{pos.x(), pos.y(), pos.z(), quat.x(), quat.y(), quat.z(), quat.w()};
+  //     return std::vector<T>(pose.begin(), pose.end());
+  //   }
 
-    void print() const {
-      ROS_INFO("Frame: %s", frame.c_str());
-      ROS_INFO("Position: %f %f %f", pos.x(), pos.y(), pos.z());
-      ROS_INFO("Quaternion: %f %f %f %f", quat.x(), quat.y(), quat.z(), quat.w());
-      ROS_INFO("Speed: %f", speed);
-      ROS_INFO("Welding: %s", welding ? "true" : "false");
-    }
-  };
+  //   void print() const {
+  //     ROS_INFO("Frame: %s", frame.c_str());
+  //     ROS_INFO("Position: %f %f %f", pos.x(), pos.y(), pos.z());
+  //     ROS_INFO("Quaternion: %f %f %f %f", quat.x(), quat.y(), quat.z(), quat.w());
+  //     ROS_INFO("Speed: %f", speed);
+  //     ROS_INFO("Welding: %s", welding ? "true" : "false");
+  //   }
+  // };
 
   std::unique_ptr<IRoboticArmBase> robot_ = nullptr; ///< Robotic arm
   ros::NodeHandle nh_;                               ///< ROS node handle
@@ -104,11 +104,11 @@ private:
   ros::Publisher pubDisplayTrajectory_;        ///< Publisher for the display trajectory
   ros::Publisher pubWaypointRviz_;             ///< Publisher for the waypoint in Rviz
   ros::Publisher pubWaypointCoppeliasim_;      ///< Publisher for the waypoint in CoppeliaSim
-  std::unique_ptr<Subtask> subTask_ = nullptr; ///< Subtask
+  std::unique_ptr<Subtask> subtask_ = nullptr; ///< Subtask
 
   bool pathFound_ = false;
   int currentWPointID_ = 0;
-  std::vector<Waypoint> waypoints_; ///< Waypoints for the robot
+  // std::vector<Waypoint> waypoints_; ///< Waypoints for the robot
   std::vector<moveit_msgs::RobotTrajectory> bestPlan_;
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
@@ -145,7 +145,7 @@ private:
     return q;
   }
 
-  void getWaypoints_();
+  // void getWaypoints_();
   void publishWaypointRviz_(const geometry_msgs::Pose& pose, const std::string& frameId);
   void publishWaypointCoppeliasim_(const geometry_msgs::Pose& pose, const std::string& frameId);
 

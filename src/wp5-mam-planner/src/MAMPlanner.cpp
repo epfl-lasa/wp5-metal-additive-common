@@ -12,7 +12,7 @@
 using namespace std;
 
 MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) :
-    spinner_(1), nh_(nh), tfListener_(tfBuffer_), subTask_(make_unique<Subtask>(nh_)) {
+    spinner_(1), nh_(nh), tfListener_(tfBuffer_), subtask_(make_unique<Subtask>(nh_)) {
   RoboticArmFactory armFactory = RoboticArmFactory();
   robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
   robot_->printInfo();
@@ -42,16 +42,16 @@ bool MAMPlanner::planTrajectory() {
   publishWaypointRviz_(currentPose, "base_link_inertia");
 
   bool pathFound = false;
-  while (subTask_->isSubtaskEmpty()) {
+  while (subtask_->empty()) {
     float TIME_WAIT = 0.2;
     ROS_WARN("Waiting for Waypoints");
     ros::Duration(TIME_WAIT).sleep();
   }
 
-  while (!subTask_->isSubtaskEmpty()) {
-    std::vector<std::vector<double>> waypoint = subTask_->getROI<double>();
-    geometry_msgs::Pose startTaskPose = generatePose_(waypoint[0]);
-    geometry_msgs::Pose endTaskPose = generatePose_(waypoint[1]);
+  while (!subtask_->empty()) {
+    auto waypoint = subtask_->getROI();
+    geometry_msgs::Pose startTaskPose = generatePose_(waypoint.getPoseVector("start"));
+    geometry_msgs::Pose endTaskPose = generatePose_(waypoint.getPoseVector("end"));
     publishWaypointRviz_(currentPose, "base_link_inertia");
     publishWaypointRviz_(startTaskPose, "base_link_inertia");
 

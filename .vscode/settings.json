@@ -78,7 +78,8 @@
         "hash_map": "cpp",
         "hash_set": "cpp",
         "codecvt": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "numbers": "cpp"
     },
     "python.autoComplete.extraPaths": [
         "/home/ros/catkin_ws/devel/lib/python3/dist-packages",
