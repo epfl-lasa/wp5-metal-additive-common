@@ -1,6 +1,12 @@
 {
     "cmake.sourceDirectory": "/home/lmunier/Documents/robetarme/wp5-metal-additive/src/anima_ros/anima_rokae_service",
     "ros.distro": "noetic",
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "/bin/bash"
+        }
+    },
     "files.associations": {
         "cctype": "cpp",
         "clocale": "cpp",
@@ -89,5 +95,5 @@
         "/home/ros/catkin_ws/devel/lib/python3/dist-packages",
         "/opt/ros/noetic/lib/python3/dist-packages"
     ],
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
 }

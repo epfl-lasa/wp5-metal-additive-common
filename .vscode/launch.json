@@ -12,7 +12,7 @@
             "arguments": [
                 "taskType:=welding"
             ],
-            "preLaunchTask": "build debug"
+            "preLaunchTask": "build debug",
         },
         {
             "name": "ROS: Launch Test Robotic Arm",
