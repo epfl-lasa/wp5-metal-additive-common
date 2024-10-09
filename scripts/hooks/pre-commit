@@ -1,0 +1,19 @@
+#!/bin/bash
+# Pre-commit to avoid pushing files larger than 5MB to the github repository
+
+# Author: Louis Munier - lmunier@protonmail.com
+# Date: 2024-10-09
+
+# Maximum file size in bytes (5MB)
+max_size=5242880
+
+# Find files larger than the specified size
+large_files=$(git diff --cached --name-only | xargs -I{} find {} -type f -size +${max_size}c 2>/dev/null)
+
+if [ -n "$large_files" ]; then
+  echo "The following files are too large to commit:"
+  echo "$large_files"
+  exit 1
+fi
+
+exit 0

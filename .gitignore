@@ -10,7 +10,6 @@ install/
 logs/
 
 # Big files
-*.bag
 *.mp4
 
 # C extensions

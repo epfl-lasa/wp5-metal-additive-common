@@ -150,6 +150,10 @@ USER root
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN rosdep install --from-paths ${HOME}/catkin_ws/src --ignore-src -r -y
 
+# Install modbus python dependencies
+WORKDIR ${HOME}/catkin_ws/src/ros-modbus-device-driver
+RUN pip3 install -r requirements.txt
+
 # Ensure correct ownership of the workspace
 RUN chown -R ${USER}:${USER} ${HOME}/catkin_ws
 

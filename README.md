@@ -34,13 +34,28 @@ git clone --recurse-submodules git@github.com:epfl-lasa/wp5-metal-additive.git
 
 We are currently using docker and its docker compose option. Please set it up before going forward.
 
-When everything is up and running, follow these steps to set up the environment at the roots of the folder. All the environment variables needed in the docker are set up inside the .env file. You can modify them as you need.:
+The easy way is to run the setup.sh script which is in the root folder of this git repository, as follow:
 
 ```bash
+bash setup.sh
+```
+
+It will setup everything using default values. All the environment variables needed in the docker are set up inside the .env file. You can modify them as you need.
+
+To be more detailed, here are the needed commands to setup your git folder, to avoid sending too big files online. Then the commands update the submodules and finally build, mount and allow you to access docker container with the last docker commands.
+
+```bash
+# --- Submodules
 # Initialize the submodules
 git submodule update --init --recursive
 git submodule update --recursive --remote
 
+# --- Git Setup
+# Copy pre-commit into hooks folder insside .git/hooks directory
+cp "scripts/hooks/pre-commit" ".git/hooks/pre-commit"
+chmod +x .git/hooks/pre-commit
+
+# --- Docker
 # Build the Docker containers
 docker compose build
 

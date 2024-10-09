@@ -24,6 +24,7 @@ services:
       - .clang-format:/home/${ROS_USER}/catkin_ws/.clang-format
       - .vscode:/home/${ROS_USER}/catkin_ws/.vscode
       - ./src:/home/${ROS_USER}/catkin_ws/src
+      - ./data:/home/${ROS_USER}/catkin_ws/data
     stdin_open: true
     tty: true
   simulation:
