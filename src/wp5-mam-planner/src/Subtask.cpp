@@ -11,7 +11,7 @@
 using namespace std;
 
 Subtask::Subtask(ros::NodeHandle& nh) : nh_(nh) {
-  subROI_ = nh_.subscribe("/ur5/roi_topic", 1000, &Subtask::cbkROI_, this);
+  subROI_ = nh_.subscribe("/damage_string", 1000, &Subtask::cbkROI_, this);
 
   // debug waypoint
   pubWaypoint1_ = nh_.advertise<geometry_msgs::PointStamped>("debug_waypoint_1", 10);
@@ -35,15 +35,15 @@ const Subtask::ROI Subtask::getROI() {
 }
 
 void Subtask::parseROI_(const string& str) {
-  const size_t MSG_SIZE = 7;
+  const size_t MSG_POS_SIZE = 6;
 
   string waypointID = "";
   vector<double> waypointsPos{};
   splitString_(str, ',', waypointID, waypointsPos);
 
-  if (waypointsPos.size() != MSG_SIZE) {
+  if (waypointsPos.size() != MSG_POS_SIZE) {
     ROS_ERROR_STREAM("[Subtask] - Waypoint ROS message " << str.c_str() << " doesn't have the correct size, should be "
-                                                         << MSG_SIZE << " instead of " << waypointsPos.size());
+                                                         << MSG_POS_SIZE << " instead of " << waypointsPos.size());
   }
 
   // Store ROI only if it is not already done

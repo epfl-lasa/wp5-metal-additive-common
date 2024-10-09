@@ -65,6 +65,9 @@ private:
   };
 
 public:
+  // Declare the test class as a friend to allow access to private members
+  friend class SubtaskTest_TestSplitString_Test;
+
   /**
    * @brief Constructor.
    */

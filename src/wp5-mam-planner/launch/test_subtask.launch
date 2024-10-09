@@ -1,0 +1,5 @@
+<launch>
+    <node name="test_subtask" pkg="wp5_mam_planner" type="test_subtask"
+        output="screen">
+    </node>
+</launch>

@@ -1,5 +1,5 @@
 /**
- * @file RoboticArmUr5.cpp
+ * @file test_robotic_arm_ur5.cpp
  * @author Louis Munier (lmunier@protonmail.com)
  * @brief
  * @version 0.2
