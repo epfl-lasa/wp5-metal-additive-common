@@ -16,7 +16,6 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Float64MultiArray.h>
-#include <yaml-cpp/yaml.h>
 
 #include <fstream>
 

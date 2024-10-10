@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 
 #include "MAMPlanner.h"
+#include "ObstaclesManagement.h"
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "wp5_mam_planner_node");

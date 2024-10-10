@@ -61,6 +61,7 @@ add_library(${PROJECT_NAME}
   src/Subtask.cpp
   src/WaypointParser.cpp
   src/ROI.cpp
+  src/ObstaclesManagement.cpp
 )
 
 # Set lib version
@@ -75,6 +76,7 @@ add_executable(${PROJECT_NAME}_node
   src/Subtask.cpp
   src/WaypointParser.cpp
   src/ROI.cpp
+  src/ObstaclesManagement.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node

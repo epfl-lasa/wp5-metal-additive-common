@@ -6,7 +6,6 @@
  */
 
 #include <ros/ros.h>
-#include <yaml-cpp/yaml.h>
 
 #include <map>
 #include <memory>

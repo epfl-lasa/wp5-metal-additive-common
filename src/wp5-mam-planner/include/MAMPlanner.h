@@ -7,24 +7,15 @@
 
 #pragma once
 
-#include <geometric_shapes/mesh_operations.h>
-#include <geometric_shapes/shape_operations.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/PoseStamped.h>
 #include <moveit/move_group_interface/move_group_interface.h>
-#include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit_msgs/RobotTrajectory.h>
-#include <moveit_visual_tools/moveit_visual_tools.h>
-#include <shape_msgs/Mesh.h>
-#include <shape_msgs/SolidPrimitive.h>
-#include <std_msgs/Bool.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
-#include <yaml-cpp/yaml.h>
 
 #include <iostream>
 #include <memory>
@@ -34,6 +25,7 @@
 #include "RoboticArmCr7.h"
 #include "RoboticArmUr5.h"
 #include "Subtask.h"
+#include "ObstaclesManagement.h"
 
 class MAMPlanner {
 public:
@@ -58,8 +50,10 @@ public:
   void executeTrajectory();
 
 private:
-  std::unique_ptr<IRoboticArmBase> robot_ = nullptr; ///< Robotic arm
-  ros::NodeHandle nh_;                               ///< ROS node handle
+  std::unique_ptr<IRoboticArmBase> robot_ = nullptr;         ///< Robotic arm
+  std::unique_ptr<ObstaclesManagement> obstacles_ = nullptr; ///< Obstacles management
+
+  ros::NodeHandle nh_; ///< ROS node handle
   ros::AsyncSpinner spinner_;
   tf2_ros::Buffer tfBuffer_;
   tf2_ros::TransformListener tfListener_;
@@ -77,8 +71,7 @@ private:
   std::vector<moveit_msgs::RobotTrajectory> bestPlan_;
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
-  std::unique_ptr<moveit::planning_interface::PlanningSceneInterface> planningScene_ = nullptr; ///< Planning scene
-  std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr;         ///< MoveGroup interface
+  std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
 
   void initMoveit_();
   void setupMovegroup_();
@@ -92,7 +85,6 @@ private:
                           const bool welding,
                           RoboticArmUr5* robotUr5);
 
-  geometry_msgs::Pose generatePose_(const std::vector<double>& pose);
   geometry_msgs::Pose projectPose_(const geometry_msgs::Pose& pose,
                                    const std::string& fromFrame,
                                    const std::string& toFrame);
@@ -103,10 +95,4 @@ private:
   // void getWaypoints_();
   void publishWaypointRviz_(const geometry_msgs::Pose& pose, const std::string& frameId);
   void publishWaypointCoppeliasim_(const geometry_msgs::Pose& pose, const std::string& frameId);
-
-  void addStaticObstacles_();
-  shape_msgs::SolidPrimitive createBox_(const std::string name, const std::vector<double>& size) const;
-  shape_msgs::SolidPrimitive createCylinder_(const std::string name, const double height, const double radius) const;
-  shape_msgs::SolidPrimitive createSphere_(const std::string name, const double radius) const;
-  shape_msgs::Mesh createMesh_(const std::string name, const std::string meshPath) const;
 };
