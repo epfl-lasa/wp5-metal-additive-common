@@ -43,6 +43,7 @@ catkin_package(
     moveit_ros_move_group
     wp5_ros_interface
     wp5_robotic_arms_drivers
+    wp5_common_utilities
   DEPENDS YAML_CPP EIGEN3 GTest
 )
 

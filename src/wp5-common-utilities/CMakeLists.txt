@@ -16,11 +16,13 @@ add_compile_options(${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}})
 
 # Find packages if any
 find_package(yaml-cpp REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp)
 
 ## The catkin_package macro generates cmake config files for your package
 catkin_package(
   INCLUDE_DIRS include
+  LIBRARIES math_tools yaml_tools convertion_tools
   CATKIN_DEPENDS roscpp
   DEPENDS YAML_CPP
 )
@@ -29,9 +31,40 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
-install(DIRECTORY include/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
+# --- Math tools library
+set(MATH_TOOLS_LIBRARY math_tools)
+
+add_library(${MATH_TOOLS_LIBRARY}
+  src/math_tools.cpp
+)
+
+target_link_libraries(${MATH_TOOLS_LIBRARY}
+  ${catkin_LIBRARIES}
+)
+
+# --- YAML tools library
+set(YAML_TOOLS_LIBRARY yaml_tools)
+
+add_library(${YAML_TOOLS_LIBRARY}
+  src/yaml_tools.cpp
+)
+
+target_link_libraries(${YAML_TOOLS_LIBRARY}
+  ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
+)
+
+# --- Convertion tools library
+set(CONVERTION_TOOLS_LIBRARY convertion_tools)
+
+add_library(${CONVERTION_TOOLS_LIBRARY}
+  src/convertion_tools.cpp
+)
+
+target_link_libraries(${CONVERTION_TOOLS_LIBRARY}
+  ${catkin_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
 )

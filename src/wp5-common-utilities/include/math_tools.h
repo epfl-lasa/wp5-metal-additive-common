@@ -2,8 +2,8 @@
  * @file math_tools.h
  * @author Louis Munier (lmunier@protonmail.com)
  * @brief
- * @version 0.1
- * @date 2024-10-01
+ * @version 0.2
+ * @date 2024-10-10
  *
  * @copyright Copyright (c) 2024 - EPFL
  *
@@ -35,17 +35,7 @@ const double TOLERANCE = 1e-5;
  * @param str The string to check.
  * @return true if the string is a number, false otherwise.
  */
-inline const bool isNumber(const std::string& str) {
-  if (str.empty()) {
-    return false;
-  }
-
-  std::istringstream iss(str);
-  double value;
-  iss >> std::noskipws >> value; // noskipws considers leading whitespace invalid
-
-  return iss.eof() && !iss.fail();
-}
+const bool isNumber(const std::string& str);
 
 /**
  * @brief Checks if two quaternions are equivalent within a given tolerance.
@@ -58,14 +48,7 @@ inline const bool isNumber(const std::string& str) {
  * @param tolerance The tolerance within which the quaternions are considered equivalent.
  * @return true if the quaternions are equivalent within the given tolerance, false otherwise.
  */
-inline const bool areQuatEquivalent(const Eigen::Quaterniond& q1,
-                                    const Eigen::Quaterniond& q2,
-                                    double tolerance = TOLERANCE) {
-  Eigen::Matrix3d rot1 = q1.toRotationMatrix();
-  Eigen::Matrix3d rot2 = q2.toRotationMatrix();
-
-  return (rot1 - rot2).norm() < tolerance;
-}
+const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterniond& q2, double tolerance = TOLERANCE);
 
 /**
  * @brief Checks if two positions are equivalent within a given tolerance.
@@ -78,9 +61,7 @@ inline const bool areQuatEquivalent(const Eigen::Quaterniond& q1,
  * @param tolerance The tolerance within which the positions are considered equivalent.
  * @return true if the positions are equivalent within the given tolerance, false otherwise.
  */
-inline const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE) {
-  return (p1 - p2).norm() < tolerance;
-}
+const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE);
 
 /**
  * @brief Converts Euler angles to a quaternion.
