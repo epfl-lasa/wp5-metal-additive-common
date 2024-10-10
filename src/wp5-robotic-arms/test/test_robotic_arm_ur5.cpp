@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "RoboticArmUr5.h"
+#include "math_tools.h"
 
 using namespace std;
 
@@ -158,21 +159,6 @@ protected:
     // Convert the relative quaternion to axis-angle representation
     quaternionToAxisAngle(q_rel, axis, angle);
   }
-
-  // Function to check if two quaternions represent the same orientation
-  static void areQuaternionsEquivalent(const Eigen::Quaterniond& q1,
-                                       const Eigen::Quaterniond& q2,
-                                       double tolerance = 1e-5) {
-    Eigen::Matrix3d rot1 = q1.toRotationMatrix();
-    Eigen::Matrix3d rot2 = q2.toRotationMatrix();
-
-    EXPECT_LT((rot1 - rot2).norm(), tolerance);
-  }
-
-  // Function to check if two positions are equivalent
-  static void arePositionsEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = 1e-5) {
-    EXPECT_LT((p1 - p2).norm(), tolerance);
-  }
 };
 
 // Create a test to check the swapJoints_ function of the UR5 robotic arm
@@ -209,8 +195,8 @@ TEST_F(RoboticArmUr5Test, TestForwardComparison) {
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFK(jointPos);
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKGeo(jointPos);
 
-    areQuaternionsEquivalent(fkTracResult.first, fkGeoResult.first, TOLERANCE);
-    arePositionsEquivalent(fkTracResult.second, fkGeoResult.second, TOLERANCE);
+    EXPECT_TRUE(MathTools::areQuatEquivalent(fkTracResult.first, fkGeoResult.first, TOLERANCE));
+    EXPECT_TRUE(MathTools::arePosEquivalent(fkTracResult.second, fkGeoResult.second, TOLERANCE));
   }
 }
 
@@ -227,14 +213,14 @@ TEST_F(RoboticArmUr5Test, TestInverseComparison) {
     pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFK(tracJointPos);
     pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFK(geoJointPos);
 
-    areQuaternionsEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE);
-    arePositionsEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE);
+    EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE));
+    EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE));
 
     tracFKResult = roboticArm->getFKGeo(tracJointPos);
     geoFKResult = roboticArm->getFKGeo(geoJointPos);
 
-    areQuaternionsEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE);
-    arePositionsEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE);
+    EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE));
+    EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE));
   }
 }
 
@@ -247,8 +233,8 @@ TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
     // Compute forward kinematics
     pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFK(jointPos);
 
-    areQuaternionsEquivalent(tracFKResult.first, quaternion, TOLERANCE);
-    arePositionsEquivalent(tracFKResult.second, position, TOLERANCE);
+    EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, quaternion, TOLERANCE));
+    EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, position, TOLERANCE));
   }
 }
 
@@ -262,8 +248,8 @@ TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
     for (const auto& sol : ikSolutions) {
       pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFKGeo(sol);
 
-      areQuaternionsEquivalent(geoFKResult.first, quaternion, TOLERANCE);
-      arePositionsEquivalent(geoFKResult.second, position, TOLERANCE);
+      EXPECT_TRUE(MathTools::areQuatEquivalent(geoFKResult.first, quaternion, TOLERANCE));
+      EXPECT_TRUE(MathTools::arePosEquivalent(geoFKResult.second, position, TOLERANCE));
     }
   }
 }

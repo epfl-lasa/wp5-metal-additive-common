@@ -15,6 +15,8 @@
 
 #include <sstream>
 
+#include "math_tools.h"
+
 using namespace std;
 
 bool WaypointParser::packWaypoint(const vector<string>& strToPack,
@@ -29,14 +31,14 @@ bool WaypointParser::packWaypoint(const vector<string>& strToPack,
 
   for (const auto& str : strToPack) {
     if (waypointID.empty()) {
-      if (isNumber_(str)) {
+      if (MathTools::isNumber(str)) {
         ROS_ERROR_STREAM("[Subtask] - Invalid ID: " << str << " should not only be a number.");
         return false;
       }
 
       waypointID = str;
     } else {
-      if (isNumber_(str)) {
+      if (MathTools::isNumber(str)) {
         waypointsPos.push_back(stod(str));
       } else {
         ROS_ERROR_STREAM("[Subtask] - Invalid argument: " << str << " should be a number.");
@@ -68,7 +70,7 @@ bool WaypointParser::unpackWaypoint(const string& strToUnpack,
         ROS_ERROR_STREAM("[Subtask] - Invalid argument: " << e.what());
       }
     } else {
-      if (isNumber_(token)) {
+      if (MathTools::isNumber(token)) {
         ROS_ERROR_STREAM("[Subtask] - Invalid ID: " << token << " should not only be a number.");
         waypointID = "";
         waypointsPos.clear();
@@ -81,8 +83,4 @@ bool WaypointParser::unpackWaypoint(const string& strToUnpack,
   }
 
   return true;
-}
-
-const bool WaypointParser::isNumber_(const string& str) {
-  return !str.empty() && all_of(str.begin(), str.end(), ::isdigit);
 }

@@ -109,12 +109,4 @@ private:
   ik_geo::Robot* robotGeoSolver_ = nullptr; ///< IK-Geo solver
 
   void swapJoints_(std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>& currentRobotState);
-
-  const bool areQuaternionsEquivalent_(const Eigen::Quaterniond& q1,
-                                       const Eigen::Quaterniond& q2,
-                                       double tolerance = TOLERANCE) const;
-
-  const bool arePositionsEquivalent_(const Eigen::Vector3d& p1,
-                                     const Eigen::Vector3d& p2,
-                                     double tolerance = TOLERANCE) const;
 };

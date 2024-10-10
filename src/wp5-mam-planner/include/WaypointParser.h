@@ -24,7 +24,4 @@ public:
                       const char delimiter,
                       std::string& waypointID,
                       std::vector<double>& waypointsPos);
-
-private:
-  const bool isNumber_(const std::string& str);
 };
