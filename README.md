@@ -42,7 +42,7 @@ bash setup.sh
 
 It will setup everything using default values. All the environment variables needed in the docker are set up inside the .env file. You can modify them as you need.
 
-To be more detailed, here are the needed commands to setup your git folder, to avoid sending too big files online. Then the commands update the submodules and finally build, mount and allow you to access docker container with the last docker commands.
+To go more detailed, here are the commands automatically ran, with the previous scripts, to set up the system. It will set up your git folder, to avoid sending too big files online. Then the commands update the submodules and finally build, mount and allow you to access docker container with the last docker commands.
 
 ```bash
 # --- Submodules
