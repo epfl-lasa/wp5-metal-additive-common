@@ -58,41 +58,6 @@ public:
   void executeTrajectory();
 
 private:
-  //TODO(Elise): Move to its own class
-  // Waypoints (ROS string message) : H1,X1,Y1,Z1,X2,Y2,Z2
-  // struct Waypoint {
-  //   std::string frame = "";
-  //   Eigen::Vector3d pos{};
-  //   Eigen::Quaterniond quat{};
-  //   double speed = 0.0;
-  //   bool welding = false;
-
-  //   void clear() {
-  //     pos.setZero();
-  //     quat.setIdentity();
-  //     speed = 0.0;
-  //     welding = false;
-  //   }
-
-  //   template <typename T>
-  //   std::vector<double> getPoseVector() const {
-  //     // Safety type check to allow only float, int or double
-  //     static_assert(std::is_same<T, float>::value || std::is_same<T, int>::value || std::is_same<T, double>::value,
-  //                   "Invalid type for getPoseVector, should be either int, float or double.");
-
-  //     std::vector<double> pose{pos.x(), pos.y(), pos.z(), quat.x(), quat.y(), quat.z(), quat.w()};
-  //     return std::vector<T>(pose.begin(), pose.end());
-  //   }
-
-  //   void print() const {
-  //     ROS_INFO("Frame: %s", frame.c_str());
-  //     ROS_INFO("Position: %f %f %f", pos.x(), pos.y(), pos.z());
-  //     ROS_INFO("Quaternion: %f %f %f %f", quat.x(), quat.y(), quat.z(), quat.w());
-  //     ROS_INFO("Speed: %f", speed);
-  //     ROS_INFO("Welding: %s", welding ? "true" : "false");
-  //   }
-  // };
-
   std::unique_ptr<IRoboticArmBase> robot_ = nullptr; ///< Robotic arm
   ros::NodeHandle nh_;                               ///< ROS node handle
   ros::AsyncSpinner spinner_;
@@ -135,25 +100,9 @@ private:
                        const std::string& newFrame,
                        const geometry_msgs::Transform& transform);
 
-  template <typename T>
-  Eigen::Quaternion<T> eulerToQuaternion_(const std::array<T, 3>& euler) {
-    Eigen::Quaternion<T> q;
-    q = Eigen::AngleAxis<T>(euler[0], Eigen::Matrix<T, 3, 1>::UnitX())
-        * Eigen::AngleAxis<T>(euler[1], Eigen::Matrix<T, 3, 1>::UnitY())
-        * Eigen::AngleAxis<T>(euler[2], Eigen::Matrix<T, 3, 1>::UnitZ());
-
-    return q;
-  }
-
   // void getWaypoints_();
   void publishWaypointRviz_(const geometry_msgs::Pose& pose, const std::string& frameId);
   void publishWaypointCoppeliasim_(const geometry_msgs::Pose& pose, const std::string& frameId);
-
-  Eigen::Vector3d geometryToEigen_(const geometry_msgs::Point& point);
-  Eigen::Quaterniond geometryToEigen_(const geometry_msgs::Quaternion& orientation);
-
-  geometry_msgs::Point eigenToGeometry_(const Eigen::Vector3d& position);
-  geometry_msgs::Quaternion eigenToGeometry_(const Eigen::Quaterniond& orientation);
 
   void addStaticObstacles_();
   shape_msgs::SolidPrimitive createBox_(const std::string name, const std::vector<double>& size) const;

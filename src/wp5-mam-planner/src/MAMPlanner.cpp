@@ -7,6 +7,8 @@
 #include "MAMPlanner.h"
 
 #include "RoboticArmFactory.h"
+#include "convertion_tools.h"
+#include "math_tools.h"
 #include "yaml_tools.h"
 
 using namespace std;
@@ -78,7 +80,10 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
   vector<vector<double>> ikSolutions{};
   bool isPathFound = false;
 
-  robotUr5->getIKGeo(geometryToEigen_(currentPose.orientation), geometryToEigen_(currentPose.position), ikSolutions);
+  robotUr5->getIKGeo(ConvertionTools::geometryToEigen(currentPose.orientation),
+                     ConvertionTools::geometryToEigen(currentPose.position),
+                     ikSolutions);
+
   for (const auto& ikSol : ikSolutions) {
     vector<double> startConfig = ikSol;
     isPathFound += computePath_(startConfig, currentPose, nextPose, welding);
@@ -221,7 +226,7 @@ geometry_msgs::Pose MAMPlanner::generatePose_(const vector<double>& pose) {
   newPose.position.z = pose[2];
 
   if (pose.size() == 6) {
-    Eigen::Quaterniond q = eulerToQuaternion_<double>({pose[3], pose[4], pose[5]});
+    Eigen::Quaterniond q = MathTools::eulerToQuaternion<double>({pose[3], pose[4], pose[5]});
 
     newPose.orientation.x = q.x();
     newPose.orientation.y = q.y();
@@ -270,38 +275,6 @@ void MAMPlanner::createNewFrame_(const string& parentFrame,
   br_.sendTransform(transformStamped);
 }
 
-// void MAMPlanner::getWaypoints_() {
-//   string yamlPath = YamlTools::getYamlPath("waypoints.yaml", string(WP5_MAM_PLANNER_DIR));
-//   YAML::Node config = YAML::LoadFile(yamlPath);
-
-//   Waypoint newWaypoint{};
-//   vector<double> pose{};
-//   vector<double> tmpOrientation{};
-//   geometry_msgs::Pose newPose{};
-
-//   for (const auto& waypoint : config) {
-//     newWaypoint.clear();
-//     newWaypoint.frame = waypoint["frame"].as<string>();
-
-//     // Get the pose and orientation, convert it and project it to the robot frame
-//     pose = waypoint["pos"].as<vector<double>>();
-//     tmpOrientation = waypoint["angle"].as<vector<double>>();
-//     pose.insert(pose.end(), tmpOrientation.begin(), tmpOrientation.end());
-
-//     newPose = generatePose_(pose);
-//     // TODO(lmunier): Fix the frame projection, use it when planning only to take into account the robot position
-//     //newPose = projectPose_(newPose, newWaypoint.frame, robot_->getReferenceFrame());
-
-//     // Store the waypoint
-//     newWaypoint.pos = geometryToEigen_(newPose.position);
-//     newWaypoint.quat = geometryToEigen_(newPose.orientation);
-//     newWaypoint.speed = waypoint["speed"].as<double>();
-//     newWaypoint.welding = waypoint["welding"].as<bool>();
-
-//     waypoints_.push_back(newWaypoint);
-//   }
-// }
-
 void MAMPlanner::publishWaypointRviz_(const geometry_msgs::Pose& pose, const std::string& frameId) {
   float TIME_WAIT = 0.2;
   size_t NB_PUBLISH = 3;
@@ -316,42 +289,14 @@ void MAMPlanner::publishWaypointRviz_(const geometry_msgs::Pose& pose, const std
     ros::Duration(TIME_WAIT).sleep();
   }
 }
-
+// Publish the geometry::PoseArry waypoint to CoppeliaSim
 void MAMPlanner::publishWaypointCoppeliasim_(const geometry_msgs::Pose& pose, const std::string& frameId) {
-  // Publish the geometry::PoseArry waypoint to CoppeliaSim
   geometry_msgs::PoseArray poseArray;
   poseArray.header.frame_id = frameId;
   poseArray.header.stamp = ros::Time::now();
   poseArray.poses.push_back(pose);
 
   pubWaypointCoppeliasim_.publish(poseArray);
-}
-
-Eigen::Vector3d MAMPlanner::geometryToEigen_(const geometry_msgs::Point& point) {
-  return Eigen::Vector3d{point.x, point.y, point.z};
-}
-
-Eigen::Quaterniond MAMPlanner::geometryToEigen_(const geometry_msgs::Quaternion& orientation) {
-  return Eigen::Quaterniond{orientation.w, orientation.x, orientation.y, orientation.z};
-}
-
-geometry_msgs::Point MAMPlanner::eigenToGeometry_(const Eigen::Vector3d& position) {
-  geometry_msgs::Point point;
-  point.x = position.x();
-  point.y = position.y();
-  point.z = position.z();
-
-  return move(point);
-}
-
-geometry_msgs::Quaternion MAMPlanner::eigenToGeometry_(const Eigen::Quaterniond& orientation) {
-  geometry_msgs::Quaternion quat;
-  quat.x = orientation.x();
-  quat.y = orientation.y();
-  quat.z = orientation.z();
-  quat.w = orientation.w();
-
-  return move(quat);
 }
 
 void MAMPlanner::addStaticObstacles_() {

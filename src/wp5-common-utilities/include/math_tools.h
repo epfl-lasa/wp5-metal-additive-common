@@ -78,10 +78,27 @@ inline const bool areQuatEquivalent(const Eigen::Quaterniond& q1,
  * @param tolerance The tolerance within which the positions are considered equivalent.
  * @return true if the positions are equivalent within the given tolerance, false otherwise.
  */
-inline const bool arePosEquivalent(const Eigen::Vector3d& p1,
-                                   const Eigen::Vector3d& p2,
-                                   double tolerance = TOLERANCE) {
+inline const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE) {
   return (p1 - p2).norm() < tolerance;
+}
+
+/**
+ * @brief Converts Euler angles to a quaternion.
+ *
+ * This function converts a set of Euler angles to a quaternion.
+ *
+ * @tparam T The type of the Euler angles.
+ * @param euler The Euler angles to convert.
+ * @return The quaternion representation of the Euler angles.
+ */
+template <typename T>
+Eigen::Quaternion<T> eulerToQuaternion(const std::array<T, 3>& euler) {
+  Eigen::Quaternion<T> q;
+  q = Eigen::AngleAxis<T>(euler[0], Eigen::Matrix<T, 3, 1>::UnitX())
+      * Eigen::AngleAxis<T>(euler[1], Eigen::Matrix<T, 3, 1>::UnitY())
+      * Eigen::AngleAxis<T>(euler[2], Eigen::Matrix<T, 3, 1>::UnitZ());
+
+  return q;
 }
 
 } // namespace MathTools
