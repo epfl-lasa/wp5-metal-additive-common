@@ -10,8 +10,9 @@
  */
 #pragma once
 
-#include <Eigen/Dense>
 #include <ros/ros.h>
+
+#include <Eigen/Dense>
 #include <string>
 #include <vector>
 
@@ -21,35 +22,11 @@ public:
 
   bool empty() const { return id_.empty(); }
 
-  void clear() {
-    id_.clear();
-    posStart_.setZero();
-    posEnd_.setZero();
-    quat_.setIdentity();
-  }
+  void clear();
 
-  void print() const {
-    ROS_INFO_STREAM("ID: " << id_.c_str());
-    ROS_INFO_STREAM("Starting Position: " << posStart_.x() << posStart_.y() << posStart_.z());
-    ROS_INFO_STREAM("Ending Position: " << posEnd_.x() << posEnd_.y() << posEnd_.z());
-    ROS_INFO_STREAM("Quaternion: " << quat_.x() << quat_.y() << quat_.z() << quat_.w());
-  }
+  void print() const;
 
-  std::vector<double> getPoseVector(const std::string& posType) const {
-    Eigen::Vector3d pos{};
-    Eigen::Quaterniond identity = Eigen::Quaterniond::Identity();
-
-    if (posType == "start") {
-      pos = posStart_;
-    } else if (posType == "end") {
-      pos = posEnd_;
-    } else {
-      ROS_ERROR("Invalid position type, should be either 'start' or 'end'.");
-      return std::vector<double>();
-    }
-
-    return {pos.x(), pos.y(), pos.z(), identity.x(), identity.y(), identity.z(), identity.w()};
-  }
+  std::vector<double> getPoseVector(const std::string& posType) const;
 
   // Getters and setters for the private members
   const std::string& getID() const { return id_; }
@@ -65,6 +42,7 @@ public:
   void setQuat(const Eigen::Quaterniond& quat) { quat_ = quat; }
 
 private:
+  //TODO(lmunier(2024-10-10)): Implement vector<Eigen::Vector3d> to have more waypoints regarding cleaning task
   std::string id_{};
   Eigen::Vector3d posStart_{};
   Eigen::Vector3d posEnd_{};

@@ -60,6 +60,7 @@ add_library(${PROJECT_NAME}
   src/MAMPlanner.cpp
   src/Subtask.cpp
   src/WaypointParser.cpp
+  src/ROI.cpp
 )
 
 # Set lib version
@@ -73,6 +74,7 @@ add_executable(${PROJECT_NAME}_node
   src/MAMPlanner.cpp
   src/Subtask.cpp
   src/WaypointParser.cpp
+  src/ROI.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node

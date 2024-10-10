@@ -20,8 +20,8 @@
 #include <string>
 #include <vector>
 
-#include "WaypointParser.h"
 #include "ROI.h"
+#include "WaypointParser.h"
 
 class Subtask {
 public:
