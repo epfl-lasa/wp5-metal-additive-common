@@ -24,7 +24,7 @@ void Subtask::clearROI() { dequeROI_.clear(); }
 
 const bool Subtask::empty() const { return dequeROI_.empty(); }
 
-const Subtask::ROI Subtask::getROI() {
+const ROI Subtask::getROI() {
   if (!dequeROI_.empty()) {
     ROI roi = dequeROI_.front();
     dequeROI_.pop_front();
@@ -39,27 +39,27 @@ void Subtask::parseROI_(const string& str) {
 
   string waypointID = "";
   vector<double> waypointsPos{};
-  splitString_(str, ',', waypointID, waypointsPos);
+  bool unpackedSuccess = waypointParser_.unpackWaypoint(str, ',', waypointID, waypointsPos);
 
-  if (waypointsPos.size() != MSG_POS_SIZE) {
+  if (unpackedSuccess && waypointsPos.size() != MSG_POS_SIZE) {
     ROS_ERROR_STREAM("[Subtask] - Waypoint ROS message " << str.c_str() << " doesn't have the correct size, should be "
                                                          << MSG_POS_SIZE << " instead of " << waypointsPos.size());
   }
 
   // Store ROI only if it is not already done
-  if (!isIdStored_(waypointID)) {
+  if (!isROIStored_(waypointID)) {
     ROI roi;
-    roi.id = waypointID;
-    roi.posStart = Eigen::Vector3d(waypointsPos[0], waypointsPos[1], waypointsPos[2]);
-    roi.posEnd = Eigen::Vector3d(waypointsPos[3], waypointsPos[4], waypointsPos[5]);
-    roi.quat = rotateVectorInPlan_({roi.posStart, roi.posEnd, robotPos_}, refVector_);
+    roi.setID(waypointID);
+    roi.setPosStart(Eigen::Vector3d(waypointsPos[0], waypointsPos[1], waypointsPos[2]));
+    roi.setPosEnd(Eigen::Vector3d(waypointsPos[3], waypointsPos[4], waypointsPos[5]));
+    roi.setQuat(rotateVectorInPlan_({roi.getPosStart(), roi.getPosEnd(), robotPos_}, refVector_));
     dequeROI_.push_back(roi);
 
     // Visualisation debug
-    publishWaypoint_(roi.posStart, pubWaypoint1_);
-    publishWaypoint_(roi.posEnd, pubWaypoint2_);
+    publishWaypoint_(roi.getPosStart(), pubWaypoint1_);
+    publishWaypoint_(roi.getPosEnd(), pubWaypoint2_);
     publishWaypoint_(robotPos_, pubRobotBase_);
-    publishPose_(roi.posStart, roi.quat, pubComputedQuat_);
+    publishPose_(roi.getPosStart(), roi.getQuat(), pubComputedQuat_);
 
     ROS_INFO_STREAM("[Subtask] - Waypoint registered, key : " << waypointID);
   } else {
@@ -67,28 +67,13 @@ void Subtask::parseROI_(const string& str) {
   }
 }
 
-const bool Subtask::isIdStored_(const string& id) const {
+const bool Subtask::isROIStored_(const string& id) const {
   for (const auto& roi : dequeROI_) {
-    if (roi.id == id) {
+    if (roi.getID() == id) {
       return true;
     }
   }
   return false;
-}
-
-void Subtask::splitString_(const string& str, const char delimiter, string& waypointID, vector<double>& waypointsPos) {
-  bool idTaken = false;
-  string token = "";
-  stringstream ss(str);
-
-  while (getline(ss, token, delimiter)) {
-    if (!idTaken) {
-      waypointID = token;
-      idTaken = true;
-    } else {
-      waypointsPos.push_back(stod(token));
-    }
-  }
 }
 
 const Eigen::Quaterniond Subtask::rotateVectorInPlan_(const array<Eigen::Vector3d, 3>& pointsArray,

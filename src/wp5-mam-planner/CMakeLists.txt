@@ -59,6 +59,7 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/MAMPlanner.cpp
   src/Subtask.cpp
+  src/WaypointParser.cpp
 )
 
 # Set lib version
@@ -71,6 +72,7 @@ add_executable(${PROJECT_NAME}_node
   src/main.cpp
   src/MAMPlanner.cpp
   src/Subtask.cpp
+  src/WaypointParser.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}_node
@@ -84,7 +86,7 @@ target_link_libraries(${PROJECT_NAME}_node
 # -------------------------
 # Add the test executable
 # -------------------------
-set(test_exe_name test_subtask)
+set(test_exe_name test_waypoint_parser)
 
 # Add gtest dependency
 if (CATKIN_ENABLE_TESTING)
@@ -97,8 +99,8 @@ if (CATKIN_ENABLE_TESTING)
 
   # Add the test executable only once
   add_executable(${test_exe_name}
-    test/test_subtask.cpp
-    src/Subtask.cpp
+    test/test_waypoint_parser.cpp
+    src/WaypointParser.cpp
   )
   target_link_libraries(${test_exe_name}
     ${catkin_LIBRARIES}
