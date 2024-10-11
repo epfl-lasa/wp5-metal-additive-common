@@ -68,6 +68,15 @@ docker exec -it wp5-metal-additive-ros-1 bash
 
 This will set up the necessary environment within Docker for running the codebase.
 
+### Optional : Coppeliasim Simulation
+
+For those who needs and can use the university license of coppeliasim, the following commands can be used to add the coppeliasim docker as a submodule :
+
+```bash
+git submodule add -f git@github.com:epfl-lasa/docker_ros_coppeliasim.git tools/docker_ros_coppeliasim
+git submodule update --init --recursive
+```
+
 ## Maintainers
 
 - Louis Munier - <lmunier@protonmail.com>

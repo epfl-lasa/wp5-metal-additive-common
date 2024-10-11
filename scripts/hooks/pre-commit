@@ -16,4 +16,13 @@ if [ -n "$large_files" ]; then
   exit 1
 fi
 
+# Check if .gitmodules has changes related to submodule docker_ros_coppeliasim
+if git diff --cached --name-only | grep -q '.gitmodules'; then
+  if git diff --cached .gitmodules | grep -q 'tools/docker_ros_coppeliasim'; then
+    # Stash changes to .gitmodules related to docker_ros_coppeliasim
+    git stash push -m "Stash .gitmodules changes for submoduleA" .gitmodules
+    echo "Stashed changes to .gitmodules related to submoduleA"
+  fi
+fi
+
 exit 0

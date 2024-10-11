@@ -1,15 +1,15 @@
 services:
-  ros:
-    user: ${ROS_USER}
+  simulation:
+    user: ${SIMU_USER}
     env_file: .env
     network_mode: host
     build:
-      context: .
+      context: ./tools/docker_ros_coppeliasim
       network: host
       dockerfile: docker/Dockerfile
       args:
         ROS_DISTRO: noetic
-        USER: ${ROS_USER}
+        USER: ${SIMU_USER}
     deploy:
       resources:
         reservations:
@@ -21,9 +21,8 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - .clang-format:/home/${ROS_USER}/catkin_ws/.clang-format
-      - .vscode:/home/${ROS_USER}/catkin_ws/.vscode
       - ./src:/home/${ROS_USER}/catkin_ws/src
-      - ./data:/home/${ROS_USER}/catkin_ws/data
+      - ./simulation:/home/${SIMU_USER}/simulation
+      - ./tools/docker_ros_coppeliasim/scripts:/home/${SIMU_USER}/scripts
     stdin_open: true
     tty: true
