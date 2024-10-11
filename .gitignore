@@ -9,11 +9,11 @@ devel/
 install/
 logs/
 
+# Avoid pushing this tool for those who can not use it
+tools/docker_ros_coppeliasim/
+
 # Big files
 *.mp4
 
 # C extensions
 *.so
-
-# Avoid pushing this tool for those who can not use it
-tools/docker_ros_coppeliasim
