@@ -1,0 +1,14 @@
+#!/bin/bash
+# Post-commit to :
+# - Apply the stashed changes related to docker_ros_coppeliasim
+
+# Author: Louis Munier - lmunier@protonmail.com
+# Date: 2024-10-11
+
+# Apply the stashed changes related to docker_ros_coppeliasim
+if git stash list | grep -q 'Stash .gitmodules changes for docker_ros_coppeliasim'; then
+  git stash pop
+  echo "Applied stashed changes related to docker_ros_coppeliasim"
+fi
+
+exit 0

@@ -1,8 +1,10 @@
 #!/bin/bash
-# Pre-commit to avoid pushing files larger than 5MB to the github repository
+# Pre-commit to avoid :
+# - pushing files larger than 5MB to the github repository
+# - pushing changes to .gitmodules related to submodule docker_ros_coppeliasim
 
 # Author: Louis Munier - lmunier@protonmail.com
-# Date: 2024-10-09
+# Date: 2024-10-11
 
 # Maximum file size in bytes (5MB)
 max_size=5242880
@@ -20,8 +22,8 @@ fi
 if git diff --cached --name-only | grep -q '.gitmodules'; then
   if git diff --cached .gitmodules | grep -q 'tools/docker_ros_coppeliasim'; then
     # Stash changes to .gitmodules related to docker_ros_coppeliasim
-    git stash push -m "Stash .gitmodules changes for submoduleA" .gitmodules
-    echo "Stashed changes to .gitmodules related to submoduleA"
+    git stash push -m "Stash .gitmodules changes for docker_ros_coppeliasim" .gitmodules
+    echo "Stashed changes to .gitmodules related to docker_ros_coppeliasim"
   fi
 fi
 
