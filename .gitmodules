@@ -4,9 +4,6 @@
 [submodule "src/ur5_lasa"]
 	path = src/ur5_lasa
 	url = git@github.com:epfl-lasa/ur5_lasa.git
-[submodule "tools/docker_ros_coppeliasim"]
-	path = tools/docker_ros_coppeliasim
-	url = git@github.com:epfl-lasa/docker_ros_coppeliasim.git
 [submodule "src/wp5-robotic-arms/libs/ik-geo-cpp"]
 	path = src/wp5-robotic-arms/libs/ik-geo-cpp
 	url = git@github.com:epfl-lasa/ik-geo-cpp.git
