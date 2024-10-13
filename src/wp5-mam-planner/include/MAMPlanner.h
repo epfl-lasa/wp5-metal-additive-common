@@ -22,10 +22,10 @@
 #include <string>
 #include <vector>
 
+#include "ObstaclesManagement.h"
 #include "RoboticArmCr7.h"
 #include "RoboticArmUr5.h"
 #include "Subtask.h"
-#include "ObstaclesManagement.h"
 
 class MAMPlanner {
 public:
@@ -82,8 +82,7 @@ private:
 
   bool computeTrajectory_(const geometry_msgs::Pose currentPose,
                           const geometry_msgs::Pose nextPose,
-                          const bool welding,
-                          RoboticArmUr5* robotUr5);
+                          const bool welding);
 
   geometry_msgs::Pose projectPose_(const geometry_msgs::Pose& pose,
                                    const std::string& fromFrame,

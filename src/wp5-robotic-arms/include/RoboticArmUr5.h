@@ -37,23 +37,23 @@ public:
   ~RoboticArmUr5();
 
   /**
-   * @brief Bring the getFK function from the parent class.
+   * @brief Bring the getFKTrac function from the parent class.
    */
-  using IRoboticArmBase::getFK;
+  using IRoboticArmBase::getFKTrac;
 
   /**
-   * @brief Get the forward kinematics of the robotic arm.
+   * @brief Get the forward kinematics of the robotic arm using IK-Geo algorihtm.
    * @param jointPos Joint positions of the robotic arm.
    */
   const std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFKGeo(const std::vector<double>& jointPos);
 
   /**
-   * @brief Bring the getIK function from the parent class.
+   * @brief Bring the getIKTrac function from the parent class.
    */
-  using IRoboticArmBase::getIK;
+  using IRoboticArmBase::getIKTrac;
 
   /**
-   * @brief Get the inverse kinematics of the robotic arm.
+   * @brief Get the analytical inverse kinematics of the robotic arm using IK-Geo algorihtm.
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
    * @param jointPos Vector of joint positions of the robotic arm.

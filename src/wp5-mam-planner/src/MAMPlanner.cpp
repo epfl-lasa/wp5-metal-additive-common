@@ -37,9 +37,6 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) :
 bool MAMPlanner::planTrajectory() {
   cout << "Planning trajectory" << endl;
 
-  // TODO(lmunier): Avoid using dynamic_cast
-  RoboticArmUr5* robotUr5 = dynamic_cast<RoboticArmUr5*>(robot_.get());
-
   currentWPointID_ = 0;
   bestPlan_.clear();
   geometry_msgs::Pose currentPose = moveGroup_->getCurrentPose().pose;
@@ -61,13 +58,13 @@ bool MAMPlanner::planTrajectory() {
     publishWaypointRviz_(startTaskPose, "base_link_inertia");
 
     // Robot goes to start pose
-    pathFound = computeTrajectory_(currentPose, startTaskPose, false, robotUr5);
+    pathFound = computeTrajectory_(currentPose, startTaskPose, false);
     if (!pathFound) {
       return pathFound;
     }
 
     // Robot welding task
-    pathFound = computeTrajectory_(startTaskPose, endTaskPose, true, robotUr5);
+    pathFound = computeTrajectory_(startTaskPose, endTaskPose, true);
     if (!pathFound) {
       return pathFound;
     }
@@ -78,14 +75,13 @@ bool MAMPlanner::planTrajectory() {
 
 bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
                                     const geometry_msgs::Pose nextPose,
-                                    const bool welding,
-                                    RoboticArmUr5* robotUr5) {
+                                    const bool welding) {
   vector<vector<double>> ikSolutions{};
   bool isPathFound = false;
 
-  robotUr5->getIKGeo(ConvertionTools::geometryToEigen(currentPose.orientation),
-                     ConvertionTools::geometryToEigen(currentPose.position),
-                     ikSolutions);
+  robot_->getIKGeo(ConvertionTools::geometryToEigen(currentPose.orientation),
+                   ConvertionTools::geometryToEigen(currentPose.position),
+                   ikSolutions);
 
   for (const auto& ikSol : ikSolutions) {
     vector<double> startConfig = ikSol;

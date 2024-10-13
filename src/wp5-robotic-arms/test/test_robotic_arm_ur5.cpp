@@ -73,7 +73,7 @@ protected:
       Eigen::Vector3d position = generateRandomPosition();
       vector<double> jointPos{};
 
-      bool isValid = roboticArm->getIK(quaternion, position, jointPos);
+      bool isValid = roboticArm->getIKTrac(quaternion, position, jointPos);
 
       // Check if the IK solver found a valid solution
       if (isValid) {
@@ -192,7 +192,7 @@ TEST_F(RoboticArmUr5Test, TestSwapJoints) {
 // Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
 TEST_F(RoboticArmUr5Test, TestForwardComparison) {
   for (auto& jointPos : jointPositions) {
-    pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFK(jointPos);
+    pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFKTrac(jointPos);
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKGeo(jointPos);
 
     EXPECT_TRUE(MathTools::areQuatEquivalent(fkTracResult.first, fkGeoResult.first, TOLERANCE));
@@ -204,14 +204,14 @@ TEST_F(RoboticArmUr5Test, TestForwardComparison) {
 TEST_F(RoboticArmUr5Test, TestInverseComparison) {
   for (auto& [quaternion, position] : waypoints) {
     vector<double> tracJointPos{};
-    roboticArm->getIK(quaternion, position, tracJointPos);
+    roboticArm->getIKTrac(quaternion, position, tracJointPos);
 
     vector<vector<double>> ikSolutions;
     roboticArm->getIKGeo(quaternion, position, ikSolutions);
 
     vector<double> geoJointPos = ikSolutions[0];
-    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFK(tracJointPos);
-    pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFK(geoJointPos);
+    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFKTrac(tracJointPos);
+    pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFKTrac(geoJointPos);
 
     EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE));
     EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE));
@@ -228,10 +228,10 @@ TEST_F(RoboticArmUr5Test, TestInverseComparison) {
 TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
   for (auto& [quaternion, position] : waypoints) {
     vector<double> jointPos{};
-    roboticArm->getIK(quaternion, position, jointPos);
+    roboticArm->getIKTrac(quaternion, position, jointPos);
 
     // Compute forward kinematics
-    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFK(jointPos);
+    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFKTrac(jointPos);
 
     EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, quaternion, TOLERANCE));
     EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, position, TOLERANCE));

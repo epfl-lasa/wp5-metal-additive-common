@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <ros/ros.h>
 #include <yaml-cpp/yaml.h>
 
 #include <Eigen/Dense>
@@ -79,13 +80,22 @@ public:
   const std::string getPathUrdf() const { return pathUrdf_; }
 
   /**
+   * @brief Get the forward kinematics of the robotic arm arm using Trac-IK algorithm.
+   * @param jointPos Joint positions of the robotic arm.
+   */
+  const std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFKTrac(const std::vector<double>& jointPos);
+
+  /**
    * @brief Get the forward kinematics of the robotic arm.
    * @param jointPos Joint positions of the robotic arm.
    */
-  const std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFK(const std::vector<double>& jointPos);
+  virtual const std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFKGeo(const std::vector<double>& jointPos) {
+    ROS_ERROR("This function is not implemented for this robotic arm.");
+    return std::make_pair(Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero());
+  }
 
   /**
-   * @brief Get the inverse kinematics of the robotic arm.
+   * @brief Get the inverse kinematics of the robotic arm using Trac-IK algorithm.
    * @param ikSolver Type of inverse kinematics solver to use.
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
@@ -93,10 +103,26 @@ public:
    * @param nominal (Optional) Nominal joint positions.
    * @return Pair of the return code and the next joint positions.
    */
-  const bool getIK(const Eigen::Quaterniond& quaternion,
-                   const Eigen::Vector3d& position,
-                   std::vector<double>& jointPos,
-                   const KDL::JntArray& nominal = KDL::JntArray());
+  const bool getIKTrac(const Eigen::Quaterniond& quaternion,
+                       const Eigen::Vector3d& position,
+                       std::vector<double>& jointPos,
+                       const KDL::JntArray& nominal = KDL::JntArray());
+
+  /**
+   * @brief Get the inverse kinematics of the robotic arm.
+   * @param quaternion Quaternion of the end effector.
+   * @param position Position of the end effector.
+   * @param jointPos Vector of joint positions of the robotic arm.
+   * @return Pair of the return code and the next joint positions.
+   */
+  virtual const bool getIKGeo(const Eigen::Quaterniond& quaternion,
+                              const Eigen::Vector3d& position,
+                              std::vector<std::vector<double>>& jointPos) {
+    ROS_ERROR("This function is not implemented for this robotic arm.");
+
+    jointPos.clear();
+    return false;
+  }
 
   /**
    * @brief Get the current state of the robotic arm.

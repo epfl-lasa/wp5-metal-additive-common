@@ -12,8 +12,6 @@
 
 #include "IRoboticArmBase.h"
 
-#include <ros/ros.h>
-
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -47,7 +45,7 @@ IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, const 
   }
 }
 
-const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFK(const vector<double>& jointPos) {
+const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFKTrac(const vector<double>& jointPos) {
   KDL::JntArray jointArray(getNbJoints());
   for (size_t i = 0; i < getNbJoints(); ++i) {
     jointArray(i) = jointPos[i];
@@ -67,10 +65,10 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFK(const vec
   return make_pair(move(quaternion), move(posVector));
 }
 
-const bool IRoboticArmBase::getIK(const Eigen::Quaterniond& quaternion,
-                                  const Eigen::Vector3d& position,
-                                  vector<double>& jointPos,
-                                  const KDL::JntArray& nominal) {
+const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
+                                      const Eigen::Vector3d& position,
+                                      vector<double>& jointPos,
+                                      const KDL::JntArray& nominal) {
   // Ensure that the joint position vector has the correct size
   KDL::JntArray nominalArray = nominal;
   if (nominalArray.rows() != getNbJoints()) {
