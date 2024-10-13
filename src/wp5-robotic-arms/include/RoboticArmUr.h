@@ -1,5 +1,5 @@
 /**
- * @file RoboticArmUr5.h
+ * @file RoboticArmUr.h
  * @author Louis Munier (lmunier@protonmail.com)
  * @brief
  * @version 0.1
@@ -28,13 +28,18 @@
  *
  * This class provides methods to manage a robotic arm with all the necessary functions to control it.
  */
-class RoboticArmUr5 : public IRoboticArmBase {
+class RoboticArmUr : public IRoboticArmBase {
 public:
   // Declare the test class as a friend to allow access to private members
-  friend class RoboticArmUr5Test_TestSwapJoints_Test;
+  friend class RoboticArmUrTest_TestSwapJoints_Test;
 
-  explicit RoboticArmUr5(ROSVersion rosVersion, std::string configFilename);
-  ~RoboticArmUr5();
+  explicit RoboticArmUr(ROSVersion rosVersion, std::string robotName, std::string configFilename);
+  explicit RoboticArmUr(ROSVersion rosVersion,
+                        std::string robotName,
+                        std::string configFilename,
+                        const std::array<double, 18>& hMatrix,
+                        const std::array<double, 21>& pMatrix);
+  ~RoboticArmUr();
 
   /**
    * @brief Bring the getFKTrac function from the parent class.
@@ -70,40 +75,8 @@ public:
   std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> getState() override;
 
 private:
-  // clang-format off
-  /**
-   * @brief UR5 H matrix.
-   *
-   * The H matrix defines the orientation of the joint axis, in the reference frame (identity frame),
-   * in its home position.
-   * => define the rotation axis for each joint, in the base frame.
-   */
-  static constexpr double UR5_H_MATRIX[] = {
-      0.0, 0.0, 1.0,
-      1.0, 0.0, 0.0,
-      1.0, 0.0, 0.0,
-      1.0, 0.0, 0.0,
-      0.0, 0.0, -1.0,
-      1.0, 0.0, 0.0
-  };
-
-  /**
-   * @brief UR5 P matrix.
-   *
-   * The P matrix defines the position of the joint axis, in the reference frame (identity frame),
-   * in its home position.
-   * => define the position of each joint, with respect to the previous one, in the base frame.
-   */
-  static constexpr double UR5_P_MATRIX[] = {
-      0.0, 0.0, 0.0,
-      0.0, 0.0, 0.0892,
-      0.0, -0.425, 0.0,
-      0.0, -0.3922, 0.0,
-      0.1091, 0.0, 0.0,
-      0.0, 0.0, -0.0946,
-      0.1173, 0.0, 0.0
-  };
-  // clang-format on
+  const std::array<double, 18> UR_H_MATRIX{}; ///< H matrix for the UR robot, size 3*6
+  const std::array<double, 21> UR_P_MATRIX{}; ///< P matrix for the UR robot, size 3*7
 
   static const double TOLERANCE;            ///< Tolerance for comparing quaternions and positions
   ik_geo::Robot* robotGeoSolver_ = nullptr; ///< IK-Geo solver

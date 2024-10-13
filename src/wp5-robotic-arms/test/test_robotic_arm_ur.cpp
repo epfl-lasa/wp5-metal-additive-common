@@ -15,7 +15,8 @@
 #include <variant>
 #include <vector>
 
-#include "RoboticArmUr5.h"
+#include "IRosInterfaceBase.h"
+#include "RoboticArmFactory.h"
 #include "math_tools.h"
 
 using namespace std;
@@ -24,24 +25,30 @@ using namespace std;
 const double TOLERANCE = 2e-4;
 static const int NB_TESTS = 50;
 
-static RoboticArmUr5* roboticArm = nullptr;
+std::unique_ptr<IRoboticArmBase> roboticArm = nullptr;
 static mt19937 gen(random_device{}());
 static uniform_real_distribution<> dis(-0.5, 0.5);
 static uniform_real_distribution<> disJoint(-2 * M_PI, 2 * M_PI);
 static vector<vector<double>> jointPositions;
 static vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> waypoints;
 
-class RoboticArmUr5Test : public ::testing::Test {
+class RoboticArmUrTest : public ::testing::Test {
 protected:
   static void SetUpTestSuite() {
     ros::NodeHandle nh;
-    roboticArm = new RoboticArmUr5(ROSVersion::ROS1_NOETIC, "robotic_arm.yaml");
+    RoboticArmFactory armFactory = RoboticArmFactory();
+
+    std::string robotName = "";
+    std::string rosVersion = "";
+    nh.getParam("robotName", robotName);
+    nh.getParam("rosVersion", rosVersion);
+    roboticArm = armFactory.createRoboticArm(robotName, IRosInterfaceBase::rosVersionsMap.at(rosVersion));
 
     generateWaypoints();
     generateJointPositions();
   }
 
-  static void TearDownTestSuite() { delete roboticArm; }
+  static void TearDownTestSuite() {}
 
   // Function to generate a random quaternion
   static Eigen::Quaterniond generateRandomQuaternion() {
@@ -162,7 +169,7 @@ protected:
 };
 
 // Create a test to check the swapJoints_ function of the UR5 robotic arm
-TEST_F(RoboticArmUr5Test, TestSwapJoints) {
+TEST_F(RoboticArmUrTest, TestSwapJoints) {
   // Generate fake input data to check swapJoints_ function
   int nbJoints = roboticArm->getNbJoints();
 
@@ -190,7 +197,7 @@ TEST_F(RoboticArmUr5Test, TestSwapJoints) {
 }
 
 // Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
-TEST_F(RoboticArmUr5Test, TestForwardComparison) {
+TEST_F(RoboticArmUrTest, TestForwardComparison) {
   for (auto& jointPos : jointPositions) {
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFKTrac(jointPos);
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKGeo(jointPos);
@@ -201,7 +208,7 @@ TEST_F(RoboticArmUr5Test, TestForwardComparison) {
 }
 
 // Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
-TEST_F(RoboticArmUr5Test, TestInverseComparison) {
+TEST_F(RoboticArmUrTest, TestInverseComparison) {
   for (auto& [quaternion, position] : waypoints) {
     vector<double> tracJointPos{};
     roboticArm->getIKTrac(quaternion, position, tracJointPos);
@@ -225,7 +232,7 @@ TEST_F(RoboticArmUr5Test, TestInverseComparison) {
 }
 
 // Create a test to check coherency of the UR5 robotic arm trac-ik solver
-TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
+TEST_F(RoboticArmUrTest, TestTracIkSolver) {
   for (auto& [quaternion, position] : waypoints) {
     vector<double> jointPos{};
     roboticArm->getIKTrac(quaternion, position, jointPos);
@@ -239,7 +246,7 @@ TEST_F(RoboticArmUr5Test, TestTracIkSolver) {
 }
 
 // Create a test to check coherency of the UR5 robotic arm geometric solver
-TEST_F(RoboticArmUr5Test, TestIkGeoSolver) {
+TEST_F(RoboticArmUrTest, TestIkGeoSolver) {
   for (auto& [quaternion, position] : waypoints) {
     vector<vector<double>> ikSolutions;
     roboticArm->getIKGeo(quaternion, position, ikSolutions);
@@ -259,7 +266,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   // Set the filter to run only the specific test
-  // ::testing::GTEST_FLAG(filter) = "RoboticArmUr5Test.TestReferenceConfiguration";
+  // ::testing::GTEST_FLAG(filter) = "RoboticArmUrTest.TestReferenceConfiguration";
 
   return RUN_ALL_TESTS();
 }

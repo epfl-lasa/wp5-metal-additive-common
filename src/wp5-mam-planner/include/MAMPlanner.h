@@ -24,7 +24,7 @@
 
 #include "ObstaclesManagement.h"
 #include "RoboticArmCr7.h"
-#include "RoboticArmUr5.h"
+#include "RoboticArmUr.h"
 #include "Subtask.h"
 
 class MAMPlanner {

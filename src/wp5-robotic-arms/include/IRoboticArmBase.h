@@ -40,6 +40,9 @@ enum IkSolver : uint8_t {
  */
 class IRoboticArmBase {
 public:
+  // Declare the test class as a friend to allow access to private members
+  friend class RoboticArmUrTest_TestSwapJoints_Test;
+
   /**
    * @brief Constructor for IRoboticArmBase.
    */
@@ -172,4 +175,8 @@ private:
 
   // Methods
   void initializeTracIkSolver_();
+  virtual void swapJoints_(
+      std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>& currentRobotState) {
+    ROS_ERROR("This function is not implemented for this robotic arm.");
+  }
 };

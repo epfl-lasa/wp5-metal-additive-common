@@ -1,3 +1,4 @@
+#include <array>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -6,15 +7,20 @@
 #include "IRoboticArmBase.h"
 #include "IRosInterfaceBase.h"
 #include "RoboticArmCr7.h"
-#include "RoboticArmUr5.h"
+#include "RoboticArmUr.h"
 
 class RoboticArmFactory {
 public:
   using FactoryFunction = std::function<std::unique_ptr<IRoboticArmBase>(ROSVersion rosVersion)>;
 
   RoboticArmFactory() {
-    registerRobotArm("ur5_robot", [](ROSVersion rosVersion) {
-      return std::make_unique<RoboticArmUr5>(rosVersion, std::string("robotic_arm.yaml"));
+    registerRobotArm("ur5_robot", [this](ROSVersion rosVersion) {
+      return std::make_unique<RoboticArmUr>(
+          rosVersion, "ur5_robot", std::string("robotic_arm.yaml"), UR_H_MATRIX, UR5_P_MATRIX);
+    });
+    registerRobotArm("ur10e_robot", [this](ROSVersion rosVersion) {
+      return std::make_unique<RoboticArmUr>(
+          rosVersion, "ur10e_robot", std::string("robotic_arm.yaml"), UR_H_MATRIX, UR10E_P_MATRIX);
     });
     registerRobotArm("xMateCR7", [](ROSVersion rosVersion) {
       return std::make_unique<RoboticArmCr7>(rosVersion, std::string("robotic_arm.yaml"));
@@ -72,4 +78,55 @@ public:
 
 private:
   std::map<std::string, FactoryFunction> factoryFunctionRegistry;
+
+  // clang-format off
+  /**
+   * @brief generic UR H matrix.
+   *
+   * The H matrix defines the orientation of the joint axis, in the reference frame (identity frame),
+   * in its home position.
+   * => define the rotation axis for each joint, in the base frame.
+   */
+
+  const std::array<double, 18> UR_H_MATRIX{
+      0.0, 0.0, 1.0,
+      1.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 0.0, -1.0,
+      1.0, 0.0, 0.0
+  };
+
+  /**
+   * The P matrix defines the position of the joint axis, in the reference frame (identity frame),
+   * in its home position.
+   * => define the position of each joint, with respect to the previous one, in the base frame.
+   */
+
+  /**
+   * @brief UR5 P matrix.
+   */
+  const std::array<double, 21> UR5_P_MATRIX{
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0892,
+      0.0, -0.425, 0.0,
+      0.0, -0.3922, 0.0,
+      0.1091, 0.0, 0.0,
+      0.0, 0.0, -0.0946,
+      0.1173, 0.0, 0.0 // Adding sensor link offset
+  };
+
+  /**
+   * @brief UR10e P matrix. //TODO(lmunier): Verify values
+   */
+  const std::array<double, 21> UR10E_P_MATRIX{
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 0.1807,
+      0.0, -0.6127, 0.0,
+      0.0, -0.57155, 0.0,
+      0.17415, 0.0, 0.0,
+      0.0, 0.0, -0.11985,
+      0.11655, 0.0, 0.0
+  };
+  // clang-format on
 };

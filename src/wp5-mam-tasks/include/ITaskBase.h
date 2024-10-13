@@ -15,7 +15,7 @@
 #include "IRoboticArmBase.h"
 #include "IRosInterfaceBase.h"
 #include "MAMPlanner.h"
-#include "RoboticArmUr5.h"
+#include "RoboticArmUr.h"
 
 /**
  * @brief Enum representing different types of tasks.

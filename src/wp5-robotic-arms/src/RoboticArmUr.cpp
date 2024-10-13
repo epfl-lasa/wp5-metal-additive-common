@@ -1,5 +1,5 @@
 /**
- * @file RoboticArmUr5.cpp
+ * @file RoboticArmUr.cpp
  * @author Louis Munier (lmunier@protonmail.com)
  * @author Tristan Bonato (tristan_bonato@hotmail.com)
  * @brief
@@ -10,7 +10,7 @@
  *
  */
 
-#include "RoboticArmUr5.h"
+#include "RoboticArmUr.h"
 
 #include <ros/ros.h>
 
@@ -20,18 +20,29 @@
 
 using namespace std;
 
-const double RoboticArmUr5::TOLERANCE = 1e-5;
+const double RoboticArmUr::TOLERANCE = 1e-5;
 
-RoboticArmUr5::RoboticArmUr5(ROSVersion rosVersion, string configFilename) :
-    IRoboticArmBase(string("ur5_robot"),
+RoboticArmUr::RoboticArmUr(ROSVersion rosVersion, string robotName, string configFilename) :
+    IRoboticArmBase(string(robotName),
                     rosVersion,
-                    YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_ROBOTIC_ARMS_DIR)))) {
-  robotGeoSolver_ = new ik_geo::Robot(ik_geo::Robot::three_parallel_two_intersecting(UR5_H_MATRIX, UR5_P_MATRIX));
+                    YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_ROBOTIC_ARMS_DIR)))) {}
+
+RoboticArmUr::RoboticArmUr(ROSVersion rosVersion,
+                           string robotName,
+                           string configFilename,
+                           const std::array<double, 18>& hMatrix,
+                           const std::array<double, 21>& pMatrix) :
+    IRoboticArmBase(string(robotName),
+                    rosVersion,
+                    YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_ROBOTIC_ARMS_DIR)))),
+    UR_H_MATRIX(hMatrix),
+    UR_P_MATRIX(pMatrix) {
+  robotGeoSolver_ = new ik_geo::Robot(ik_geo::Robot::three_parallel_two_intersecting(UR_H_MATRIX.data(), UR_P_MATRIX.data()));
 }
 
-RoboticArmUr5::~RoboticArmUr5() { delete robotGeoSolver_; }
+RoboticArmUr::~RoboticArmUr() { delete robotGeoSolver_; }
 
-const pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFKGeo(const vector<double>& jointPos) {
+const pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr::getFKGeo(const vector<double>& jointPos) {
   // Offset to fix convention between trac-ik (the basic one to use) and ik-geo solvers
   Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, 0.5, 0.5, 0.5);
 
@@ -54,9 +65,9 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr5::getFKGeo(const ve
   return make_pair(move(quaternion), move(posVector));
 }
 
-const bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
-                                   const Eigen::Vector3d& position,
-                                   vector<vector<double>>& jointPos) {
+const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
+                                  const Eigen::Vector3d& position,
+                                  vector<vector<double>>& jointPos) {
   // Offset to fix convention between trac-ik (the basic one to use) and ik-geo solvers
   Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, -0.5, -0.5, -0.5);
 
@@ -97,14 +108,14 @@ const bool RoboticArmUr5::getIKGeo(const Eigen::Quaterniond& quaternion,
   return true;
 }
 
-tuple<vector<double>, vector<double>, vector<double>> RoboticArmUr5::getState() {
+tuple<vector<double>, vector<double>, vector<double>> RoboticArmUr::getState() {
   tuple<vector<double>, vector<double>, vector<double>> currentRobotState = rosInterface_->getState();
   swapJoints_(currentRobotState);
 
   return move(currentRobotState);
 }
 
-void RoboticArmUr5::swapJoints_(tuple<vector<double>, vector<double>, vector<double>>& currentRobotState) {
+void RoboticArmUr::swapJoints_(tuple<vector<double>, vector<double>, vector<double>>& currentRobotState) {
   // Swap the data 0 to 2 for UR5
   apply(
       [](auto&... vecs) {

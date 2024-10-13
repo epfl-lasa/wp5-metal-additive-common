@@ -1,0 +1,14 @@
+<launch>
+    <arg name="robot_model" value="ur5" />
+    <arg name="robotName" default="ur5_robot" />
+    <arg name="rosVersion" default="noetic" />
+
+    <!-- use common launch file and pass all arguments to it -->
+    <include file="$(find ur_description)/launch/load_ur.launch" pass_all_args="true" />
+
+    <node name="test_robotic_arm_ur" pkg="wp5_robotic_arms_drivers" type="test_robotic_arm_ur"
+        output="screen">
+        <param name="robotName" value="$(arg robotName)" />
+        <param name="rosVersion" value="$(arg rosVersion)" />
+    </node>
+</launch>

@@ -22,9 +22,7 @@ class WaypointParserTest : public ::testing::Test {
 protected:
   static WaypointParser* waypointParser_;
 
-  static void SetUpTestSuite() {
-    waypointParser_ = new WaypointParser();
-  }
+  static void SetUpTestSuite() { waypointParser_ = new WaypointParser(); }
 
   static void TearDownTestSuite() { delete waypointParser_; }
 };
@@ -78,7 +76,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   // Set the filter to run only the specific test
-  // ::testing::GTEST_FLAG(filter) = "RoboticArmUr5Test.TestReferenceConfiguration";
+  // ::testing::GTEST_FLAG(filter) = "RoboticArmUrTest.TestReferenceConfiguration";
 
   return RUN_ALL_TESTS();
 }

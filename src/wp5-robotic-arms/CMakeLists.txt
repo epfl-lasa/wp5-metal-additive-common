@@ -55,7 +55,7 @@ include_directories(
 add_library(${PROJECT_NAME}
     src/IRoboticArmBase.cpp
     src/RoboticArmCr7.cpp
-    src/RoboticArmUr5.cpp
+    src/RoboticArmUr.cpp
 )
 
 # Set lib version
@@ -96,7 +96,7 @@ export(PACKAGE ${PROJECT_NAME})
 # -------------------------
 # Add the test executable
 # -------------------------
-set(test_exe_name test_robotic_arm_ur5)
+set(test_exe_name test_robotic_arm_ur)
 
 # Add gtest dependency
 if (CATKIN_ENABLE_TESTING)
@@ -109,8 +109,9 @@ if (CATKIN_ENABLE_TESTING)
 
   # Add the test executable only once
   add_executable(${test_exe_name}
-    test/test_robotic_arm_ur5.cpp
-    src/RoboticArmUr5.cpp
+    test/test_robotic_arm_ur.cpp
+    src/RoboticArmUr.cpp
+    src/RoboticArmCr7.cpp
     src/IRoboticArmBase.cpp
   )
   target_link_libraries(${test_exe_name}
