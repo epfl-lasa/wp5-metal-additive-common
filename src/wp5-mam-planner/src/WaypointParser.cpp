@@ -64,14 +64,14 @@ bool WaypointParser::unpackWaypoint(const string& strToUnpack,
 
   while (getline(ss, token, delimiter)) {
     if (idTaken) {
-      try {
+      if (MathTools::isNumber(token)) {
         waypointsPos.push_back(stod(token));
-      } catch (const invalid_argument& e) {
-        ROS_ERROR_STREAM("[Subtask] - Invalid argument: " << e.what());
+      } else {
+        ROS_ERROR_STREAM("[Subtask] - Invalid argument: " << token << " it should be a number.");
       }
     } else {
       if (MathTools::isNumber(token)) {
-        ROS_ERROR_STREAM("[Subtask] - Invalid ID: " << token << " should not only be a number.");
+        ROS_ERROR_STREAM("[Subtask] - Invalid ID: " << token << " it should not only be a number.");
         waypointID = "";
         waypointsPos.clear();
         return false;

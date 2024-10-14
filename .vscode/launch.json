@@ -18,7 +18,14 @@
             "name": "ROS: Launch Test Robotic Arm",
             "type": "ros",
             "request": "launch",
-            "target": "/home/${ROS_USER}/catkin_ws/src/wp5-robotic-arms/launch/test_robotic_arm_ur5.launch",
+            "target": "/home/${ROS_USER}/catkin_ws/src/wp5-robotic-arms/launch/test_robotic_arm_ur.launch",
+            "preLaunchTask": "build debug"
+        },
+        {
+            "name": "ROS: Launch Planner",
+            "type": "ros",
+            "request": "launch",
+            "target": "/home/${ROS_USER}/catkin_ws/src/wp5-mam-planner/launch/test_waypoint_parser.launch",
             "preLaunchTask": "build debug"
         }
     ]
