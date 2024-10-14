@@ -31,7 +31,6 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) :
   // Add obstacles
   obstacles_ = make_unique<ObstaclesManagement>(ObstaclesManagement(moveGroup_->getPlanningFrame()));
   obstacles_->addStaticObstacles();
-  // getWaypoints_(); // Elise: commented out for now
 }
 
 bool MAMPlanner::planTrajectory() {
@@ -258,6 +257,7 @@ void MAMPlanner::publishWaypointRviz_(const geometry_msgs::Pose& pose, const std
     ros::Duration(TIME_WAIT).sleep();
   }
 }
+
 // Publish the geometry::PoseArry waypoint to CoppeliaSim
 void MAMPlanner::publishWaypointCoppeliasim_(const geometry_msgs::Pose& pose, const std::string& frameId) {
   geometry_msgs::PoseArray poseArray;

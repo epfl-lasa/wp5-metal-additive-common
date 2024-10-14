@@ -77,6 +77,14 @@ git submodule add -f git@github.com:epfl-lasa/docker_ros_coppeliasim.git tools/d
 git submodule update --init --recursive
 ```
 
+## Credits
+
+This repository use the work of the following repositories:
+
+- IK-Geo - <https://github.com/rpiRobotics/ik-geo>
+- Universal Robot - <https://github.com/ros-industrial/universal_robot>
+- ROS modbus device driver - <https://github.com/epfl-lasa/ros-modbus-device-driver.git>
+
 ## Maintainers
 
 - Louis Munier - <lmunier@protonmail.com>

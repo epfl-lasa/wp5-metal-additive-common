@@ -67,7 +67,6 @@ private:
 
   bool pathFound_ = false;
   int currentWPointID_ = 0;
-  // std::vector<Waypoint> waypoints_; ///< Waypoints for the robot
   std::vector<moveit_msgs::RobotTrajectory> bestPlan_;
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
