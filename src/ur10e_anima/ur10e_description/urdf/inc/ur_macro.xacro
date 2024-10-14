@@ -311,7 +311,7 @@
            to correctly align 'base' with the 'Base' coordinate system of
            the UR controller.
       -->
-      <origin xyz="0 0 0" rpy="0 0 ${pi}"/>
+      <origin xyz="0 0 0" rpy="0 0 ${pi/2.0}"/>
       <parent link="${prefix}base_link"/>
       <child link="${prefix}base"/>
     </joint>

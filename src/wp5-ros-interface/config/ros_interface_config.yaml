@@ -4,3 +4,9 @@ ur5_robot:
   # ft_topic: "/robotiq_ft_wrench"
   ft_topic: "/ft_sensor/netft_data"
   number_joint: 6
+ur10e_robot:
+  joint_topic: "joint_states"
+  joint_command: "joint_group_vel_controller/command"
+  # ft_topic: "/robotiq_ft_wrench"
+  ft_topic: "/ft_sensor/netft_data"
+  number_joint: 6

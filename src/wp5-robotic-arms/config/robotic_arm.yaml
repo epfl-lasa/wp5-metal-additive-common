@@ -12,3 +12,17 @@ ur5_robot:
   reference_frame: "base_link"
   chain_start: "base_link"
   chain_end: "sensor"
+ur10e_robot:
+  controller_frequency: 125 # [Hz]
+  path_urdf: "robot_description"
+  joint_names:
+  - "shoulder_pan_joint"
+  - "shoulder_lift_joint"
+  - "elbow_joint"
+  - "wrist_1_joint"
+  - "wrist_2_joint"
+  - "wrist_3_joint"
+  original_home_joint: [0.0, -1.5708, 0.0, -1.5708, 0.0, 0.0]
+  reference_frame: "base_link"
+  chain_start: "base_link"
+  chain_end: "tool0"

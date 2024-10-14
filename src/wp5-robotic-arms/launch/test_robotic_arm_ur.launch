@@ -1,6 +1,6 @@
 <launch>
-    <arg name="robot_model" value="ur5" />
-    <arg name="robotName" default="$(arg robot_model)_robot" />
+    <arg name="robot_model" default="ur5" />
+    <arg name="robotName" value="$(arg robot_model)_robot" />
     <arg name="rosVersion" default="noetic" />
 
     <param name="robotName" value="$(arg robotName)" />
