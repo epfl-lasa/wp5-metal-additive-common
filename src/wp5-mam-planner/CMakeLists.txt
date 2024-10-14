@@ -17,6 +17,10 @@ add_compile_options(${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}})
 # Save the path during compilation to solve inclusion problems with linked files
 add_definitions("-DWP5_MAM_PLANNER_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"")
 
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(yaml-cpp REQUIRED)
+find_package(Eigen3 REQUIRED)
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   moveit_core
@@ -27,10 +31,6 @@ find_package(catkin REQUIRED COMPONENTS
   wp5_ros_interface
   wp5_robotic_arms_drivers
 )
-
-find_package(Boost REQUIRED COMPONENTS system)
-find_package(yaml-cpp REQUIRED)
-find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
@@ -44,7 +44,7 @@ catkin_package(
     wp5_ros_interface
     wp5_robotic_arms_drivers
     wp5_common_utilities
-  DEPENDS YAML_CPP EIGEN3 GTest
+  DEPENDS YAML_CPP EIGEN3
 )
 
 include_directories(
