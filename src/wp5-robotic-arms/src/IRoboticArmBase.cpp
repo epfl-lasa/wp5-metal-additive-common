@@ -70,6 +70,7 @@ const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
                                       vector<double>& jointPos,
                                       const KDL::JntArray& nominal) {
   // Ensure that the joint position vector has the correct size
+  bool isValid = false;
   KDL::JntArray nominalArray = nominal;
   if (nominalArray.rows() != getNbJoints()) {
     nominalArray = KDL::JntArray(getNbJoints());
@@ -83,10 +84,10 @@ const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
   endEffectorPose.M = KDL::Rotation::Quaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 
   // Compute IK
-  int isValid = tracIkSolver_->CartToJnt(nominalArray, endEffectorPose, result);
+  isValid = tracIkSolver_->CartToJnt(nominalArray, endEffectorPose, result) >= 0;
   jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
 
-  return isValid >= 0;
+  return isValid;
 }
 
 tuple<vector<double>, vector<double>, vector<double>> IRoboticArmBase::getState() {
