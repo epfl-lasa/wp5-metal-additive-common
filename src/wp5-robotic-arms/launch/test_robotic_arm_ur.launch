@@ -3,6 +3,9 @@
     <arg name="robotName" default="$(arg robot_model)_robot" />
     <arg name="rosVersion" default="noetic" />
 
+    <param name="robotName" value="$(arg robotName)" />
+    <param name="rosVersion" value="$(arg rosVersion)" />
+
     <!-- use common launch file and pass all arguments to it -->
     <group if="$(eval arg('robot_model') == 'ur5')">
         <include file="$(find ur_description)/launch/load_ur5.launch" pass_all_args="true" />

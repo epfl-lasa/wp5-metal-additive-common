@@ -166,11 +166,11 @@ RUN source ${HOME}/.bashrc                                                  && \
 # ------------------------------------------------------------------------------
 
 # Add the workspace to the bashrc
+USER root
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc && \
     echo "source ${HOME}/catkin_ws/devel/setup.bash" >> ~/.bashrc
 
 # Remove copied files
-USER root
 RUN rm -rf ${HOME}/catkin_ws/src
 
 USER ${USER}
