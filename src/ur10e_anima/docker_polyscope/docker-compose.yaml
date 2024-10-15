@@ -1,0 +1,22 @@
+services:
+  ursim:
+    network_mode: host
+    image: universalrobots/ursim_e-series
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - ROBOT_MODEL=UR10e
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./ursim-gui-cache:/ursim/GUI
+      - ./urcap-build-cache:/ursim/.urcaps
+    stdin_open: true
+    tty: true
+    entrypoint: [ "/bin/bash", "-c", "/entrypoint.sh" ]
