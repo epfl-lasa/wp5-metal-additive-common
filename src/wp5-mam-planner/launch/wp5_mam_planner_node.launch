@@ -10,10 +10,11 @@
     <arg name="robot_type" doc="Which robot to use : [ur5, ur10e, xMateCR7]" default="ur5" />
     <param name="robot_type" value="$(arg robot_type)" />
 
+    <arg name="calibration_filename" default="ur10e_default" />
     <arg name="ee_tool" default="none" doc="Add the end effector tool to consider on the robot to have it in collision / visual. [none, logi_laser]" />
 
     <!-- Setup Robot ip -->
-    <arg unless="$(eval simu=='ON')" name="robot_ip" value="192.168.131.17" />
+    <arg unless="$(eval simu=='ON')" name="robot_ip" value="192.168.2.100" />
     <arg if="$(eval simu=='ON')" name="robot_ip" value="127.0.0.1" />
 
     <!-- Run bring up robot -->
@@ -23,6 +24,7 @@
             <arg name="ee_tool" value="$(arg ee_tool)" />
             <arg name="robot_ip" value="$(arg robot_ip)" />
             <arg name="environment" value="$(arg environment)" />
+            <arg name="calibration_filename" default="$(arg calibration_filename)" />
         </include>
     </group>
 
@@ -33,6 +35,7 @@
             <arg name="ee_tool" value="$(arg ee_tool)" />
             <arg name="robot_ip" value="$(arg robot_ip)" />
             <arg name="environment" value="$(arg environment)" />
+            <arg name="calibration_filename" default="$(arg calibration_filename)" />
         </include>
     </group>
 

@@ -2,6 +2,7 @@
 <launch>
     <!-- Define the launch argument for the 'simu' flag -->
     <arg name="simu" default="OFF" />
+    <arg name="calibration_filename" default="ur10e_default" />
 
     <!-- Define if there is any tool to add at the end effector -->
     <arg name="ee_tool" default="none"
@@ -43,7 +44,7 @@
         <arg name="robot_description_file" default="$(find ur10e_description)/launch/load_ur10e.launch"
             doc="Robot description launch file." />
         <arg name="kinematics_config"
-            default="$(find ur10e_calibration)/config/ur10e_default.yaml"
+            default="$(find ur10e_calibration)/config/$(arg calibration_filename).yaml"
             doc="Kinematics config file used for calibration correction. This will be used to verify the robot's calibration is matching the robot_description." />
         <arg name="headless_mode" default="false"
             doc="Automatically send URScript to robot to execute. On e-Series this does require the robot to be in 'remote-control' mode. With this, the URCap is not needed on the robot." />
