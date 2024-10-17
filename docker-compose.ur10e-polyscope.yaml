@@ -2,7 +2,7 @@ services:
   ursim:
     network_mode: host
     build:
-      context: .
+      context: ./src/ur10e_anima/docker_polyscope
       dockerfile: Dockerfile
     deploy:
       resources:
@@ -21,7 +21,6 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - ./urcaps:/ursim/urcaps
-      - ./programs:/ursim/programs
+      - ./src/ur10e_anima/docker_polyscope/programs:/ursim/programs
     stdin_open: true
     tty: true

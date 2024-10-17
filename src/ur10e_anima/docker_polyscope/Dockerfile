@@ -7,7 +7,6 @@ RUN apt install -y \
     default-jdk
 
 # Install the URCap
-RUN mkdir -p /ursim/programs && \
-    mkdir -p /ursim/urcaps
+RUN mkdir -p /ursim/programs
 
 ENTRYPOINT [ "./entrypoint.sh" ]
