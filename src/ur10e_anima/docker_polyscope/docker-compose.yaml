@@ -11,9 +11,10 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    privileged: true
+    # privileged: true
     environment:
       - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
       - ROBOT_MODEL=UR10
       - HOME=/ursim
       - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
