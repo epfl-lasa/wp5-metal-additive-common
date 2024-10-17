@@ -1,3 +1,0 @@
- Program
-   Robot Program
-     Control by 127.0.0.1

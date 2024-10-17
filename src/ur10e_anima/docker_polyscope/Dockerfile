@@ -1,10 +1,12 @@
 FROM universalrobots/ursim_e-series
 
-# Install the URCap
-#COPY externalcontrol-1.0.5.urcap /urcaps/externalcontrol-1.0.5.jar
-
-
-# Tell docker we want to use bash instead of sh in general
 SHELL ["/bin/bash", "-c"]
-CMD [ "bash" ]
+RUN apt update --fix-missing && apt upgrade -y && apt clean
 
+# Install the URCap
+RUN mkdir -p /ursim/programs && \
+    mkdir -p /ursim/urcaps
+
+COPY externalcontrol-1.0.5.urcap /ursim/urcaps/externalcontrol-1.0.5.jar
+
+ENTRYPOINT [ "./entrypoint.sh" ]

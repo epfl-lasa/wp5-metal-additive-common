@@ -1,7 +1,9 @@
 services:
   ursim:
     network_mode: host
-    image: universalrobots/ursim_e-series
+    build:
+      context: .
+      dockerfile: Dockerfile
     deploy:
       resources:
         reservations:
@@ -12,11 +14,12 @@ services:
     privileged: true
     environment:
       - DISPLAY=${DISPLAY}
-      - ROBOT_MODEL=UR10e
+      - ROBOT_MODEL=UR10
+      - HOME=/ursim
+      - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./ursim-gui-cache:/ursim/GUI
-      - ./urcap-build-cache:/ursim/.urcaps
+      - ./urcaps:/ursim/urcaps
+      - ./programs:/ursim/programs
     stdin_open: true
     tty: true
-    entrypoint: [ "/bin/bash", "-c", "/entrypoint.sh" ]
