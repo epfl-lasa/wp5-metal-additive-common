@@ -1,6 +1,7 @@
 services:
   ursim:
     network_mode: host
+    env_file: .env
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,12 +12,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    environment:
-      - DISPLAY=${DISPLAY}
-      - QT_X11_NO_MITSHM=1
-      - ROBOT_MODEL=UR10
-      - HOME=/ursim
-      - JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /etc/localtime:/etc/localtime:ro

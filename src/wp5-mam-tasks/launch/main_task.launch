@@ -5,7 +5,8 @@
         doc="Which environment is it running on : [ridgeback, robot_pc, desktop_pc]"
         default="desktop_pc" />
 
-    <group ns="ur5">
+    <!-- TODO(lmunier) change to not hardcode value -->
+    <group ns="ur10e">
         <node pkg="wp5_mam_tasks" type="wp5_mam_main_task_node" name="wp5_mam_main_task_node"
             output="screen">
             <param name="taskType" value="$(arg taskType)" />

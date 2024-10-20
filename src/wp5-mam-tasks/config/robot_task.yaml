@@ -5,7 +5,7 @@
 # Louis Munier : 2024-09-12
 
 welding:
-  robot_name: "ur5_robot"
+  robot_name: "ur10e_robot"
   ros_version: "noetic"
   ee_pos_offset: [0, 0, 0.05] # [m] x, y, z
   ee_angle_offset: [-0.3491, 0, 0] # [rad] r, p, y

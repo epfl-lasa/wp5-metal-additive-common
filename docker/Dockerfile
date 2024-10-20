@@ -174,4 +174,5 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc && \
 RUN rm -rf ${HOME}/catkin_ws/src
 
 USER ${USER}
+WORKDIR ${HOME}/catkin_ws
 CMD [ "bash" ]

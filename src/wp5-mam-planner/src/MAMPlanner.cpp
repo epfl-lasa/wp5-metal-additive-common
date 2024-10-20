@@ -18,7 +18,7 @@ using namespace std;
 MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) :
     spinner_(1), nh_(nh), tfListener_(tfBuffer_), subtask_(make_unique<Subtask>(nh_)) {
   RoboticArmFactory armFactory = RoboticArmFactory();
-  robot_ = armFactory.createRoboticArm("ur5_robot", rosVersion);
+  robot_ = armFactory.createRoboticArm("ur10e_robot", rosVersion); //TODO(lmunier): Change to not hardcode value
   robot_->printInfo();
 
   initMoveit_();
@@ -30,7 +30,7 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) :
 
   // Add obstacles
   obstacles_ = make_unique<ObstaclesManagement>(ObstaclesManagement(moveGroup_->getPlanningFrame()));
-  obstacles_->addStaticObstacles();
+  // obstacles_->addStaticObstacles();
 }
 
 bool MAMPlanner::planTrajectory() {
