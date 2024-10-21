@@ -266,7 +266,7 @@ int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
   // Set the filter to run only the specific test
-  // ::testing::GTEST_FLAG(filter) = "RoboticArmUrTest.TestReferenceConfiguration";
+  // ::testing::GTEST_FLAG(filter) = "RoboticArmUrTest.TestInverseComparison";
 
   return RUN_ALL_TESTS();
 }

@@ -83,7 +83,6 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
                                ConvertionTools::geometryToEigen(currentPose.position),
                                ikSolutions);
 
-<<<<<<< Updated upstream
   if (ikSuccess) {
     ROS_INFO("IK solutions found");
 
@@ -98,15 +97,6 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
     }
   } else {
     ROS_WARN("No IK solutions found");
-=======
-  for (const auto& ikSol : ikSolutions) {
-    vector<double> startConfig = ikSol;
-    isPathFound += computePath_(startConfig, currentPose, nextPose, welding);
-  }
-
-  if (!isPathFound) {
-    ROS_ERROR("No path found to go to start waypoint");
->>>>>>> Stashed changes
     return false;
   }
 
