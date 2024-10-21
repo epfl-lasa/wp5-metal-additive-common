@@ -14,11 +14,11 @@
 
     <!-- Conditional argument for robot_IP selection based on the 'simu' flag -->
     <arg unless="$(eval simu=='ON')" name="robot_ip" default="192.168.131.17" />
-    <arg if="$(eval simu=='ON')" name="robot_ip" default="128.178.145.22" />
+    <arg if="$(eval simu=='ON')" name="robot_ip" default="127.0.0.1" />
 
     <group ns="ur10e">
         <!-- Choose controller manager: fake, simple, or ros_control -->
-        <arg name="moveit_controller_manager" default="ros_control" />
+        <arg name="moveit_controller_manager" default="simple" />
 
         <arg name="debug" default="false"
             doc="Debug flag that will get passed on to ur_common.launch" />

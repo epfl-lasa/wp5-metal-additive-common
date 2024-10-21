@@ -1,4 +1,7 @@
 <launch>
+	<param name="ros_control_namespace" value="/ur10e/" />
+
 	<!-- Define MoveIt controller manager plugin -->
 	<param name="moveit_controller_manager" value="moveit_ros_control_interface::MoveItControllerManager" />
+	<rosparam file="$(find ur10e_moveit_config)/config/ros_controllers.yaml" />
 </launch>

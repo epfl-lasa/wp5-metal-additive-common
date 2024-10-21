@@ -30,7 +30,7 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh) :
 
   // Add obstacles
   obstacles_ = make_unique<ObstaclesManagement>(ObstaclesManagement(moveGroup_->getPlanningFrame()));
-  // obstacles_->addStaticObstacles();
+  obstacles_->addStaticObstacles();
 }
 
 bool MAMPlanner::planTrajectory() {
@@ -83,6 +83,7 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
                                ConvertionTools::geometryToEigen(currentPose.position),
                                ikSolutions);
 
+<<<<<<< Updated upstream
   if (ikSuccess) {
     ROS_INFO("IK solutions found");
 
@@ -97,6 +98,15 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
     }
   } else {
     ROS_WARN("No IK solutions found");
+=======
+  for (const auto& ikSol : ikSolutions) {
+    vector<double> startConfig = ikSol;
+    isPathFound += computePath_(startConfig, currentPose, nextPose, welding);
+  }
+
+  if (!isPathFound) {
+    ROS_ERROR("No path found to go to start waypoint");
+>>>>>>> Stashed changes
     return false;
   }
 
@@ -143,7 +153,7 @@ void MAMPlanner::executeTrajectory() {
 
 void MAMPlanner::initMoveit_() {
   const string robotGroup = "manipulator";
-  ros::Duration timeout(2.0);
+  ros::Duration timeout(5.0);
 
   try {
     moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(

@@ -1,5 +1,5 @@
 - frame: base_link
   type: V # V: vertical, H: horizontal
   positions:
-    start: [-0.0206378, -0.467279, 0.146959] # [m] x,y,z
-    stop: [-0.0206378, -0.467279, 0.25] # [m] x,y,z
+    start: [-0.253, -0.144, 0.789] # [m] x,y,z
+    stop: [-0.253, -0.144, 0.489] # [m] x,y,z
