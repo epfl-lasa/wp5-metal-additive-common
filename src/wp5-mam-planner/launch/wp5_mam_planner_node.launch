@@ -19,7 +19,7 @@
 
     <!-- Run bring up robot -->
     <group if="$(eval robot_type == 'ur5')">
-        <include file="$(find ur_lasa)/launch/ur5_bringup_moveit.launch">
+        <include file="$(find ur5_moveit_config)/launch/ur5_bringup_moveit.launch">
             <arg name="simu" value="$(arg simu)" />
             <arg name="ee_tool" value="$(arg ee_tool)" />
             <arg name="robot_ip" value="$(arg robot_ip)" />

@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Define the launch argument for the 'simu' flag -->
+    <arg name="simu" default="OFF" />
+    <arg name="calibration_filename" default="ur5_calibration_lasa" />
+
+    <!-- Define if there is any tool to add at the end effector -->
+    <arg name="ee_tool" default="none"
+        doc="Add the end effector tool to consider on the robot to have it in collision / visual. [none, logi_laser]" />
+
+    <!-- Define which is the environment is it running on to run the corresponding launchfiles -->
+    <arg name="environment"
+        doc="Which environment is it running on : [ridgeback, navigation, desktop_pc]" />
+
+    <!-- Conditional argument for robot_IP selection based on the 'simu' flag -->
+    <arg unless="$(eval simu=='ON')" name="robot_ip" default="192.168.131.17" />
+    <arg if="$(eval simu=='ON')" name="robot_ip" default="127.0.0.1" />
+
+    <group ns="ur5">
+        <!-- Choose controller manager: fake, simple, or ros_control -->
+        <arg name="moveit_controller_manager" default="ros_control" />
+
+        <arg name="debug" default="false"
+            doc="Debug flag that will get passed on to ur_common.launch" />
+        <arg name="reverse_ip" default=""
+            doc="IP of the driver, if set to empty it will detect it automatically." />
+        <arg name="reverse_port" default="50001"
+            doc="Port that will be opened by the driver to allow direct communication between the driver and the robot controller." />
+        <arg name="script_sender_port" default="50002"
+            doc="The driver will offer an interface to receive the program's URScript on this port. If the robot cannot connect to this port, `External Control` will stop immediately." />
+        <arg name="trajectory_port" default="50003"
+            doc="Port that will be opened by the driver to allow trajectory forwarding." />
+        <arg name="script_command_port" default="50004"
+            doc="Port that will be opened by the driver to allow forwarding script commands to the robot." />
+        <arg name="tf_prefix" default="" doc="tf_prefix used for the robot." />
+        <arg name="controllers"
+            default="joint_state_controller pos_joint_traj_controller "
+            doc="Controllers that are activated by default." />
+        <arg name="stopped_controllers" default="joint_group_vel_controller "
+            doc="Controllers that are initally loaded, but not started." />
+        <arg name="controller_config_file"
+            default="$(find ur_lasa)/config/ur5_controllers.yaml"
+            doc="Config file used for defining the ROS-Control controllers." />
+        <arg name="robot_description_file" default="$(find ur_description)/launch/load_ur5.launch"
+            doc="Robot description launch file." />
+        <arg name="kinematics_config"
+            default="$(find ur_calibration)/config/$(arg calibration_filename).yaml"
+            doc="Kinematics config file used for calibration correction. This will be used to verify the robot's calibration is matching the robot_description." />
+        <arg name="headless_mode" default="false"
+            doc="Automatically send URScript to robot to execute. On e-Series this does require the robot to be in 'remote-control' mode. With this, the URCap is not needed on the robot." />
+        <arg name="ur_hardware_interface_node_required" default="true"
+            doc="Shut down ros environment if ur_hardware_interface-node dies." />
+
+        <group if="$(eval arg('environment') == 'ridgeback' or arg('environment') == 'desktop_pc')">
+            <!-- Bring up the robot -->
+            <include file="$(find ur_robot_driver)/launch/ur5_bringup.launch" pass_all_args="true">
+                <arg name="use_tool_communication" value="true" />
+            </include>
+        </group>
+
+        <group if="$(eval arg('environment') == 'navigation' or arg('environment') == 'desktop_pc')">
+            <!-- Run the main Moveit! part -->
+            <include file="$(find ur5_moveit_config)/launch/move_group.launch" pass_all_args="true">
+                <arg name="allow_trajectory_execution" value="true" />
+                <arg name="info" value="true" />
+                <arg name="ee_tool" value="$(arg ee_tool)" />
+            </include>
+
+            <!-- Run rviz -->
+            <include file="$(find ur5_moveit_config)/launch/moveit_rviz.launch" pass_all_args="true">
+                <arg name="rviz_config" value="true" />
+            </include>
+        </group>
+    </group>
+</launch>

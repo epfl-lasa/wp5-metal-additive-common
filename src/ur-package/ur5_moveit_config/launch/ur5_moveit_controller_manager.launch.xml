@@ -1,0 +1,13 @@
+<launch>
+  <rosparam file="$(find ur5_moveit_config)/config/ros_controllers.yaml" />
+  <param name="use_controller_manager" value="false" />
+  <param name="trajectory_execution/execution_duration_monitoring" value="false" />
+
+  <!-- Set the param that trajectory_execution_manager needs to find the controller plugin -->
+  <arg name="moveit_controller_manager"
+    default="moveit_ros_control_interface::MoveItControllerManager" />
+  <param name="moveit_controller_manager" value="$(arg moveit_controller_manager)" />
+
+  <!-- load controller_list -->
+  <rosparam file="$(find ur_lasa)/config/ur5_controllers.yaml" command="load" />
+</launch>
