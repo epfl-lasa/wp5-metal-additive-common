@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1
+        - /Pose1
       Splitter Ratio: 0.5
     Tree Height: 555
   - Class: rviz/Selection
@@ -255,14 +256,14 @@ Visualization Manager:
       Class: rviz/Pose
       Color: 255; 25; 0
       Enabled: true
-      Head Length: 0.30000001192092896
-      Head Radius: 0.10000000149011612
+      Head Length: 0.10000000149011612
+      Head Radius: 0.05000000074505806
       Name: Pose
       Queue Size: 10
-      Shaft Length: 1
-      Shaft Radius: 0.05000000074505806
+      Shaft Length: 0.5
+      Shaft Radius: 0.019999999552965164
       Shape: Arrow
-      Topic: /debug_waypoint
+      Topic: /ur10e/debug_waypoint
       Unreliable: false
       Value: true
   Enabled: true
@@ -293,7 +294,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.1647839546203613
+      Distance: 3.5866165161132812
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -301,17 +302,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.17273159325122833
-        Y: 0.21163415908813477
-        Z: 0.017453843727707863
+        X: 0.11518388241529465
+        Y: -0.29206180572509766
+        Z: -0.22028805315494537
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.630398154258728
+      Pitch: 0.635398268699646
       Target Frame: <Fixed Frame>
-      Yaw: 2.5754048824310303
+      Yaw: 2.2254228591918945
     Saved: ~
 Window Geometry:
   Displays:
@@ -330,4 +331,4 @@ Window Geometry:
     collapsed: true
   Width: 1200
   X: 0
-  Y: 23
+  Y: 0

@@ -89,6 +89,22 @@ target_link_libraries(${PROJECT_NAME}_node
 )
 
 # -------------------------
+# Add the python scripts
+# -------------------------
+catkin_install_python(PROGRAMS
+  scripts/publish_waypoints.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+
+install(DIRECTORY config/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+)
+
+# -------------------------
 # Add the test executable
 # -------------------------
 set(test_exe_name test_waypoint_parser)
