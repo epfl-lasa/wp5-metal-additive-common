@@ -5,12 +5,13 @@
         doc="Which environment is it running on : [ridgeback, robot_pc, desktop_pc]"
         default="desktop_pc" />
 
-    <!-- TODO(lmunier) change to not hardcode value -->
-    <group ns="ur5">
+    <arg name="robot_type" doc="Which robot to use : [ur5, ur10e]" default="ur10e"/>
+    <param name="robot_type" value="$(arg robot_type)" />
+
+    <group ns="$(arg robot_type)">
         <node pkg="wp5_mam_tasks" type="wp5_mam_main_task_node" name="wp5_mam_main_task_node"
             output="screen">
             <param name="taskType" value="$(arg taskType)" />
-            <!-- <remap from="robot_description" to="/ur5/robot_description" /> -->
         </node>
     </group>
 </launch>
