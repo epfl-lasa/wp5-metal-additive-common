@@ -76,20 +76,30 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
                                     const geometry_msgs::Pose nextPose,
                                     const bool welding) {
   vector<vector<double>> ikSolutions{};
+  bool ikSuccess = false;
   bool isPathFound = false;
 
-  robot_->getIKGeo(ConvertionTools::geometryToEigen(currentPose.orientation),
-                   ConvertionTools::geometryToEigen(currentPose.position),
-                   ikSolutions);
+  ikSuccess = robot_->getIKGeo(ConvertionTools::geometryToEigen(currentPose.orientation),
+                               ConvertionTools::geometryToEigen(currentPose.position),
+                               ikSolutions);
 
-  for (const auto& ikSol : ikSolutions) {
-    vector<double> startConfig = ikSol;
-    isPathFound += computePath_(startConfig, currentPose, nextPose, welding);
-  }
-  if (!isPathFound) {
-    ROS_ERROR("No path found to go to start waypoint");
+  if (ikSuccess) {
+    ROS_INFO("IK solutions found");
+
+    for (const auto& ikSol : ikSolutions) {
+      vector<double> startConfig = ikSol;
+      isPathFound += computePath_(startConfig, currentPose, nextPose, welding);
+    }
+
+    if (!isPathFound) {
+      ROS_WARN("No path found to go to start waypoint");
+      return false;
+    }
+  } else {
+    ROS_WARN("No IK solutions found");
     return false;
   }
+
   return true;
 }
 

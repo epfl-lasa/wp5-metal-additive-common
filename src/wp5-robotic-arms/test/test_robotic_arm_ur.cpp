@@ -262,7 +262,7 @@ TEST_F(RoboticArmUrTest, TestIkGeoSolver) {
 }
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "test_robotic_arm_ur5");
+  ros::init(argc, argv, "test_robotic_arm_ur");
   ::testing::InitGoogleTest(&argc, argv);
 
   // Set the filter to run only the specific test

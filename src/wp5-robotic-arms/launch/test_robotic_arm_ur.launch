@@ -12,7 +12,7 @@
     </group>
 
     <group if="$(eval arg('robot_model') == 'ur10e')">
-        <include file="$(find ur10e_description)/launch/load_ur10e.launch" pass_all_args="true" />
+        <include file="$(find ur_description)/launch/load_ur10e.launch" pass_all_args="true" />
     </group>
 
     <node name="test_robotic_arm_ur" pkg="wp5_robotic_arms_drivers" type="test_robotic_arm_ur"
