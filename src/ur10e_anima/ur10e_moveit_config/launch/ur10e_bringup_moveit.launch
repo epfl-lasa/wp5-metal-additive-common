@@ -65,8 +65,6 @@
         </include>
 
         <!-- Run rviz -->
-        <include file="$(find ur10e_moveit_config)/launch/moveit_rviz.launch" pass_all_args="true">
-            <arg name="rviz_config" value="true" />
-        </include>
+        <include file="$(find ur10e_moveit_config)/launch/moveit_rviz.launch" pass_all_args="true" />
     </group>
 </launch>
