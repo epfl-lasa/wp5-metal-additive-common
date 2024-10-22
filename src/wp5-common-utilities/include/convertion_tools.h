@@ -10,8 +10,12 @@
  */
 #pragma once
 
+#include <geometry_msgs/Point.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Quaternion.h>
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 
 #include <Eigen/Dense>
 #include <string>
@@ -35,6 +39,21 @@
  * Eigen libraries.
  */
 namespace ConvertionTools {
+
+/**
+ * @brief Transforms a pose from the source frame to the target frame using a TF listener.
+ *
+ * This function utilizes the tf::TransformListener to transform a pose from the specified
+ * source frame to the target frame. It is essential for ensuring that the pose is correctly
+ * transformed according to the latest available transform data.
+ *
+ * @param listener The tf::TransformListener object used to perform the transformation.
+ * @param source_frame The name of the frame from which the pose is to be transformed.
+ * @param target_frame The name of the frame to which the pose is to be transformed.
+ */
+void transformPose(const tf::TransformListener& listener,
+                   const std::string& source_frame,
+                   const std::string& target_frame);
 /**
  * @brief Converts a vector of doubles to a geometry_msgs::Pose.
  *

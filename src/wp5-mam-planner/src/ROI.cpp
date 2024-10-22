@@ -30,6 +30,7 @@ void ROI::print() const {
     Eigen::Quaterniond quat = pose.getOrientation();
 
     ROS_INFO_STREAM("[ROI] - Pose " << idx++);
+    ROS_INFO_STREAM("[ROI] - Reference Frame: " << pose.getFrameRef());
     ROS_INFO_STREAM("[ROI] - Position: " << pos.x() << pos.y() << pos.z());
     ROS_INFO_STREAM("[ROI] - Quaternion: " << quat.w() << quat.x() << quat.y() << quat.z());
   }
@@ -63,16 +64,17 @@ const std::vector<geometry_msgs::Pose> ROI::getPosesROS() const {
   return posesROS;
 }
 
-void ROI::emplaceBackPose(const vector<double>& poseVector) {
+void ROI::emplaceBackPose(const std::string frame, const vector<double>& poseVector) {
   if (poseVector.size() != Pose::SIZE) {
     ROS_ERROR_STREAM("[ROI] - Pose vector size " << poseVector.size() << " not valid, should be " << Pose::SIZE << ".");
     return;
   }
 
-  poses_.emplace_back(Eigen::Vector3d(poseVector[0], poseVector[1], poseVector[2]),
+  poses_.emplace_back(frame,
+                      Eigen::Vector3d(poseVector[0], poseVector[1], poseVector[2]),
                       Eigen::Quaterniond(poseVector[3], poseVector[4], poseVector[5], poseVector[6]));
 }
 
-void ROI::emplaceBackPose(const Eigen::Vector3d& pos, const Eigen::Quaterniond& orient) {
-  poses_.emplace_back(pos, orient);
+void ROI::emplaceBackPose(const std::string frame, const Eigen::Vector3d& pos, const Eigen::Quaterniond& orient) {
+  poses_.emplace_back(frame, pos, orient);
 }

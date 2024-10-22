@@ -12,6 +12,32 @@
 
 namespace ConvertionTools {
 
+geometry_msgs::Pose transformPose(const tf::TransformListener& listener,
+                                  const std::string& source_frame,
+                                  const std::string& target_frame,
+                                  const geometry_msgs::Pose& pose) {
+  if (source_frame == target_frame) {
+    return pose;
+  }
+
+  // Define the target pose
+  geometry_msgs::PoseStamped target_pose;
+
+  // Define the pose in the source frame
+  geometry_msgs::PoseStamped source_pose;
+  source_pose.header.frame_id = source_frame;
+  source_pose.header.stamp = ros::Time::now();
+  source_pose.pose = pose;
+
+  try {
+    listener.transformPose(target_frame, source_pose, target_pose);
+  } catch (tf::TransformException& ex) {
+    ROS_ERROR("[ConvertionTools] - Received an exception trying to transform a pose: %s", ex.what());
+  }
+
+  return target_pose.pose;
+}
+
 geometry_msgs::Pose vectorToPose(const std::vector<double>& pose) {
   if (pose.size() != 6 && pose.size() != 7) {
     ROS_ERROR("[ConvertionTools] - Invalid pose size it should be 6 for Euler use or 7 for Quaternions.");

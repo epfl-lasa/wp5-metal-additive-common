@@ -24,8 +24,10 @@ public:
     static const uint SIZE = 7;
 
     Pose() = default;
-    Pose(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation = Eigen::Quaterniond::Identity()) :
-        position_(position), orientation_(orientation) {}
+    Pose(const std::string frame,
+         const Eigen::Vector3d& position,
+         const Eigen::Quaterniond& orientation = Eigen::Quaterniond::Identity()) :
+        frameRef_(frame), position_(position), orientation_(orientation) {}
 
     std::vector<double> toVector() const {
       return {position_.x(),
@@ -38,12 +40,14 @@ public:
     }
 
     // Public getters for Pose members
+    const std::string& getFrameRef() const { return frameRef_; }
     const Eigen::Vector3d& getPosition() const { return position_; }
     const Eigen::Quaterniond& getOrientation() const { return orientation_; }
 
   private:
-    Eigen::Vector3d position_;
-    Eigen::Quaterniond orientation_;
+    std::string frameRef_{};         ///< Reference frame of the pose
+    Eigen::Vector3d position_;       ///< Position of the pose
+    Eigen::Quaterniond orientation_; ///< Orientation of the pose
   };
 
   ROI(std::string poseID) : id_(poseID) {};
@@ -63,9 +67,10 @@ public:
 
   const std::vector<geometry_msgs::Pose> getPosesROS() const;
 
-  void emplaceBackPose(const std::vector<double>& poseVector);
+  void emplaceBackPose(const std::string frame, const std::vector<double>& poseVector);
 
-  void emplaceBackPose(const Eigen::Vector3d& position,
+  void emplaceBackPose(const std::string frame,
+                       const Eigen::Vector3d& position,
                        const Eigen::Quaterniond& orientation = Eigen::Quaterniond::Identity());
 
 private:

@@ -10,7 +10,9 @@
             "request": "launch",
             "target": "/home/${ROS_USER}/catkin_ws/src/wp5-mam-tasks/launch/main_task.launch",
             "arguments": [
-                "taskType:=welding"
+                "taskType:=welding",
+                "robot_type:=ur5",
+                "simu:=ON"
             ],
             "preLaunchTask": "build debug",
         },
@@ -20,7 +22,7 @@
             "request": "launch",
             "target": "/home/${ROS_USER}/catkin_ws/src/wp5-robotic-arms/launch/test_robotic_arm_ur.launch",
             "arguments": [
-                "robot_model:=ur10e"
+                "robot_model:=ur5"
             ],
             "preLaunchTask": "build debug",
         },
