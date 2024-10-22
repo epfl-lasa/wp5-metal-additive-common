@@ -1,46 +1,78 @@
 /**
  * @file ROI.cpp
- * @author Louis Munier (lmunier@protonmail.com)
- * @brief
- * @version 0.1
- * @date 2024-10-10
+ * @brief Declaration of the Region of Interest class
  *
+ * @author [Elise Jeandupeux]
+ * @author [Louis Munier] - lmunier@protonmail.com
+ *
+ * @version 0.2
+ * @date 2024-10-22
  * @copyright Copyright (c) 2024 - EPFL
- *
  */
 
 #include "ROI.h"
 
-#include <ros/ros.h>
+#include "convertion_tools.h"
 
 using namespace std;
 
 void ROI::clear() {
   id_.clear();
-  posStart_.setZero();
-  posEnd_.setZero();
-  quat_.setIdentity();
+  poses_.clear();
 }
 
 void ROI::print() const {
-  ROS_INFO_STREAM("ID: " << id_.c_str());
-  ROS_INFO_STREAM("Starting Position: " << posStart_.x() << posStart_.y() << posStart_.z());
-  ROS_INFO_STREAM("Ending Position: " << posEnd_.x() << posEnd_.y() << posEnd_.z());
-  ROS_INFO_STREAM("Quaternion: " << quat_.x() << quat_.y() << quat_.z() << quat_.w());
+  ROS_INFO_STREAM("[ROI] - ID: " << id_.c_str());
+
+  uint idx = 0;
+  for (const auto& pose : poses_) {
+    Eigen::Vector3d pos = pose.getPosition();
+    Eigen::Quaterniond quat = pose.getOrientation();
+
+    ROS_INFO_STREAM("[ROI] - Pose " << idx++);
+    ROS_INFO_STREAM("[ROI] - Position: " << pos.x() << pos.y() << pos.z());
+    ROS_INFO_STREAM("[ROI] - Quaternion: " << quat.w() << quat.x() << quat.y() << quat.z());
+  }
 }
 
-vector<double> ROI::getPoseVector(const string& posType) const {
-  Eigen::Vector3d pos{};
-  Eigen::Quaterniond identity = Eigen::Quaterniond::Identity();
-
-  if (posType == "start") {
-    pos = posStart_;
-  } else if (posType == "end") {
-    pos = posEnd_;
+const ROI::Pose ROI::getPose(uint index) const {
+  if (index <= poses_.size()) {
+    return poses_[index];
   } else {
-    ROS_ERROR("Invalid position type, should be either 'start' or 'end'.");
-    return vector<double>();
+    ROS_ERROR_STREAM("[ROI] - Pose index " << index << " out of range.");
+    return Pose();
+  }
+}
+
+const geometry_msgs::Pose ROI::getPoseROS(uint index) const {
+  if (index >= poses_.size()) {
+    ROS_ERROR_STREAM("[ROI] - Pose index " << index << " out of range.");
+    return geometry_msgs::Pose();
   }
 
-  return {pos.x(), pos.y(), pos.z(), identity.x(), identity.y(), identity.z(), identity.w()};
+  return ConvertionTools::eigenToGeometry(poses_[index].getPosition(), poses_[index].getOrientation());
+}
+
+const std::vector<geometry_msgs::Pose> ROI::getPosesROS() const {
+  std::vector<geometry_msgs::Pose> posesROS;
+
+  for (const auto& pose : poses_) {
+    posesROS.push_back(ConvertionTools::eigenToGeometry(pose.getPosition(), pose.getOrientation()));
+  }
+
+  return posesROS;
+}
+
+void ROI::emplaceBackPose(const vector<double>& poseVector) {
+  if (poseVector.size() != Pose::SIZE) {
+    ROS_ERROR_STREAM("[ROI] - Pose vector size " << poseVector.size() << " not valid, should be " << Pose::SIZE << ".");
+    return;
+  }
+
+  poses_.emplace_back(Eigen::Vector3d(poseVector[0], poseVector[1], poseVector[2]),
+                      Eigen::Quaterniond(poseVector[3], poseVector[4], poseVector[5], poseVector[6]));
+}
+
+void ROI::emplaceBackPose(const Eigen::Vector3d& pos, const Eigen::Quaterniond& orient) {
+  poses_.emplace_back(pos, orient);
 }

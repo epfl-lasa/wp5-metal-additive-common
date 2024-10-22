@@ -48,6 +48,14 @@ Eigen::Quaterniond geometryToEigen(const geometry_msgs::Quaternion& orientation)
   return Eigen::Quaterniond{orientation.w, orientation.x, orientation.y, orientation.z};
 }
 
+geometry_msgs::Pose eigenToGeometry(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation) {
+  geometry_msgs::Pose pose;
+  pose.position = eigenToGeometry(position);
+  pose.orientation = eigenToGeometry(orientation);
+
+  return move(pose);
+}
+
 geometry_msgs::Point eigenToGeometry(const Eigen::Vector3d& position) {
   geometry_msgs::Point point;
   point.x = position.x();

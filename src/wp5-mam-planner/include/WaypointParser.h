@@ -1,12 +1,13 @@
 /**
  * @file WaypointParser.cpp
- * @author Louis Munier (lmunier@protonmail.com)
- * @brief
- * @version 0.1
- * @date 2024-10-10
+ * @brief Declaration of the WaypointParser class
  *
+ * @author [Elise Jeandupeux]
+ * @author [Louis Munier] - lmunier@protonmail.com
+ *
+ * @version 0.2
+ * @date 2024-10-22
  * @copyright Copyright (c) 2024 - EPFL
- *
  */
 #pragma once
 

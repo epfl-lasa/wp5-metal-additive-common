@@ -71,8 +71,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 # Add the main node
-add_executable(${PROJECT_NAME}_node
-  src/main.cpp
+add_library(${PROJECT_NAME}_node
   src/MAMPlanner.cpp
   src/Subtask.cpp
   src/WaypointParser.cpp

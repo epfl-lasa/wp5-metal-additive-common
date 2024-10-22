@@ -13,7 +13,7 @@ ITaskBase::ITaskBase(ros::NodeHandle& nh, const YAML::Node& config) :
     eeAngleOffset_(YamlTools::loadYamlValue<vector<double>>(config, "ee_angle_offset")) {}
 
 bool ITaskBase::initialize() {
-  planner_ = make_unique<MAMPlanner>(rosVersion_, nh_);
+  planner_ = make_unique<MAMPlanner>(rosVersion_, nh_, robotName_);
 
   return true;
 }

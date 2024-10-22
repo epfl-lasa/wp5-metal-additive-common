@@ -32,7 +32,7 @@ public:
   /**
    * @brief Constructor.
    */
-  MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh);
+  MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName);
 
   /**
    * @brief Destructor.

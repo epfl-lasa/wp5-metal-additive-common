@@ -1,9 +1,13 @@
 /**
  * @file Subtask.cpp
  * @brief Declaration of the Subtask class
+ *
  * @author [Elise Jeandupeux]
  * @author [Louis Munier] - lmunier@protonmail.com
- * @date 2024-10-08
+ *
+ * @version 0.2
+ * @date 2024-10-22
+ * @copyright Copyright (c) 2024 - EPFL - LASA
  */
 
 #include "Subtask.h"
@@ -11,7 +15,7 @@
 using namespace std;
 
 Subtask::Subtask(ros::NodeHandle& nh) : nh_(nh) {
-  subROI_ = nh_.subscribe("/damage_string", 1000, &Subtask::cbkROI_, this);
+  subROI_ = nh_.subscribe("/damage_string", 100, &Subtask::cbkROI_, this);
 
   // debug waypoint
   pubWaypoint1_ = nh_.advertise<geometry_msgs::PointStamped>("debug_waypoint_1", 10);
@@ -20,17 +24,13 @@ Subtask::Subtask(ros::NodeHandle& nh) : nh_(nh) {
   pubComputedQuat_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_computedQuat", 10);
 }
 
-void Subtask::clearROI() { dequeROI_.clear(); }
-
-const bool Subtask::empty() const { return dequeROI_.empty(); }
-
-const ROI Subtask::getROI() {
-  if (!dequeROI_.empty()) {
+const optional<ROI> Subtask::getROI() {
+  if (!empty()) {
     ROI roi = dequeROI_.front();
     dequeROI_.pop_front();
     return roi;
   } else {
-    return ROI();
+    return nullopt;
   }
 }
 
@@ -48,18 +48,23 @@ void Subtask::parseROI_(const string& str) {
 
   // Store ROI only if it is not already done
   if (!isROIStored_(waypointID)) {
-    ROI roi;
-    roi.setID(waypointID);
-    roi.setPosStart(Eigen::Vector3d(waypointsPos[0], waypointsPos[1], waypointsPos[2]));
-    roi.setPosEnd(Eigen::Vector3d(waypointsPos[3], waypointsPos[4], waypointsPos[5]));
-    roi.setQuat(rotateVectorInPlan_({roi.getPosStart(), roi.getPosEnd(), robotPos_}, refVector_));
+    ROI roi(waypointID);
+
+    // Compute quaternion to restrain the orientation in the plan defined by the 3 points
+    Eigen::Vector3d posStart(waypointsPos[0], waypointsPos[1], waypointsPos[2]);
+    Eigen::Vector3d posEnd(waypointsPos[3], waypointsPos[4], waypointsPos[5]);
+    Eigen::Quaterniond quat(rotateVectorInPlan_({posStart, posEnd, robotPos_}, refVector_));
+
+    roi.emplaceBackPose(posStart, quat);
+    roi.emplaceBackPose(posEnd, quat);
+
     dequeROI_.push_back(roi);
 
     // Visualisation debug
-    publishWaypoint_(roi.getPosStart(), pubWaypoint1_);
-    publishWaypoint_(roi.getPosEnd(), pubWaypoint2_);
+    publishWaypoint_(roi.getPose(0).getPosition(), pubWaypoint1_);
+    publishWaypoint_(roi.getPose(1).getPosition(), pubWaypoint2_);
     publishWaypoint_(robotPos_, pubRobotBase_);
-    publishPose_(roi.getPosStart(), roi.getQuat(), pubComputedQuat_);
+    publishPose_(roi.getPose(0).getPosition(), roi.getPose(0).getOrientation(), pubComputedQuat_);
 
     ROS_INFO_STREAM("[Subtask] - Waypoint registered, key : " << waypointID);
   } else {

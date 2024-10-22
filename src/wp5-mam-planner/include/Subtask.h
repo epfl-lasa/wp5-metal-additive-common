@@ -1,9 +1,13 @@
 /**
  * @file Subtask.h
  * @brief Declaration of the Subtask class
+ *
  * @author [Elise Jeandupeux]
  * @author [Louis Munier] - lmunier@protonmail.com
- * @date 2024-10-08
+ *
+ * @version 0.2
+ * @date 2024-10-22
+ * @copyright Copyright (c) 2024 - EPFL - LASA
  */
 
 #pragma once
@@ -17,6 +21,7 @@
 #include <Eigen/Dense>
 #include <array>
 #include <deque>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -38,18 +43,18 @@ public:
   /**
    * @brief Delete all stored ROI
    */
-  void clearROI();
+  void clearROI() { dequeROI_.clear(); }
 
   /**
    * @brief True if no region of interest
    * @return bool True if no region of interest
    */
-  const bool empty() const;
+  const bool empty() const { return dequeROI_.empty(); }
 
   /**
    * @brief Get the first region of interest and deletes it
    */
-  const ROI getROI();
+  const std::optional<ROI> getROI();
 
 private:
   ros::NodeHandle nh_;

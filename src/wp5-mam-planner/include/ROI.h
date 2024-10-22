@@ -1,15 +1,17 @@
 /**
  * @file ROI.h
- * @author Louis Munier (lmunier@protonmail.com)
- * @brief
- * @version 0.1
- * @date 2024-10-10
+ * @brief Declaration of the Region of Interest class
  *
+ * @author [Elise Jeandupeux]
+ * @author [Louis Munier] - lmunier@protonmail.com
+ *
+ * @version 0.2
+ * @date 2024-10-22
  * @copyright Copyright (c) 2024 - EPFL
- *
  */
 #pragma once
 
+#include <geometry_msgs/Pose.h>
 #include <ros/ros.h>
 
 #include <Eigen/Dense>
@@ -18,33 +20,55 @@
 
 class ROI {
 public:
-  ROI() = default;
+  struct Pose {
+    static const uint SIZE = 7;
 
-  bool empty() const { return id_.empty(); }
+    Pose() = default;
+    Pose(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation = Eigen::Quaterniond::Identity()) :
+        position_(position), orientation_(orientation) {}
+
+    std::vector<double> toVector() const {
+      return {position_.x(),
+              position_.y(),
+              position_.z(),
+              orientation_.w(),
+              orientation_.x(),
+              orientation_.y(),
+              orientation_.z()};
+    }
+
+    // Public getters for Pose members
+    const Eigen::Vector3d& getPosition() const { return position_; }
+    const Eigen::Quaterniond& getOrientation() const { return orientation_; }
+
+  private:
+    Eigen::Vector3d position_;
+    Eigen::Quaterniond orientation_;
+  };
+
+  ROI(std::string poseID) : id_(poseID) {};
 
   void clear();
 
   void print() const;
 
-  std::vector<double> getPoseVector(const std::string& posType) const;
-
   // Getters and setters for the private members
-  const std::string& getID() const { return id_; }
-  void setID(const std::string& id) { id_ = id; }
+  const std::string getID() const { return id_; }
 
-  const Eigen::Vector3d& getPosStart() const { return posStart_; }
-  void setPosStart(const Eigen::Vector3d& posStart) { posStart_ = posStart; }
+  const Pose getPose(uint index) const;
 
-  const Eigen::Vector3d& getPosEnd() const { return posEnd_; }
-  void setPosEnd(const Eigen::Vector3d& posEnd) { posEnd_ = posEnd; }
+  const std::vector<Pose> getPoses() const { return poses_; };
 
-  const Eigen::Quaterniond& getQuat() const { return quat_; }
-  void setQuat(const Eigen::Quaterniond& quat) { quat_ = quat; }
+  const geometry_msgs::Pose getPoseROS(uint index) const;
+
+  const std::vector<geometry_msgs::Pose> getPosesROS() const;
+
+  void emplaceBackPose(const std::vector<double>& poseVector);
+
+  void emplaceBackPose(const Eigen::Vector3d& position,
+                       const Eigen::Quaterniond& orientation = Eigen::Quaterniond::Identity());
 
 private:
-  //TODO(lmunier(2024-10-10)): Implement vector<Eigen::Vector3d> to have more waypoints regarding cleaning task
   std::string id_{};
-  Eigen::Vector3d posStart_{};
-  Eigen::Vector3d posEnd_{};
-  Eigen::Quaterniond quat_{};
+  std::vector<Pose> poses_{};
 };

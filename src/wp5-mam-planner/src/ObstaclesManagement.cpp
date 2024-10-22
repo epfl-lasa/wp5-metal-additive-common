@@ -64,7 +64,7 @@ void ObstaclesManagement::addStaticObstacles() {
 
       collisionObject.meshes.push_back(createMesh_(name, meshPath));
     } else {
-      ROS_ERROR("No such obstacle type.");
+      ROS_ERROR("[ObstacleManagement] - No such obstacle type.");
       continue;
     }
 
@@ -83,7 +83,7 @@ void ObstaclesManagement::addStaticObstacles() {
 }
 
 const shape_msgs::SolidPrimitive ObstaclesManagement::createBox_(const string& name, const vector<double>& size) const {
-  ROS_INFO("Adding box %s...", name.c_str());
+  ROS_INFO("[ObstacleManagement] - Adding box %s...", name.c_str());
   shape_msgs::SolidPrimitive primitive;
   primitive.type = primitive.BOX;
 
@@ -96,7 +96,7 @@ const shape_msgs::SolidPrimitive ObstaclesManagement::createBox_(const string& n
 const shape_msgs::SolidPrimitive ObstaclesManagement::createCylinder_(const string& name,
                                                                       const double height,
                                                                       const double radius) const {
-  ROS_INFO("Adding cylinder %s...", name.c_str());
+  ROS_INFO("[ObstacleManagement] - Adding cylinder %s...", name.c_str());
   shape_msgs::SolidPrimitive primitive;
   primitive.type = primitive.CYLINDER;
 
@@ -107,7 +107,7 @@ const shape_msgs::SolidPrimitive ObstaclesManagement::createCylinder_(const stri
 }
 
 const shape_msgs::SolidPrimitive ObstaclesManagement::createSphere_(const string& name, const double radius) const {
-  ROS_INFO("Adding sphere %s...", name.c_str());
+  ROS_INFO("[ObstacleManagement] - Adding sphere %s...", name.c_str());
   shape_msgs::SolidPrimitive primitive;
   primitive.type = primitive.SPHERE;
 
@@ -118,7 +118,7 @@ const shape_msgs::SolidPrimitive ObstaclesManagement::createSphere_(const string
 }
 
 const shape_msgs::Mesh ObstaclesManagement::createMesh_(const string& name, const string& meshPath) const {
-  ROS_INFO("Adding mesh %s...", name.c_str());
+  ROS_INFO("[ObstacleManagement] - Adding mesh %s...", name.c_str());
   shapes::Mesh* m = shapes::createMeshFromResource(meshPath);
 
   shape_msgs::Mesh mesh;
