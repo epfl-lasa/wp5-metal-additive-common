@@ -16,9 +16,9 @@ namespace YamlTools {
 const void fileValidation(const std::string filePath, const std::string fileType) {
   std::ifstream file(filePath);
   if (!file.good()) {
-    throw std::runtime_error("Failed to open " + fileType + " YAML file: " + filePath);
+    throw std::runtime_error("[YamlTools] - Failed to open " + fileType + " YAML file: " + filePath);
   } else {
-    ROS_INFO_STREAM("Using " << fileType << " YAML file: " << filePath);
+    ROS_INFO_STREAM("[YamlTools] - Using " << fileType << " YAML file: " << filePath);
   }
 }
 
@@ -50,7 +50,7 @@ void printYamlKeys(const YAML::Node& node) {
       std::cout << it.first.as<std::string>() << std::endl;
     }
   } else {
-    throw std::runtime_error("Expected a map node.");
+    throw std::runtime_error("[YamlTools] - Expected a map node.");
   }
 }
 

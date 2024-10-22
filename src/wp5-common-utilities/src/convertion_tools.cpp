@@ -14,7 +14,7 @@ namespace ConvertionTools {
 
 geometry_msgs::Pose vectorToPose(const std::vector<double>& pose) {
   if (pose.size() != 6 && pose.size() != 7) {
-    ROS_ERROR("Invalid pose size it should be 6 for Euler use or 7 for Quaternions.");
+    ROS_ERROR("[ConvertionTools] - Invalid pose size it should be 6 for Euler use or 7 for Quaternions.");
     return geometry_msgs::Pose();
   }
 

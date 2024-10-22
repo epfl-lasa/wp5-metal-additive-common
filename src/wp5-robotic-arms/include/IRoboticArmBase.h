@@ -93,7 +93,7 @@ public:
    * @param jointPos Joint positions of the robotic arm.
    */
   virtual const std::pair<Eigen::Quaterniond, Eigen::Vector3d> getFKGeo(const std::vector<double>& jointPos) {
-    ROS_ERROR("This function is not implemented for this robotic arm.");
+    ROS_ERROR("[IRoboticArmBase] - This function is not implemented for this robotic arm.");
     return std::make_pair(Eigen::Quaterniond::Identity(), Eigen::Vector3d::Zero());
   }
 
@@ -121,7 +121,7 @@ public:
   virtual const bool getIKGeo(const Eigen::Quaterniond& quaternion,
                               const Eigen::Vector3d& position,
                               std::vector<std::vector<double>>& jointPos) {
-    ROS_ERROR("This function is not implemented for this robotic arm.");
+    ROS_ERROR("[IRoboticArmBase] - This function is not implemented for this robotic arm.");
 
     jointPos.clear();
     return false;
@@ -177,6 +177,6 @@ private:
   void initializeTracIkSolver_();
   virtual void swapJoints_(
       std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>& currentRobotState) {
-    ROS_ERROR("This function is not implemented for this robotic arm.");
+    ROS_ERROR("[IRoboticArmBase] - This function is not implemented for this robotic arm.");
   }
 };

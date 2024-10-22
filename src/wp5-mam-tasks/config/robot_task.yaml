@@ -1,6 +1,7 @@
 # Configuration to be used for the different tasks.
 # Possible robot_name to set, depending on the task :
 # - ur5_robot
+# - ur10e_robot
 # - xMateCR7
 # Louis Munier : 2024-09-12
 

@@ -18,12 +18,12 @@ int main(int argc, char** argv) {
 
   string taskType;
   if (!ros::param::get("~taskType", taskType)) {
-    ROS_ERROR("No taskType argument received");
+    ROS_ERROR("[MainTask] - No taskType argument received");
     return 1;
   }
 
   // Create an unique pointer for the instance of TaskFSM
-  ROS_INFO("Creating Task - %s", taskType.c_str());
+  ROS_INFO("[MainTask] - Creating Task - %s", taskType.c_str());
   shared_ptr<ITaskBase> task = taskFactory.createTask(taskType, nh, string("robot_task.yaml"));
 
   taskFsm_ internalFSM_(task);

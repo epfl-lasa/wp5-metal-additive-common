@@ -36,7 +36,7 @@ IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, const 
   initializeTracIkSolver_();
 
   if (getNbJoints() != chain_.getNrOfJoints()) {
-    throw runtime_error("Number of joints in the kinematic chain does not match the number of joint names");
+    throw runtime_error("[IRoboticArmBase] - Number of joints in the kinematic chain does not match the number of joint names");
   }
 
   // Initialize ROS interface
@@ -54,7 +54,7 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFKTrac(const
   // Perform forward kinematics
   KDL::Frame cartesianPose;
   if (tracFkSolver_->JntToCart(jointArray, cartesianPose) < 0) {
-    throw runtime_error("Failed to compute forward kinematics");
+    throw runtime_error("[IRoboticArmBase] - Failed to compute forward kinematics");
   }
 
   // Extract position and orientation
@@ -104,18 +104,18 @@ const bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos) {
 
 void IRoboticArmBase::printInfo() const {
   string tmpString = "";
-  ROS_INFO_STREAM("Robot name: " << robotName_);
-  ROS_INFO_STREAM("URDF Path: " << pathUrdf_);
-  ROS_INFO_STREAM("Number of joints: " << getNbJoints());
+  ROS_INFO_STREAM("[IRoboticArmBase] - Robot name: " << robotName_);
+  ROS_INFO_STREAM("[IRoboticArmBase] - URDF Path: " << pathUrdf_);
+  ROS_INFO_STREAM("[IRoboticArmBase] - Number of joints: " << getNbJoints());
 
-  tmpString = "Joint names: [";
+  tmpString = "[IRoboticArmBase] - Joint names: [";
   for (const string& jointName : jointNames_) {
     tmpString += jointName + ", ";
   }
   ROS_INFO_STREAM(tmpString << "]");
-  ROS_INFO_STREAM("Reference frame: " << referenceFrame_);
+  ROS_INFO_STREAM("[IRoboticArmBase] - Reference frame: " << referenceFrame_);
 
-  tmpString = "Original home joint: [";
+  tmpString = "[IRoboticArmBase] - Original home joint: [";
   for (double joint : originalHomeJoint_) {
     tmpString += to_string(joint) + ", ";
   }
@@ -126,7 +126,7 @@ void IRoboticArmBase::initializeTracIkSolver_() {
   tracIkSolver_ = make_unique<TRAC_IK::TRAC_IK>(chainStart_, chainEnd_, pathUrdf_, timeout_, epsilon_, solverType_);
 
   if (!tracIkSolver_->getKDLChain(chain_)) {
-    ROS_ERROR("There was no valid KDL chain found");
+    ROS_ERROR("[IRoboticArmBase] - There was no valid KDL chain found");
     return;
   }
 

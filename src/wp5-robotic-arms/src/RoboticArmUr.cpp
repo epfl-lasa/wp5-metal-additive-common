@@ -101,7 +101,7 @@ const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
   // Check wether the number of rejected solutions is not too high
   totSolutions = ikSolutions.size();
   if (totSolutions < MAX_REJECTIONS * jointPos.size() / 100) {
-    ROS_WARN("Too many solutions were rejected.");
+    ROS_WARN("[IRoboticArmUR] - Too many solutions were rejected.");
     return false;
   }
 

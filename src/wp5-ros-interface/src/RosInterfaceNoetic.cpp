@@ -56,12 +56,12 @@ RosInterfaceNoetic::RosInterfaceNoetic(string robotName) : IRosInterfaceBase(ROS
     pubStateCartesianPoseEEF_ = nh_.advertise<geometry_msgs::PoseStamped>("actualCartesianPoseEEF", 1000);
 
   } catch (const YAML::Exception& e) {
-    ROS_ERROR_STREAM("Error loading YAML file: " << e.what());
+    ROS_ERROR_STREAM("[RosInterfaceNoetic] - Error loading YAML file: " << e.what());
   }
 
   // Wait for ROS master to be connected
   while (!ros::master::check()) {
-    ROS_INFO("Waiting for ROS master to be connected...");
+    ROS_INFO("[RosInterfaceNoetic] - Waiting for ROS master to be connected...");
     ros::Duration(1.0).sleep(); // Sleep for 1 second before checking again
   }
 }
@@ -80,7 +80,7 @@ void RosInterfaceNoetic::jointStateCallback(const sensor_msgs::JointState::Const
     initJoint_ = true;
 
   } else {
-    ROS_WARN("Received joint positions are empty.");
+    ROS_WARN("[RosInterfaceNoetic] - Received joint positions are empty.");
   }
 }
 
@@ -100,7 +100,7 @@ void RosInterfaceNoetic::FTCallback(const geometry_msgs::WrenchStamped::ConstPtr
     initFTsensor_ = true;
 
   } else {
-    ROS_WARN("Received ftsensor data is empty.");
+    ROS_WARN("[RosInterfaceNoetic] - Received ftsensor data is empty.");
     wrenchSensor_ = {0, 0, 0, 0, 0, 0};
   }
 }
