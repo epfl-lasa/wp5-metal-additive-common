@@ -45,28 +45,69 @@ It will setup everything using default values. All the environment variables nee
 To go more detailed, here are the commands automatically ran, with the previous scripts, to set up the system. It will set up your git folder, to avoid sending too big files online. Then the commands update the submodules and finally build, mount and allow you to access docker container with the last docker commands.
 
 ```bash
-# --- Submodules
-# Initialize the submodules
-git submodule update --init --recursive
-git submodule update --recursive --remote
-
 # --- Git Setup
 # Copy pre-commit into hooks folder insside .git/hooks directory
 cp "scripts/hooks/pre-commit" ".git/hooks/pre-commit"
 chmod +x .git/hooks/pre-commit
 
-# --- Docker
-# Build the Docker containers
-docker compose build
+# --- Submodules
+# Initialize the submodules
+git submodule update --init --recursive
+git submodule update --recursive --remote
+```
 
-# Start the Docker containers in detached mode
-docker compose up -d
+## Docker
 
-# Access the Docker container's shell
+### Build the Docker containers
+
+The docker containers are using docker compose tools with their profiles keys. Each parameter is define inside the docker-compose.yml file and can mount multiple container from the following profile list :
+
+- **nvidia** - ros1 noetic with the tools to run the controller **with** nvidia support
+- **intel** - ros1 noetic with the tools to run the controller **without** nvidia support
+- **coppeliasim** - coppeliasim simulator *need to have an access to EDU license for now*
+- **e-series** - run a polyscope window to interact with e-series UR robots [ur5e, ur10e, ...]
+- **cb-series** - run a polyscope window to interact with cb-series UR robots [ur5, ur10, ...]
+
+### Examples
+
+Generic commands, autocompletion is supported for all of these commands :
+
+```bash
+# Building specific docker profile
+docker compose --profile <profile_name> build
+
+# Mounting specific docker profile in detached mode
+docker compose --profile <profile_name> up -d
+
+# Mounting specific docker profile in detached mode and build it if needed
+docker compose --profile <profile_name> up -d --build
+
+# Mounting multiple docker profile container by appending them, in detached mode with building option
+docker compose --profile <profile_name> --profile <profile_name> up -d --build
+
+# Accessing docker in interactive mode from a shell
+docker exec -it <docker_container_name> bash
+```
+
+To run the nvidia support :
+
+```bash
+# Building ros1 noetic docker with nvidia support
+docker compose --profile nvidia build
+
+# Mounting ros1 noetic docker with nvidia support in detached mode
+docker compose --profile nvidia up -d
+
+# Mounting ros1 noetic docker with nvidia support in detached mode and build it if needed
+docker compose --profile nvidia up -d --build
+
+# Accessing docker in interactive mode from a shell
 docker exec -it wp5-metal-additive-ros-1 bash
 ```
 
-This will set up the necessary environment within Docker for running the codebase.
+### VSCode support
+
+If using vscode with remote control extension, you can attach a vscode window to the chosen container using the bottom left green button.
 
 ### Optional : Coppeliasim Simulation
 
@@ -77,14 +118,24 @@ git submodule add -f git@github.com:epfl-lasa/docker_ros_coppeliasim.git tools/d
 git submodule update --init --recursive
 ```
 
+The following command using docker compose with the right profile can run the simulation's coppeliasim window in detached mode.
+
+```bash
+docker compose --profile coppeliasim up -d --build
+```
+
+The optional *--build* argument will build the image if not already done.
+
 ## Credits
 
 This repository use the work of the following repositories:
 
 - IK-Geo - <https://github.com/rpiRobotics/ik-geo>
-- Universal Robot - <https://github.com/ros-industrial/universal_robot>
+- ROS industrial - <https://github.com/ros-industrial/universal_robot>
+- Universal Robot - <https://github.com/UniversalRobots/Universal_Robots_ROS_Driver>
 - ROS modbus device driver - <https://github.com/epfl-lasa/ros-modbus-device-driver.git>
 
 ## Maintainers
 
 - Louis Munier - <lmunier@protonmail.com>
+- Last Update - 2024-10-23

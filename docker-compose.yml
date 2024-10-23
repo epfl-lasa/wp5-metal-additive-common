@@ -1,15 +1,63 @@
+x-common-settings: &common_settings
+  env_file:
+    - .env
+  network_mode: host
+  build:
+    context: .
+    network: host
+    dockerfile: docker/Dockerfile
+    args:
+      ROS_DISTRO: noetic
+      USER: ${ROS_USER}
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
+    - .clang-format:/home/${ROS_USER}/catkin_ws/.clang-format
+    - .vscode:/home/${ROS_USER}/catkin_ws/.vscode
+    - ./src:/home/${ROS_USER}/catkin_ws/src
+    - ./data:/home/${ROS_USER}/catkin_ws/data
+  stdin_open: true
+  tty: true
+
 services:
+  # ROS with GPU support from NVIDIA
   ros:
+    <<: *common_settings
+    profiles: [ nvidia ]
     user: ${ROS_USER}
-    env_file: .env
-    network_mode: host
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  # ROS with GPU support from Intel
+  ros_cpu:
+    <<: *common_settings
+    profiles: [ intel ]
+    user: ${ROS_USER}
+    environment:
+      - LIBVA_DRIVER_NAME=i965
+    devices:
+      - /dev/dri:/dev/dri
+
+  # Coppeliasim simulation
+  coppeliasim:
+    <<: *common_settings
+    profiles: [ coppeliasim ]
+    user: ${SIMU_USER}
     build:
-      context: .
-      network: host
+      context: ./tools/docker_ros_coppeliasim
       dockerfile: docker/Dockerfile
       args:
         ROS_DISTRO: noetic
-        USER: ${ROS_USER}
+        USER: ${SIMU_USER}
     deploy:
       resources:
         reservations:
@@ -18,12 +66,19 @@ services:
               count: 1
               capabilities: [ gpu ]
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - .clang-format:/home/${ROS_USER}/catkin_ws/.clang-format
-      - .vscode:/home/${ROS_USER}/catkin_ws/.vscode
-      - ./src:/home/${ROS_USER}/catkin_ws/src
-      - ./data:/home/${ROS_USER}/catkin_ws/data
-    stdin_open: true
-    tty: true
+      - ./simulation:/home/${SIMU_USER}/simulation
+      - ./tools/docker_ros_coppeliasim/scripts:/home/${SIMU_USER}/scripts
+
+  # Run docker polyscope for e-series
+  e-ursim:
+    profiles: [ e-series ]
+    extends:
+      file: src/ur-package/docker/docker-compose.yml
+      service: e-ursim
+
+  # Run docker polyscope for cb-series
+  cb-ursim:
+    profiles: [ cb-series ]
+    extends:
+      file: src/ur-package/docker/docker-compose.yml
+      service: cb-ursim

@@ -1,0 +1,39 @@
+x-common-settings: &common_settings
+  network_mode: host
+  env_file:
+    - .env
+  build:
+    dockerfile: Dockerfile
+    network: host
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [ gpu ]
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
+  stdin_open: true
+  tty: true
+
+services:
+  # Polyscope for cb-series
+  cb-ursim:
+    <<: *common_settings
+    profiles: [ cb-series ]
+    build:
+      context: cb-series-docker
+    environment:
+      - ROBOT_MODEL=UR5
+
+  # Polyscope for e-series
+  e-ursim:
+    <<: *common_settings
+    profiles: [ e-series ]
+    build:
+      context: e-series-docker
+    environment:
+      - ROBOT_MODEL=UR10
