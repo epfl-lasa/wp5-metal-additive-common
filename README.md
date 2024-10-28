@@ -109,6 +109,16 @@ docker exec -it wp5-metal-additive-ros-1 bash
 
 If using vscode with remote control extension, you can attach a vscode window to the chosen container using the bottom left green button.
 
+### Troubleshooting
+
+#### X Server issues
+
+If no window showed up after setting up a docker image that should output one there may be an issue with the X server access. To allow docker using the X server, run the following command :
+
+```bash
+xhost +local:docker
+```
+
 ### Optional : Coppeliasim Simulation
 
 For those who needs and can use the university license of coppeliasim, the following commands can be used to add the coppeliasim docker as a submodule :
