@@ -28,6 +28,8 @@ services:
       context: cb-series-docker
     environment:
       - ROBOT_MODEL=UR5
+    volumes:
+      - ./cb-series-docker/programs:/ursim/programs
 
   # Polyscope for e-series
   e-ursim:
@@ -37,3 +39,5 @@ services:
       context: e-series-docker
     environment:
       - ROBOT_MODEL=UR10
+    volumes:
+      - ./e-series-docker/programs:/ursim/programs
