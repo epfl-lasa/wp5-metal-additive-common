@@ -50,10 +50,26 @@ namespace ConvertionTools {
  * @param listener The tf::TransformListener object used to perform the transformation.
  * @param source_frame The name of the frame from which the pose is to be transformed.
  * @param target_frame The name of the frame to which the pose is to be transformed.
+ * @param pose The input geometry_msgs::Pose to be transformed.
+ * @return The transformed geometry_msgs::Pose in the target frame.
  */
-void transformPose(const tf::TransformListener& listener,
-                   const std::string& source_frame,
-                   const std::string& target_frame);
+geometry_msgs::Pose transformPose(const tf::TransformListener& listener,
+                                  const std::string& source_frame,
+                                  const std::string& target_frame,
+                                  const geometry_msgs::Pose& pose);
+
+/**
+ * @brief Converts a geometry_msgs::Pose to a vector of doubles.
+ *
+ * This function takes a geometry_msgs::Pose object and converts it to a vector of doubles.
+ * The output vector contains the position and orientation of the pose, as a quaternion, in
+ * the order x, y, z, qx, qy, qz, qw.
+ *
+ * @param pose The input geometry_msgs::Pose object to be converted.
+ * @return A vector of doubles representing the pose. The vector contains either 6 elements
+ */
+std::vector<double> poseToVector(const geometry_msgs::Pose& pose);
+
 /**
  * @brief Converts a vector of doubles to a geometry_msgs::Pose.
  *

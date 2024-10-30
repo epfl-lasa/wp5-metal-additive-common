@@ -13,8 +13,8 @@
 namespace ConvertionTools {
 
 geometry_msgs::Pose transformPose(const tf::TransformListener& listener,
-                                  const std::string& source_frame,
-                                  const std::string& target_frame,
+                                  const string& source_frame,
+                                  const string& target_frame,
                                   const geometry_msgs::Pose& pose) {
   if (source_frame == target_frame) {
     return pose;
@@ -38,7 +38,17 @@ geometry_msgs::Pose transformPose(const tf::TransformListener& listener,
   return target_pose.pose;
 }
 
-geometry_msgs::Pose vectorToPose(const std::vector<double>& pose) {
+vector<double> poseToVector(const geometry_msgs::Pose& pose) {
+  vector<double> newPose{pose.position.x,
+                         pose.position.y,
+                         pose.position.z,
+                         pose.orientation.x,
+                         pose.orientation.y,
+                         pose.orientation.z,
+                         pose.orientation.w};
+}
+
+geometry_msgs::Pose vectorToPose(const vector<double>& pose) {
   if (pose.size() != 6 && pose.size() != 7) {
     ROS_ERROR("[ConvertionTools] - Invalid pose size it should be 6 for Euler use or 7 for Quaternions.");
     return geometry_msgs::Pose();

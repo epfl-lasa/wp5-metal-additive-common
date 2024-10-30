@@ -59,7 +59,13 @@ bool MAMPlanner::planTrajectory() {
     geometry_msgs::Pose endTaskPose = roi.value().getPoseROS(1);
 
     publishWaypointRviz_(currentPose, "base_link");
+    ros::Duration(3.0).sleep();
+
     publishWaypointRviz_(startTaskPose, "base_link");
+    ros::Duration(3.0).sleep();
+
+    publishWaypointRviz_(endTaskPose, "base_link");
+    ros::Duration(3.0).sleep();
 
     // Robot goes to start pose
     if (!computeTrajectory_(currentPose, startTaskPose, false)) {
@@ -95,7 +101,7 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
     }
 
     if (!isPathFound) {
-      ROS_WARN("[MAMPlanner] - No path found to go to start waypoint");
+      ROS_WARN("[MAMPlanner] - No path found to go to Pose " + to_string(currentWPointID_));
       return false;
     }
   } else {
@@ -115,13 +121,12 @@ void MAMPlanner::executeTrajectory() {
     return;
   }
 
-  for (const auto& trajectory : bestPlan_) {
+  for (const auto trajectory : bestPlan_) {
     firstJointConfig = trajectory.joint_trajectory.points[0].positions;
 
     if (!robot_->isAtJointPosition(firstJointConfig)) {
       moveGroup_->setJointValueTarget(firstJointConfig);
-      success = (moveGroup_->move() == moveit::core::MoveItErrorCode::SUCCESS);
-
+      success = moveGroup_->move() == moveit::core::MoveItErrorCode::SUCCESS;
       if (!success) {
         ROS_ERROR("[MAMPlanner] - Failed to move to the starting joint configuration.");
         return;
@@ -145,7 +150,7 @@ void MAMPlanner::executeTrajectory() {
 
 void MAMPlanner::initMoveit_() {
   const string robotGroup = "manipulator";
-  ros::Duration timeout(5.0);
+  ros::Duration timeout(2.0);
 
   try {
     moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(
