@@ -41,7 +41,6 @@ bool MAMPlanner::planTrajectory() {
 
   publishWaypointRviz_(currentPose, "base_link");
 
-  bool pathFound = false;
   while (subtask_->empty()) {
     float TIME_WAIT = 0.2;
     ROS_WARN("[MAMPlanner] - Waiting for Waypoints");
@@ -58,9 +57,6 @@ bool MAMPlanner::planTrajectory() {
 
     geometry_msgs::Pose startTaskPose = roi.value().getPoseROS(0);
     geometry_msgs::Pose endTaskPose = roi.value().getPoseROS(1);
-
-    publishWaypointRviz_(currentPose, "base_link");
-    ros::Duration(3.0).sleep();
 
     publishWaypointRviz_(startTaskPose, "base_link");
     ros::Duration(3.0).sleep();
@@ -82,37 +78,6 @@ bool MAMPlanner::planTrajectory() {
   return true;
 }
 
-bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
-                                    const geometry_msgs::Pose nextPose,
-                                    const bool welding) {
-  vector<vector<double>> ikSolutions{};
-  bool ikSuccess = false;
-  bool isPathFound = false;
-
-  ikSuccess = robot_->getIKGeo(ConvertionTools::geometryToEigen(currentPose.orientation),
-                               ConvertionTools::geometryToEigen(currentPose.position),
-                               ikSolutions);
-
-  if (ikSuccess) {
-    ROS_INFO("[MAMPlanner] - IK solutions found");
-
-    for (const auto& ikSol : ikSolutions) {
-      vector<double> startConfig = ikSol;
-      isPathFound += computePath_(startConfig, currentPose, nextPose, welding);
-    }
-
-    if (!isPathFound) {
-      ROS_WARN_STREAM("[MAMPlanner] - No path found to go to Pose " << DebugTools::getPoseString(nextPose));
-      return false;
-    }
-  } else {
-    ROS_WARN("[MAMPlanner] - No IK solutions found");
-    return false;
-  }
-
-  return true;
-}
-
 void MAMPlanner::executeTrajectory() {
   bool success = false;
   vector<double> firstJointConfig{};
@@ -122,30 +87,32 @@ void MAMPlanner::executeTrajectory() {
     return;
   }
 
-  for (const auto trajectory : bestPlan_) {
+  for (const auto& trajectory : bestPlan_) {
     firstJointConfig = trajectory.joint_trajectory.points[0].positions;
 
     if (!robot_->isAtJointPosition(firstJointConfig)) {
       moveGroup_->setJointValueTarget(firstJointConfig);
+
       success = moveGroup_->move() == moveit::core::MoveItErrorCode::SUCCESS;
+      moveGroup_->stop();
+      moveGroup_->clearPoseTargets();
+
       if (!success) {
         ROS_ERROR("[MAMPlanner] - Failed to move to the starting joint configuration.");
         return;
       }
     }
 
+    success = moveGroup_->execute(trajectory) == moveit::core::MoveItErrorCode::SUCCESS;
     moveGroup_->stop();
     moveGroup_->clearPoseTargets();
-    success = moveGroup_->execute(trajectory) == moveit::core::MoveItErrorCode::SUCCESS;
 
     if (success) {
       ROS_INFO("[MAMPlanner] - Trajectory executed successfully");
     } else {
       ROS_ERROR("[MAMPlanner] - Failed to execute trajectory");
+      return;
     }
-
-    moveGroup_->stop();
-    moveGroup_->clearPoseTargets();
   }
 }
 
@@ -180,26 +147,27 @@ void MAMPlanner::setupMovegroup_() {
 bool MAMPlanner::computePath_(const vector<double>& startConfig,
                               const geometry_msgs::Pose& currentPose,
                               const geometry_msgs::Pose& targetPose,
-                              const bool isWeldging) {
+                              const bool isWelding) {
   bool success = false;
   const string robotGroup = "manipulator";
-  moveit_msgs::RobotTrajectory planCartesianTrajectory{};
+  moveit_msgs::RobotTrajectory planTrajectory{};
   moveGroup_->clearPoseTargets();
 
   // Create a RobotState object and set it to the desired starting joint configuration
   moveit::core::RobotState startState(*moveGroup_->getCurrentState());
-  startState.setJointGroupPositions(robotGroup, startConfig);
+  const moveit::core::JointModelGroup* jointModelGroup = startState.getJointModelGroup(robotGroup);
+  startState.setJointGroupPositions(jointModelGroup, startConfig);
 
   // Set the starting state in the planning scene
   moveGroup_->setStartState(startState);
 
-  if (isWeldging) {
+  if (isWelding) {
     // Compute Cartesian path
     vector<geometry_msgs::Pose> waypoints{};
     waypoints.push_back(currentPose);
     waypoints.push_back(targetPose);
 
-    double fraction = moveGroup_->computeCartesianPath(waypoints, 0.01, planCartesianTrajectory, true);
+    double fraction = moveGroup_->computeCartesianPath(waypoints, 0.01, planTrajectory, true);
     success = fraction == 1.0; // Path 100% computed
   } else {
     // Set the target pose
@@ -208,23 +176,53 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
     // Plan the trajectory
     moveit::planning_interface::MoveGroupInterface::Plan plan;
     success = moveGroup_->plan(plan) == moveit::core::MoveItErrorCode::SUCCESS;
-    planCartesianTrajectory = plan.trajectory_;
+    planTrajectory = plan.trajectory_;
   }
 
   if (success) {
     if (currentWPointID_ >= bestPlan_.size()) {
-      bestPlan_.push_back(planCartesianTrajectory);
+      bestPlan_.push_back(planTrajectory);
     } else {
-      double currentPlanSize = planCartesianTrajectory.joint_trajectory.points.size();
+      double currentPlanSize = planTrajectory.joint_trajectory.points.size();
       double bestPlanSize = bestPlan_[currentWPointID_].joint_trajectory.points.size();
 
       if (currentPlanSize < bestPlanSize) {
-        bestPlan_[currentWPointID_] = planCartesianTrajectory;
+        bestPlan_[currentWPointID_] = planTrajectory;
       }
     }
   }
 
   return success;
+}
+
+bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
+                                    const geometry_msgs::Pose nextPose,
+                                    const bool welding) {
+  bool isPathFound = false;
+  vector<vector<double>> ikSolutions{};
+
+  bool ikSuccess = robot_->getIKGeo(ConvertionTools::geometryToEigen(currentPose.orientation),
+                                    ConvertionTools::geometryToEigen(currentPose.position),
+                                    ikSolutions);
+
+  if (ikSuccess) {
+    ROS_INFO("[MAMPlanner] - IK solutions found");
+
+    for (const auto& ikSol : ikSolutions) {
+      vector<double> startConfig = ikSol;
+      isPathFound = isPathFound || computePath_(startConfig, currentPose, nextPose, welding);
+    }
+
+    if (!isPathFound) {
+      ROS_WARN_STREAM("[MAMPlanner] - No path found to go to Pose " << DebugTools::getPoseString(nextPose));
+      return false;
+    }
+  } else {
+    ROS_WARN("[MAMPlanner] - No IK solutions found");
+    return false;
+  }
+
+  return true;
 }
 
 geometry_msgs::Pose MAMPlanner::projectPose_(const geometry_msgs::Pose& pose,
