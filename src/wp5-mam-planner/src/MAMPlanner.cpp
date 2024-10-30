@@ -10,6 +10,7 @@
 
 #include "RoboticArmFactory.h"
 #include "convertion_tools.h"
+#include "debug_tools.h"
 #include "math_tools.h"
 #include "yaml_tools.h"
 
@@ -101,7 +102,7 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
     }
 
     if (!isPathFound) {
-      ROS_WARN("[MAMPlanner] - No path found to go to Pose " + to_string(currentWPointID_));
+      ROS_WARN_STREAM("[MAMPlanner] - No path found to go to Pose " << DebugTools::getPoseString(nextPose));
       return false;
     }
   } else {

@@ -19,21 +19,6 @@ find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp)
 
-## The catkin_package macro generates cmake config files for your package
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES math_tools yaml_tools convertion_tools
-  CATKIN_DEPENDS roscpp
-  DEPENDS YAML_CPP
-)
-
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  ${YAML_CPP_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
-)
-
 # --- Math tools library
 set(MATH_TOOLS_LIBRARY math_tools)
 
@@ -67,4 +52,35 @@ add_library(${CONVERTION_TOOLS_LIBRARY}
 target_link_libraries(${CONVERTION_TOOLS_LIBRARY}
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}
+)
+
+# --- Debug tools library
+set(DEBUG_TOOLS_LIBRARY debug_tools)
+
+add_library(${DEBUG_TOOLS_LIBRARY}
+  src/debug_tools.cpp
+)
+
+target_link_libraries(${DEBUG_TOOLS_LIBRARY}
+  ${catkin_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
+)
+
+## The catkin_package macro generates cmake config files for your package
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES
+    ${MATH_TOOLS_LIBRARY}
+    ${YAML_TOOLS_LIBRARY}
+    ${CONVERTION_TOOLS_LIBRARY}
+    ${DEBUG_TOOLS_LIBRARY}
+  CATKIN_DEPENDS roscpp
+  DEPENDS YAML_CPP
+)
+
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${YAML_CPP_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
