@@ -37,7 +37,8 @@ RoboticArmUr::RoboticArmUr(ROSVersion rosVersion,
                     YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_ROBOTIC_ARMS_DIR)))),
     UR_H_MATRIX(hMatrix),
     UR_P_MATRIX(pMatrix) {
-  robotGeoSolver_ = new ik_geo::Robot(ik_geo::Robot::three_parallel_two_intersecting(UR_H_MATRIX.data(), UR_P_MATRIX.data()));
+  robotGeoSolver_ =
+      new ik_geo::Robot(ik_geo::Robot::three_parallel_two_intersecting(UR_H_MATRIX.data(), UR_P_MATRIX.data()));
 }
 
 RoboticArmUr::~RoboticArmUr() { delete robotGeoSolver_; }
@@ -62,7 +63,7 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr::getFKGeo(const vec
 
   // Return the position and quaternion
   quaternion = quaternion * offset;
-  return make_pair(move(quaternion), move(posVector));
+  return make_pair(quaternion, posVector);
 }
 
 const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
@@ -112,7 +113,7 @@ tuple<vector<double>, vector<double>, vector<double>> RoboticArmUr::getState() {
   tuple<vector<double>, vector<double>, vector<double>> currentRobotState = rosInterface_->getState();
   swapJoints_(currentRobotState);
 
-  return move(currentRobotState);
+  return currentRobotState;
 }
 
 void RoboticArmUr::swapJoints_(tuple<vector<double>, vector<double>, vector<double>>& currentRobotState) {

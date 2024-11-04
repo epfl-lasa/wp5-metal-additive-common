@@ -16,7 +16,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <ros/ros.h>
 
-#include "convertion_tools.h"
+#include "conversion_tools.h"
 #include "yaml_tools.h"
 
 using namespace std;
@@ -43,7 +43,7 @@ void ObstaclesManagement::addStaticObstacles() {
     geometry_msgs::PoseStamped newObstacle;
 
     newObstacle.header.frame_id = collisionObject.header.frame_id;
-    newObstacle.pose = ConvertionTools::vectorToPose(obstacle["pose"].as<vector<double>>());
+    newObstacle.pose = ConversionTools::vectorToGeometryPose(obstacle["pose"].as<vector<double>>());
 
     // Create the collision object
     if (type == "box") {
@@ -90,7 +90,7 @@ const shape_msgs::SolidPrimitive ObstaclesManagement::createBox_(const string& n
   primitive.dimensions.resize(3);
   primitive.dimensions = size;
 
-  return move(primitive);
+  return primitive;
 }
 
 const shape_msgs::SolidPrimitive ObstaclesManagement::createCylinder_(const string& name,
@@ -103,7 +103,7 @@ const shape_msgs::SolidPrimitive ObstaclesManagement::createCylinder_(const stri
   primitive.dimensions.resize(2);
   primitive.dimensions = {height, radius};
 
-  return move(primitive);
+  return primitive;
 }
 
 const shape_msgs::SolidPrimitive ObstaclesManagement::createSphere_(const string& name, const double radius) const {
@@ -114,7 +114,7 @@ const shape_msgs::SolidPrimitive ObstaclesManagement::createSphere_(const string
   primitive.dimensions.resize(1);
   primitive.dimensions = {radius};
 
-  return move(primitive);
+  return primitive;
 }
 
 const shape_msgs::Mesh ObstaclesManagement::createMesh_(const string& name, const string& meshPath) const {
@@ -126,5 +126,5 @@ const shape_msgs::Mesh ObstaclesManagement::createMesh_(const string& name, cons
   shapes::constructMsgFromShape(m, meshMsg);
   mesh = boost::get<shape_msgs::Mesh>(meshMsg);
 
-  return move(mesh);
+  return mesh;
 }

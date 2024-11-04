@@ -20,6 +20,7 @@ find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  tf
 )
 
 ## The catkin_package macro generates cmake config files for your package
@@ -28,7 +29,7 @@ catkin_package(
   LIBRARIES
     math_tools
     yaml_tools
-    convertion_tools
+    conversion_tools
     debug_tools
   CATKIN_DEPENDS roscpp
   DEPENDS YAML_CPP
@@ -64,11 +65,11 @@ target_link_libraries(yaml_tools
 )
 
 # --- Convertion tools library
-add_library(convertion_tools
-  src/convertion_tools.cpp
+add_library(conversion_tools
+  src/conversion_tools.cpp
 )
 
-target_link_libraries(convertion_tools
+target_link_libraries(conversion_tools
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}
   math_tools
@@ -83,5 +84,4 @@ target_link_libraries(debug_tools
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}
   math_tools
-  convertion_tools
 )

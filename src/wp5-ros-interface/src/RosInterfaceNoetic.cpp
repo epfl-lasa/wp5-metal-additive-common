@@ -140,7 +140,7 @@ tuple<vector<double>, vector<double>, vector<double>> RosInterfaceNoetic::getSta
   tuple<vector<double>, vector<double>, vector<double>> stateJoints =
       make_tuple(jointsPosition_, jointsSpeed_, jointsTorque_);
 
-  return move(stateJoints);
+  return stateJoints;
 }
 
 const vector<double> RosInterfaceNoetic::getWrench() const {

@@ -18,7 +18,7 @@
 
     <group ns="ur10e">
         <!-- Choose controller manager: fake, simple, or ros_control -->
-        <arg name="moveit_controller_manager" default="simple" />
+        <arg name="moveit_controller_manager" default="ros_control" />
 
         <arg name="debug" default="false"
             doc="Debug flag that will get passed on to ur_common.launch" />

@@ -73,7 +73,7 @@ public:
       keys.push_back(pair.first);
     }
 
-    return move(keys);
+    return keys;
   }
 
 private:

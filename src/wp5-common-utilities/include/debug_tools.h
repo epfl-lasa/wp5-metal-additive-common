@@ -12,7 +12,9 @@
 
 #include <geometry_msgs/Pose.h>
 
+#include <sstream>
 #include <string>
+#include <vector>
 
 /**
  * @namespace DebugTools
@@ -24,6 +26,32 @@
  * planning and execution.
  */
 namespace DebugTools {
+/**
+ * @brief Get a string representation of a vector.
+ *
+ * This function returns a string representation of a vector. The
+ * string includes the values of each element in the vector, separated by commas.
+ *
+ * @param vec The vector to convert to a string.
+ * @return A string representation of the vector.
+ */
+template <typename T>
+std::string getVecString(const std::vector<T>& vec) {
+  std::ostringstream oss;
+  oss << "[";
+
+  for (size_t i = 0; i < vec.size(); ++i) {
+    oss << vec[i];
+
+    if (i < vec.size() - 1) {
+      oss << ", ";
+    }
+  }
+
+  oss << "]";
+  return oss.str();
+}
+
 /**
  * @brief Get a string representation of a Pose message.
  *

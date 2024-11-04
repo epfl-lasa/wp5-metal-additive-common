@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "RosInterfaceNoetic.h"
+#include "debug_tools.h"
 #include "yaml_tools.h"
 
 using namespace std;
@@ -36,7 +37,8 @@ IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, const 
   initializeTracIkSolver_();
 
   if (getNbJoints() != chain_.getNrOfJoints()) {
-    throw runtime_error("[IRoboticArmBase] - Number of joints in the kinematic chain does not match the number of joint names");
+    throw runtime_error(
+        "[IRoboticArmBase] - Number of joints in the kinematic chain does not match the number of joint names");
   }
 
   // Initialize ROS interface
@@ -62,7 +64,7 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFKTrac(const
   Eigen::Quaterniond quaternion{};
   cartesianPose.M.GetQuaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 
-  return make_pair(move(quaternion), move(posVector));
+  return make_pair(quaternion, posVector);
 }
 
 const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
@@ -98,6 +100,9 @@ tuple<vector<double>, vector<double>, vector<double>> IRoboticArmBase::getState(
 
 const bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos) {
   vector<double> currentJointPos = get<0>(getState());
+
+  ROS_WARN("[IRoboticArmBase] - Current joint Goal: %s", DebugTools::getVecString<double>(jointPos).c_str());
+  ROS_WARN("[IRoboticArmBase] - Current joint position: %s", DebugTools::getVecString<double>(currentJointPos).c_str());
 
   return equal(jointPos.begin(), jointPos.end(), currentJointPos.begin(), currentJointPos.end());
 }

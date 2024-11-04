@@ -12,7 +12,7 @@
 
 #include "ROI.h"
 
-#include "convertion_tools.h"
+#include "conversion_tools.h"
 
 using namespace std;
 
@@ -51,14 +51,14 @@ const geometry_msgs::Pose ROI::getPoseROS(uint index) const {
     return geometry_msgs::Pose();
   }
 
-  return ConvertionTools::eigenToGeometry(poses_[index].getPosition(), poses_[index].getOrientation());
+  return ConversionTools::eigenToGeometry(poses_[index].getPosition(), poses_[index].getOrientation());
 }
 
 const std::vector<geometry_msgs::Pose> ROI::getPosesROS() const {
   std::vector<geometry_msgs::Pose> posesROS;
 
   for (const auto& pose : poses_) {
-    posesROS.push_back(ConvertionTools::eigenToGeometry(pose.getPosition(), pose.getOrientation()));
+    posesROS.push_back(ConversionTools::eigenToGeometry(pose.getPosition(), pose.getOrientation()));
   }
 
   return posesROS;

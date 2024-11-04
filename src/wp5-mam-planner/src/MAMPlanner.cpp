@@ -9,7 +9,7 @@
 #include <std_msgs/Bool.h>
 
 #include "RoboticArmFactory.h"
-#include "convertion_tools.h"
+#include "conversion_tools.h"
 #include "debug_tools.h"
 #include "math_tools.h"
 #include "yaml_tools.h"
@@ -89,6 +89,10 @@ void MAMPlanner::executeTrajectory() {
 
   for (const auto& trajectory : bestPlan_) {
     firstJointConfig = trajectory.joint_trajectory.points[0].positions;
+
+    ROS_WARN_STREAM("[MAMPlanner] - First joint config: " << DebugTools::getVecString<double>(firstJointConfig));
+    ROS_WARN_STREAM("[MAMPlanner] - First 3D position: " << DebugTools::getVecString<double>(
+                        ConversionTools::eigenToVector(robot_->getFKGeo(firstJointConfig).second)));
 
     if (!robot_->isAtJointPosition(firstJointConfig)) {
       moveGroup_->setJointValueTarget(firstJointConfig);
@@ -201,8 +205,8 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
   bool isPathFound = false;
   vector<vector<double>> ikSolutions{};
 
-  bool ikSuccess = robot_->getIKGeo(ConvertionTools::geometryToEigen(currentPose.orientation),
-                                    ConvertionTools::geometryToEigen(currentPose.position),
+  bool ikSuccess = robot_->getIKGeo(ConversionTools::geometryToEigen(currentPose.orientation),
+                                    ConversionTools::geometryToEigen(currentPose.position),
                                     ikSolutions);
 
   if (ikSuccess) {
