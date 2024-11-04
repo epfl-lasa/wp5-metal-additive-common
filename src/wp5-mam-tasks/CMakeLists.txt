@@ -31,6 +31,7 @@ catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS
   roscpp
+  wp5_common_utilities
   wp5_mam_planner
   wp5_robotic_arms_drivers
   DEPENDS YAML_CPP

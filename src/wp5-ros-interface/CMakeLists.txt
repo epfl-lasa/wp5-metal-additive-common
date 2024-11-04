@@ -31,7 +31,14 @@ find_package(Eigen3 REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp roslib message_runtime std_msgs sensor_msgs geometry_msgs
+  CATKIN_DEPENDS
+    roscpp
+    roslib
+    message_runtime
+    std_msgs
+    sensor_msgs
+    geometry_msgs
+    wp5_common_utilities
   DEPENDS YAML_CPP
 )
 

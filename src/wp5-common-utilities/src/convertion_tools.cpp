@@ -46,6 +46,8 @@ std::vector<double> poseToVector(const geometry_msgs::Pose& pose) {
                               pose.orientation.y,
                               pose.orientation.z,
                               pose.orientation.w};
+
+  return std::move(newPose);
 }
 
 geometry_msgs::Pose vectorToPose(const std::vector<double>& pose) {

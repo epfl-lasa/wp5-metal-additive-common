@@ -17,63 +17,19 @@ add_compile_options(${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}})
 # Find packages if any
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(catkin REQUIRED COMPONENTS roscpp)
-
-# --- Math tools library
-set(MATH_TOOLS_LIBRARY math_tools)
-
-add_library(${MATH_TOOLS_LIBRARY}
-  src/math_tools.cpp
-)
-
-target_link_libraries(${MATH_TOOLS_LIBRARY}
-  ${catkin_LIBRARIES}
-)
-
-# --- YAML tools library
-set(YAML_TOOLS_LIBRARY yaml_tools)
-
-add_library(${YAML_TOOLS_LIBRARY}
-  src/yaml_tools.cpp
-)
-
-target_link_libraries(${YAML_TOOLS_LIBRARY}
-  ${catkin_LIBRARIES}
-  ${YAML_CPP_LIBRARIES}
-)
-
-# --- Convertion tools library
-set(CONVERTION_TOOLS_LIBRARY convertion_tools)
-
-add_library(${CONVERTION_TOOLS_LIBRARY}
-  src/convertion_tools.cpp
-)
-
-target_link_libraries(${CONVERTION_TOOLS_LIBRARY}
-  ${catkin_LIBRARIES}
-  ${EIGEN3_LIBRARIES}
-)
-
-# --- Debug tools library
-set(DEBUG_TOOLS_LIBRARY debug_tools)
-
-add_library(${DEBUG_TOOLS_LIBRARY}
-  src/debug_tools.cpp
-)
-
-target_link_libraries(${DEBUG_TOOLS_LIBRARY}
-  ${catkin_LIBRARIES}
-  ${EIGEN3_LIBRARIES}
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
 )
 
 ## The catkin_package macro generates cmake config files for your package
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES
-    ${MATH_TOOLS_LIBRARY}
-    ${YAML_TOOLS_LIBRARY}
-    ${CONVERTION_TOOLS_LIBRARY}
-    ${DEBUG_TOOLS_LIBRARY}
+    math_tools
+    yaml_tools
+    convertion_tools
+    debug_tools
   CATKIN_DEPENDS roscpp
   DEPENDS YAML_CPP
 )
@@ -83,4 +39,49 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+)
+
+# --- Math tools library
+add_library(math_tools
+  src/math_tools.cpp
+)
+
+target_link_libraries(math_tools
+  ${catkin_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
+)
+
+# --- YAML tools library
+set(YAML_TOOLS_LIBRARY yaml_tools)
+
+add_library(yaml_tools
+  src/yaml_tools.cpp
+)
+
+target_link_libraries(yaml_tools
+  ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
+)
+
+# --- Convertion tools library
+add_library(convertion_tools
+  src/convertion_tools.cpp
+)
+
+target_link_libraries(convertion_tools
+  ${catkin_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
+  math_tools
+)
+
+# --- Debug tools library
+add_library(debug_tools
+  src/debug_tools.cpp
+)
+
+target_link_libraries(debug_tools
+  ${catkin_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
+  math_tools
+  convertion_tools
 )
