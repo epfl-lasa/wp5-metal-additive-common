@@ -4,7 +4,7 @@
 # The waypoints are read from a file and published one by one as damage areas.
 
 # Author: Louis Munier
-# Last update: 2024-05-13
+# Last update: 2024-10-20
 
 import rospy
 import yaml

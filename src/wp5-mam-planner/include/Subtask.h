@@ -27,6 +27,7 @@
 
 #include "ROI.h"
 #include "WaypointParser.h"
+#include "math_tools.h"
 
 class Subtask {
 public:
@@ -61,25 +62,17 @@ private:
   ros::Subscriber subROI_;
   std::deque<ROI> dequeROI_;
 
-  const Eigen::Vector3d robotPos_ = Eigen::Vector3d(0, 0, 0);
-  const Eigen::Vector3d refVector_ = Eigen::Vector3d(1.0, 0.0, 0.0);
-  static constexpr double theta_ = -30 * M_PI / 180;
+  const Eigen::Vector3d robotPos_ = Eigen::Vector3d::Zero();
+  static constexpr double theta_ = MathTools::degToRad<int>(0);
 
   WaypointParser waypointParser_;
 
   void parseROI_(const std::string& str);
   const bool isROIStored_(const std::string& id) const;
   const Eigen::Quaterniond rotateVectorInPlan_(const std::array<Eigen::Vector3d, 3>& pointsArray,
-                                               const Eigen::Vector3d refVector,
                                                const double theta = theta_);
   // Debug
-  ros::Publisher pubWaypoint1_;
-  ros::Publisher pubWaypoint2_;
-  ros::Publisher pubRobotBase_;
-  ros::Publisher pubComputedQuat_;
-  void publishPose_(const Eigen::Vector3d& pos, const Eigen::Quaterniond quat, ros::Publisher pub);
-  void publishWaypoint_(const Eigen::Vector3d& pose, ros::Publisher pub);
-
+  ros::Publisher pubWaypoint_;
   /**
    * @brief Callback to get the region of interests.
    */

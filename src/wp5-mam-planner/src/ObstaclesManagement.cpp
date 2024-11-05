@@ -14,14 +14,16 @@
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <ros/ros.h>
+#include <moveit_msgs/CollisionObject.h>
+#include <moveit_msgs/GetPlanningScene.h>
+#include <moveit_msgs/PlanningSceneComponents.h>
 
 #include "conversion_tools.h"
 #include "yaml_tools.h"
 
 using namespace std;
 
-ObstaclesManagement::ObstaclesManagement(string frameID) : frameID_(frameID) {
+ObstaclesManagement::ObstaclesManagement(ros::NodeHandle nh, string frameID) : nh_(nh), frameID_(frameID) {
   planningScene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
 }
 
@@ -80,6 +82,28 @@ void ObstaclesManagement::addStaticObstacles() {
   }
 
   planningScene_->applyCollisionObjects(collisionObjects);
+}
+
+void ObstaclesManagement::removeObstacles(const std::vector<std::string>& obstacleIds) {
+  planningScene_->removeCollisionObjects(obstacleIds);
+}
+
+void ObstaclesManagement::updatePlanningScene() {
+  ros::ServiceClient planningSceneDiffClient = nh_.serviceClient<moveit_msgs::GetPlanningScene>("get_planning_scene");
+
+  moveit_msgs::GetPlanningScene srv;
+  srv.request.components.components = moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_NAMES
+                                      | moveit_msgs::PlanningSceneComponents::WORLD_OBJECT_GEOMETRY
+                                      | moveit_msgs::PlanningSceneComponents::ROBOT_STATE
+                                      | moveit_msgs::PlanningSceneComponents::ROBOT_STATE_ATTACHED_OBJECTS
+                                      | moveit_msgs::PlanningSceneComponents::SCENE_SETTINGS
+                                      | moveit_msgs::PlanningSceneComponents::ALLOWED_COLLISION_MATRIX;
+
+  if (planningSceneDiffClient.call(srv)) {
+    planningScene_->applyPlanningScene(srv.response.scene);
+  } else {
+    ROS_ERROR("[ObstacleManagement] - Failed to call service get_planning_scene");
+  }
 }
 
 const shape_msgs::SolidPrimitive ObstaclesManagement::createBox_(const string& name, const vector<double>& size) const {

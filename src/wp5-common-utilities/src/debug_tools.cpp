@@ -11,6 +11,8 @@
 
 #include "debug_tools.h"
 
+#include <geometry_msgs/PoseStamped.h>
+
 #include "conversion_tools.h"
 
 namespace DebugTools {
@@ -24,5 +26,20 @@ std::string getPoseString(const geometry_msgs::Pose& pose) {
   poseString += "Orientation - xyzw " + getVecString<double>(ConversionTools::geometryToVector(pose.orientation));
 
   return poseString;
+}
+
+void publishPose(const geometry_msgs::Pose& pose, const std::string& frameId, ros::Publisher& pub) {
+  float TIME_WAIT = 0.2;
+  size_t NB_PUBLISH = 3;
+
+  geometry_msgs::PoseStamped poseStamped;
+  poseStamped.header.frame_id = frameId;
+  poseStamped.header.stamp = ros::Time::now();
+  poseStamped.pose = pose;
+
+  for (size_t i = 0; i < NB_PUBLISH; ++i) {
+    pub.publish(poseStamped);
+    ros::Duration(TIME_WAIT).sleep();
+  }
 }
 } // namespace DebugTools

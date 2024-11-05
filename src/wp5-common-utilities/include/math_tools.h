@@ -2,8 +2,8 @@
  * @file math_tools.h
  * @author Louis Munier (lmunier@protonmail.com)
  * @brief
- * @version 0.2
- * @date 2024-10-10
+ * @version 0.3
+ * @date 2024-11-05
  *
  * @copyright Copyright (c) 2024 - EPFL
  *
@@ -13,7 +13,7 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <ros/ros.h>
-#include <tf/transform_listener.h>
+#include <tf2_ros/buffer.h>
 
 #include <Eigen/Dense>
 #include <algorithm>
@@ -53,12 +53,7 @@ const bool isNumber(const std::string& str);
  * @return The angle in degrees.
  */
 template <typename T>
-double radToDeg(const T& rad) {
-  if (!isNumber(std::to_string(rad))) {
-    ROS_ERROR("[MathTools] - radToDeg: Invalid input, it has to be a number");
-    return 0.0;
-  }
-
+constexpr double radToDeg(const T& rad) {
   return rad * 180.0 / M_PI;
 }
 
@@ -71,12 +66,7 @@ double radToDeg(const T& rad) {
  * @return The angle in radians.
  */
 template <typename T>
-double degToRad(const T& deg) {
-  if (!isNumber(std::to_string(deg))) {
-    ROS_ERROR("[MathTools] - radToDeg: Invalid input, it has to be a number");
-    return 0.0;
-  }
-
+constexpr double degToRad(const T& deg) {
   return deg * M_PI / 180.0;
 }
 
@@ -132,13 +122,13 @@ Eigen::Quaternion<T> eulerToQuaternion(const std::array<T, 3>& euler) {
  * source frame to the target frame. It is essential for ensuring that the pose is correctly
  * transformed according to the latest available transform data.
  *
- * @param listener The tf::TransformListener object used to perform the transformation.
+ * @param tfBuffer The TF buffer containing the latest transform data.
  * @param source_frame The name of the frame from which the pose is to be transformed.
  * @param target_frame The name of the frame to which the pose is to be transformed.
  * @param pose The input geometry_msgs::Pose to be transformed.
  * @return The transformed geometry_msgs::Pose in the target frame.
  */
-geometry_msgs::Pose transformPose(const tf::TransformListener& listener,
+geometry_msgs::Pose transformPose(tf2_ros::Buffer& tfBuffer,
                                   const std::string& source_frame,
                                   const std::string& target_frame,
                                   const geometry_msgs::Pose& pose);

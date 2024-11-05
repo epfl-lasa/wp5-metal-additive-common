@@ -11,6 +11,7 @@
 #pragma once
 
 #include <geometry_msgs/Pose.h>
+#include <ros/ros.h>
 
 #include <sstream>
 #include <string>
@@ -62,4 +63,16 @@ std::string getVecString(const std::vector<T>& vec) {
  * @return A string representation of the Pose message.
  */
 std::string getPoseString(const geometry_msgs::Pose& pose);
+
+/**
+ * @brief Publishes a given pose to a specified ROS topic.
+ *
+ * This function takes a geometry_msgs::Pose object, a frame ID string, and a ROS publisher,
+ * and publishes the pose to the topic associated with the publisher.
+ *
+ * @param pose The pose to be published.
+ * @param frameId The frame ID associated with the pose.
+ * @param pub The ROS publisher to publish the pose to.
+ */
+void publishPose(const geometry_msgs::Pose& pose, const std::string& frameId, ros::Publisher& pub);
 } // namespace DebugTools
