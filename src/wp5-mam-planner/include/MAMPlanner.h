@@ -60,9 +60,8 @@ private:
   tf2_ros::TransformBroadcaster br_; ///< ROS spinner to handle callbacks asynchronously
 
   ros::Publisher pubWeldingState_;             ///< Publisher for the welding state
-  ros::Publisher pubDisplayTrajectory_;        ///< Publisher for the display trajectory
   ros::Publisher pubWaypointRviz_;             ///< Publisher for the waypoint in Rviz
-  ros::Publisher pubWaypointCoppeliasim_;      ///< Publisher for the waypoint in CoppeliaSim
+  ros::Publisher pubTrajectory_;               ///< Publisher for the path
   std::unique_ptr<Subtask> subtask_ = nullptr; ///< Subtask
 
   bool pathFound_ = false;
@@ -83,14 +82,7 @@ private:
                           const geometry_msgs::Pose nextPose,
                           const bool welding);
 
-  geometry_msgs::Pose projectPose_(const geometry_msgs::Pose& pose,
-                                   const std::string& fromFrame,
-                                   const std::string& toFrame);
   void createNewFrame_(const std::string& parentFrame,
                        const std::string& newFrame,
                        const geometry_msgs::Transform& transform);
-
-  // void getWaypoints_();
-  void publishWaypointRviz_(const geometry_msgs::Pose& pose, const std::string& frameId);
-  void publishWaypointCoppeliasim_(const geometry_msgs::Pose& pose, const std::string& frameId);
 };

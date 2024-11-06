@@ -11,6 +11,8 @@
 #pragma once
 
 #include <geometry_msgs/Pose.h>
+#include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit_msgs/RobotTrajectory.h>
 #include <ros/ros.h>
 
 #include <sstream>
@@ -75,4 +77,18 @@ std::string getPoseString(const geometry_msgs::Pose& pose);
  * @param pub The ROS publisher to publish the pose to.
  */
 void publishPose(const geometry_msgs::Pose& pose, const std::string& frameId, ros::Publisher& pub);
+
+/**
+ * @brief Publishes a given trajectory to a specified ROS topic.
+ *
+ * This function takes a moveit_msgs::RobotTrajectory object and a ROS publisher, and publishes
+ * the trajectory to the topic associated with the publisher.
+ *
+ * @param moveGroup The MoveGroupInterface object associated with the trajectory.
+ * @param trajectory The trajectory to be published.
+ * @param pub The ROS publisher to publish the trajectory to.
+ */
+void publishTrajectory(const moveit::planning_interface::MoveGroupInterface& moveGroup,
+                       const moveit_msgs::RobotTrajectory& trajectory,
+                       ros::Publisher& pub);
 } // namespace DebugTools

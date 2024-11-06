@@ -32,10 +32,13 @@ public:
   void updatePlanningScene();
 
 private:
-  ros::NodeHandle nh_;                                                                          ///< ROS node handle
-  std::string frameID_ = "";                                                                    ///< Frame ID
-  std::unique_ptr<moveit::planning_interface::PlanningSceneInterface> planningScene_ = nullptr; ///< Planning scene
+  ros::NodeHandle nh_;       ///< ROS node handle
+  std::string frameID_ = ""; ///< Frame ID
 
+  // Planning scene interface
+  std::unique_ptr<moveit::planning_interface::PlanningSceneInterface> planningSceneInterface_ = nullptr;
+
+  // Create new obstacles shape
   const shape_msgs::SolidPrimitive createBox_(const std::string& name, const std::vector<double>& size) const;
   const shape_msgs::SolidPrimitive createCylinder_(const std::string& name, double height, double radius) const;
   const shape_msgs::SolidPrimitive createSphere_(const std::string& name, double radius) const;

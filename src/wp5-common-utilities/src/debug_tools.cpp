@@ -11,7 +11,10 @@
 
 #include "debug_tools.h"
 
+#include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <moveit/robot_state/conversions.h>
+#include <moveit_msgs/DisplayTrajectory.h>
 
 #include "conversion_tools.h"
 
@@ -41,5 +44,14 @@ void publishPose(const geometry_msgs::Pose& pose, const std::string& frameId, ro
     pub.publish(poseStamped);
     ros::Duration(TIME_WAIT).sleep();
   }
+}
+
+void publishTrajectory(const moveit::planning_interface::MoveGroupInterface& moveGroup,
+                       const moveit_msgs::RobotTrajectory& trajectory,
+                       ros::Publisher& pub) {
+  moveit_msgs::DisplayTrajectory displayTrajectory;
+  moveit::core::robotStateToRobotStateMsg(*moveGroup.getCurrentState(), displayTrajectory.trajectory_start);
+  displayTrajectory.trajectory.push_back(trajectory);
+  pub.publish(displayTrajectory);
 }
 } // namespace DebugTools

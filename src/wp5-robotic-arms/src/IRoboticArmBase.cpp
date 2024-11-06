@@ -101,8 +101,10 @@ tuple<vector<double>, vector<double>, vector<double>> IRoboticArmBase::getState(
 const bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos) {
   vector<double> currentJointPos = get<0>(getState());
 
+#ifdef DEBUG_MODE
   ROS_WARN("[IRoboticArmBase] - Current joint Goal: %s", DebugTools::getVecString<double>(jointPos).c_str());
   ROS_WARN("[IRoboticArmBase] - Current joint position: %s", DebugTools::getVecString<double>(currentJointPos).c_str());
+#endif
 
   return equal(jointPos.begin(), jointPos.end(), currentJointPos.begin(), currentJointPos.end());
 }

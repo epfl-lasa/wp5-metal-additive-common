@@ -1,11 +1,16 @@
 /**
  * @file MAMPlanner.cpp
  * @brief Declaration of the MAMPlanner class
- * @author [Louis Munier]
+ *
+ * @author [Louis Munier] (lmunier@protonmail.com)
+ * @version 0.1
  * @date 2024-09-12
+ *
+ * @copyright Copyright (c) 2024 - EPFL
  */
 #include "MAMPlanner.h"
 
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <std_msgs/Bool.h>
 
 #include "RoboticArmFactory.h"
@@ -17,7 +22,7 @@
 using namespace std;
 
 MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) :
-    spinner_(1), nh_(nh), tfListener_(tfBuffer_), subtask_(make_unique<Subtask>(nh_)) {
+    spinner_(4), nh_(nh), tfListener_(tfBuffer_), subtask_(make_unique<Subtask>(nh_)) {
   RoboticArmFactory armFactory = RoboticArmFactory();
   robot_ = armFactory.createRoboticArm(robotName, rosVersion);
   robot_->printInfo();
@@ -25,21 +30,18 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh, string robotN
   initMoveit_();
 
   pubWeldingState_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
-  pubDisplayTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("move_group/display_planned_path", 20);
+  pubTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("debug_trajectory", 1000);
   pubWaypointRviz_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_waypoint", 10);
-  pubWaypointCoppeliasim_ = nh_.advertise<geometry_msgs::PoseArray>("/visualisation/waypoints", 10);
 
   // Add obstacles
-  obstacles_ = make_unique<ObstaclesManagement>(ObstaclesManagement(moveGroup_->getPlanningFrame()));
-  // obstacles_->addStaticObstacles();
+  obstacles_ = make_unique<ObstaclesManagement>(ObstaclesManagement(nh_, moveGroup_->getPlanningFrame()));
+  obstacles_->addStaticObstacles();
 }
 
 bool MAMPlanner::planTrajectory() {
   currentWPointID_ = 0;
   bestPlan_.clear();
   geometry_msgs::Pose currentPose = moveGroup_->getCurrentPose().pose;
-
-  publishWaypointRviz_(currentPose, "base_link");
 
   while (subtask_->empty()) {
     float TIME_WAIT = 0.2;
@@ -48,7 +50,7 @@ bool MAMPlanner::planTrajectory() {
   }
 
   while (!subtask_->empty()) {
-    optional<ROI> roi = subtask_->getROI();
+    optional<ROI> roi = subtask_->popROI();
 
     if (!roi.has_value()) {
       ROS_ERROR("[MAMPlanner] - No ROI received");
@@ -58,21 +60,11 @@ bool MAMPlanner::planTrajectory() {
     geometry_msgs::Pose startTaskPose = roi.value().getPoseROS(0);
     geometry_msgs::Pose endTaskPose = roi.value().getPoseROS(1);
 
-    publishWaypointRviz_(startTaskPose, "base_link");
-    ros::Duration(3.0).sleep();
-
-    publishWaypointRviz_(endTaskPose, "base_link");
-    ros::Duration(3.0).sleep();
-
-    // Robot goes to start pose
-    if (!computeTrajectory_(currentPose, startTaskPose, false)) {
-      return false;
-    }
-
     // Robot welding task
     if (!computeTrajectory_(startTaskPose, endTaskPose, true)) {
       return false;
     }
+    currentWPointID_++;
   }
 
   return true;
@@ -89,10 +81,6 @@ void MAMPlanner::executeTrajectory() {
 
   for (const auto& trajectory : bestPlan_) {
     firstJointConfig = trajectory.joint_trajectory.points[0].positions;
-
-    ROS_WARN_STREAM("[MAMPlanner] - First joint config: " << DebugTools::getVecString<double>(firstJointConfig));
-    ROS_WARN_STREAM("[MAMPlanner] - First 3D position: " << DebugTools::getVecString<double>(
-                        ConversionTools::eigenToVector(robot_->getFKGeo(firstJointConfig).second)));
 
     if (!robot_->isAtJointPosition(firstJointConfig)) {
       moveGroup_->setJointValueTarget(firstJointConfig);
@@ -125,8 +113,7 @@ void MAMPlanner::initMoveit_() {
   ros::Duration timeout(2.0);
 
   try {
-    moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(
-        robotGroup, make_shared<tf2_ros::Buffer>(), timeout);
+    moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robotGroup);
   } catch (const runtime_error& e) {
     ROS_ERROR("[MAMPlanner] - Failed to initialize MoveGroupInterface: %s", e.what());
     return;
@@ -183,6 +170,10 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
     planTrajectory = plan.trajectory_;
   }
 
+#ifdef DEBUG_MODE
+  DebugTools::publishTrajectory(*moveGroup_, planTrajectory, pubTrajectory_);
+#endif
+
   if (success) {
     if (currentWPointID_ >= bestPlan_.size()) {
       bestPlan_.push_back(planTrajectory);
@@ -203,6 +194,7 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
                                     const geometry_msgs::Pose nextPose,
                                     const bool welding) {
   bool isPathFound = false;
+  bool isPathComputed = false;
   vector<vector<double>> ikSolutions{};
 
   bool ikSuccess = robot_->getIKGeo(ConversionTools::geometryToEigen(currentPose.orientation),
@@ -213,8 +205,8 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
     ROS_INFO("[MAMPlanner] - IK solutions found");
 
     for (const auto& ikSol : ikSolutions) {
-      vector<double> startConfig = ikSol;
-      isPathFound = isPathFound || computePath_(startConfig, currentPose, nextPose, welding);
+      isPathComputed = computePath_(ikSol, currentPose, nextPose, welding);
+      isPathFound = isPathFound || isPathComputed;
     }
 
     if (!isPathFound) {
@@ -229,27 +221,6 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
   return true;
 }
 
-geometry_msgs::Pose MAMPlanner::projectPose_(const geometry_msgs::Pose& pose,
-                                             const string& fromFrame,
-                                             const string& toFrame) {
-  geometry_msgs::PoseStamped inputPose;
-  inputPose.pose = pose;
-  inputPose.header.frame_id = fromFrame;
-  inputPose.header.stamp = ros::Time::now();
-
-  try {
-    geometry_msgs::TransformStamped transformStamped =
-        tfBuffer_.lookupTransform(toFrame, fromFrame, ros::Time(0), ros::Duration(1.0));
-    geometry_msgs::PoseStamped outputPose;
-
-    tf2::doTransform(inputPose, outputPose, transformStamped);
-    return outputPose.pose;
-  } catch (tf2::TransformException& ex) {
-    ROS_WARN("[MAMPlanner] - Could NOT transform: %s", ex.what());
-    return pose;
-  }
-}
-
 void MAMPlanner::createNewFrame_(const string& parentFrame,
                                  const string& newFrame,
                                  const geometry_msgs::Transform& transform) {
@@ -260,29 +231,4 @@ void MAMPlanner::createNewFrame_(const string& parentFrame,
   transformStamped.transform = transform;
 
   br_.sendTransform(transformStamped);
-}
-
-void MAMPlanner::publishWaypointRviz_(const geometry_msgs::Pose& pose, const string& frameId) {
-  float TIME_WAIT = 0.2;
-  size_t NB_PUBLISH = 3;
-
-  geometry_msgs::PoseStamped poseStamped;
-  poseStamped.header.frame_id = frameId;
-  poseStamped.header.stamp = ros::Time::now();
-  poseStamped.pose = pose;
-
-  for (size_t i = 0; i < NB_PUBLISH; ++i) {
-    pubWaypointRviz_.publish(poseStamped);
-    ros::Duration(TIME_WAIT).sleep();
-  }
-}
-
-// Publish the geometry::PoseArry waypoint to CoppeliaSim
-void MAMPlanner::publishWaypointCoppeliasim_(const geometry_msgs::Pose& pose, const string& frameId) {
-  geometry_msgs::PoseArray poseArray;
-  poseArray.header.frame_id = frameId;
-  poseArray.header.stamp = ros::Time::now();
-  poseArray.poses.push_back(pose);
-
-  pubWaypointCoppeliasim_.publish(poseArray);
 }

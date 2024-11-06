@@ -24,7 +24,7 @@ Subtask::Subtask(ros::NodeHandle& nh) : nh_(nh) {
   pubWaypoint_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_waypoint", 10);
 }
 
-const optional<ROI> Subtask::getROI() {
+const optional<ROI> Subtask::popROI() {
   if (!empty()) {
     ROI roi = dequeROI_.front();
     dequeROI_.pop_front();

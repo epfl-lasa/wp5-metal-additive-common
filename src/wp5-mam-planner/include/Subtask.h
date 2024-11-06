@@ -48,14 +48,17 @@ public:
 
   /**
    * @brief True if no region of interest
+   *
    * @return bool True if no region of interest
    */
   const bool empty() const { return dequeROI_.empty(); }
 
   /**
    * @brief Get the first region of interest and deletes it
+   *
+   * @return std::optional<ROI> The first region of interest
    */
-  const std::optional<ROI> getROI();
+  const std::optional<ROI> popROI();
 
 private:
   ros::NodeHandle nh_;

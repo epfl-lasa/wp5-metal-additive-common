@@ -24,7 +24,7 @@
 using namespace std;
 
 ObstaclesManagement::ObstaclesManagement(ros::NodeHandle nh, string frameID) : nh_(nh), frameID_(frameID) {
-  planningScene_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
+  planningSceneInterface_ = make_unique<moveit::planning_interface::PlanningSceneInterface>();
 }
 
 void ObstaclesManagement::addStaticObstacles() {
@@ -81,11 +81,11 @@ void ObstaclesManagement::addStaticObstacles() {
     collisionObjects.push_back(collisionObject);
   }
 
-  planningScene_->applyCollisionObjects(collisionObjects);
+  planningSceneInterface_->applyCollisionObjects(collisionObjects);
 }
 
 void ObstaclesManagement::removeObstacles(const std::vector<std::string>& obstacleIds) {
-  planningScene_->removeCollisionObjects(obstacleIds);
+  planningSceneInterface_->removeCollisionObjects(obstacleIds);
 }
 
 void ObstaclesManagement::updatePlanningScene() {
@@ -100,7 +100,7 @@ void ObstaclesManagement::updatePlanningScene() {
                                       | moveit_msgs::PlanningSceneComponents::ALLOWED_COLLISION_MATRIX;
 
   if (planningSceneDiffClient.call(srv)) {
-    planningScene_->applyPlanningScene(srv.response.scene);
+    planningSceneInterface_->applyPlanningScene(srv.response.scene);
   } else {
     ROS_ERROR("[ObstacleManagement] - Failed to call service get_planning_scene");
   }
