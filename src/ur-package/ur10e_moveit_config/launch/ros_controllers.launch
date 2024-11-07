@@ -5,7 +5,7 @@
   <rosparam file="$(find ur10e_moveit_config)/config/ros_controllers.yaml" command="load"/>
 
   <!-- Load the controllers -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" args=""/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner"
+    args="manipulator_controller" />
 
 </launch>

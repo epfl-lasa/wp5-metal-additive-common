@@ -91,4 +91,14 @@ void publishPose(const geometry_msgs::Pose& pose, const std::string& frameId, ro
 void publishTrajectory(const moveit::planning_interface::MoveGroupInterface& moveGroup,
                        const moveit_msgs::RobotTrajectory& trajectory,
                        ros::Publisher& pub);
+
+/**
+ * @brief Prints the time stamps of each point in the given robot trajectory.
+ *
+ * This function iterates through the trajectory points in the provided
+ * RobotTrajectory message and prints the time stamps associated with each point.
+ *
+ * @param trajectory The robot trajectory whose time stamps are to be printed.
+ */
+void printTrajectoryTimeStamps(const moveit_msgs::RobotTrajectory& trajectory);
 } // namespace DebugTools

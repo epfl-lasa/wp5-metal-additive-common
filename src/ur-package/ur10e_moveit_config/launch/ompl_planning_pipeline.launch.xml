@@ -9,7 +9,7 @@
                 default_planner_request_adapters/FixStartStateBounds
                 default_planner_request_adapters/FixStartStateCollision
                 default_planner_request_adapters/FixStartStatePathConstraints"
-                />
+  />
 
   <arg name="start_state_max_bounds_error" default="0.1" />
   <arg name="jiggle_fraction" default="0.05" />

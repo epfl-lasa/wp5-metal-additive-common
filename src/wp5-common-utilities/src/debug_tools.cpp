@@ -54,4 +54,11 @@ void publishTrajectory(const moveit::planning_interface::MoveGroupInterface& mov
   displayTrajectory.trajectory.push_back(trajectory);
   pub.publish(displayTrajectory);
 }
+
+void printTrajectoryTimeStamps(const moveit_msgs::RobotTrajectory& trajectory) {
+  const auto& points = trajectory.joint_trajectory.points;
+  for (size_t i = 0; i < points.size(); ++i) {
+    ROS_INFO("Waypoint %zu: time_from_start = %f", i, points[i].time_from_start.toSec());
+  }
+}
 } // namespace DebugTools

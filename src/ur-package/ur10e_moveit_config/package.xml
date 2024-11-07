@@ -3,7 +3,7 @@
   <name>ur10e_moveit_config</name>
   <version>0.3.0</version>
   <description>
-     An automatically generated package with all the configuration and launch files for using the ur10e_robot with the MoveIt Motion Planning Framework
+     An automatically generated package with all the configuration and launch files for using the ur5_robot with the MoveIt Motion Planning Framework
   </description>
   <author email="felix@fexner.de">Felix Exner</author>
   <maintainer email="felix@fexner.de">Felix Exner</maintainer>

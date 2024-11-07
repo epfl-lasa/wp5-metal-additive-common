@@ -11,6 +11,7 @@
 #include "MAMPlanner.h"
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <std_msgs/Bool.h>
 
 #include "RoboticArmFactory.h"
@@ -30,8 +31,11 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh, string robotN
   initMoveit_();
 
   pubWeldingState_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
+
+#ifdef DEBUG_MODE
   pubTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("debug_trajectory", 1000);
   pubWaypointRviz_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_waypoint", 10);
+#endif
 
   // Add obstacles
   obstacles_ = make_unique<ObstaclesManagement>(ObstaclesManagement(nh_, moveGroup_->getPlanningFrame()));
@@ -141,7 +145,8 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
                               const bool isWelding) {
   bool success = false;
   const string robotGroup = "manipulator";
-  moveit_msgs::RobotTrajectory planTrajectory{};
+  moveit_msgs::RobotTrajectory planTrajectory;
+
   moveGroup_->clearPoseTargets();
 
   // Create a RobotState object and set it to the desired starting joint configuration
@@ -170,11 +175,27 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
     planTrajectory = plan.trajectory_;
   }
 
+  if (success) {
+    // Retiming logic to ensure constant speed
+    robot_trajectory::RobotTrajectory rt(moveGroup_->getCurrentState()->getRobotModel(), robotGroup);
+    rt.setRobotTrajectoryMsg(*moveGroup_->getCurrentState(), planTrajectory);
+
+    // Use IterativeParabolicTimeParameterization to retime the trajectory
+    trajectory_processing::IterativeParabolicTimeParameterization iptp;
+    bool retimed =
+        iptp.computeTimeStamps(rt, 0.05); // TODO(lmunier): Check Velocity scaling factor to set: 1.0 for constant speed
+
+    if (!retimed) {
+      ROS_WARN("[MAMPlanner] - Trajectory retiming failed");
+    }
+
+    // Update the planTrajectory with the retimed data
+    rt.getRobotTrajectoryMsg(planTrajectory);
+
 #ifdef DEBUG_MODE
-  DebugTools::publishTrajectory(*moveGroup_, planTrajectory, pubTrajectory_);
+    DebugTools::publishTrajectory(*moveGroup_, planTrajectory, pubTrajectory_);
 #endif
 
-  if (success) {
     if (currentWPointID_ >= bestPlan_.size()) {
       bestPlan_.push_back(planTrajectory);
     } else {

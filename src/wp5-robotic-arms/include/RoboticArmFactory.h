@@ -126,7 +126,7 @@ private:
       0.0, -0.57155, 0.0,
       0.17415, 0.0, 0.0,
       0.0, 0.0, -0.11985,
-      0.11655, 0.0, 0.0
+      0.15155, 0.0, 0.0 // TODO(lmunier) : Check if adding sensor link offset is necessary
   };
   // clang-format on
 };

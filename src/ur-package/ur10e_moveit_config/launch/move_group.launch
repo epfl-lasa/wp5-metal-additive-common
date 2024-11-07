@@ -14,7 +14,7 @@
   <!-- move_group settings -->
   <arg name="pipeline" default="ompl" />
   <arg name="allow_trajectory_execution" default="true"/>
-  <arg name="moveit_controller_manager" default="simple" />
+  <arg name="moveit_controller_manager" default="ros_control" />
   <arg name="fake_execution_type" default="interpolate"/>
   <arg name="max_safe_path_cost" default="1"/>
   <arg name="publish_monitored_planning_scene" default="true"/>
@@ -37,10 +37,13 @@
                 " />
   -->
 
-  <arg name="load_robot_description" default="false" />
+  <arg name="load_robot_description" default="true" />
+  <arg name="ee_tool" default="none" />
+
   <!-- load URDF, SRDF and joint_limits configuration -->
   <include file="$(dirname)/planning_context.launch">
     <arg name="load_robot_description" value="$(arg load_robot_description)" />
+    <arg name="ee_tool" value="$(arg ee_tool)" />
   </include>
 
   <!-- Planning Pipelines -->
