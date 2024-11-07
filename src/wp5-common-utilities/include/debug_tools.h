@@ -1,11 +1,11 @@
 /**
  * @file debug_tools.h
- * @author Louis Munier (lmunier@protonmail.com)
+ * @author [Louis Munier] - lmunier@protonmail.com
  * @brief
  * @version 0.1
  * @date 2024-10-29
  *
- * @copyright Copyright (c) 2024 - EPFL
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *
  */
 #pragma once

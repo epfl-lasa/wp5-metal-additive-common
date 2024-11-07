@@ -1,11 +1,11 @@
 /**
  * @file RosInterfaceNoetic.h
  * @brief Create a ROS interface with respect to the ROS version to communicate with the robotic arm
- * @author Louis Munier (lmunier@protonmail.com)
+ * @author [Louis Munier] - lmunier@protonmail.com
  * @author Tristan Bonato (tristan_bonato@hotmail.com)
  * @version 0.1
  * @date 2024-03-07
- * @copyright Copyright (c) 2024 - EPFL
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  */
 
 #pragma once

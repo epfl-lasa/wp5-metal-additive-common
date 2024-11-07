@@ -1,3 +1,23 @@
+# docker-compose.yaml
+#
+# Configuration file for all the different docker to be run for the project.
+# Each container has its own profile to be setup with the right parameters
+# and allowing to only run the necessary containers.
+#
+# Command to run the docker-compose file:
+# Building ros1 noetic docker with nvidia support
+#   docker compose --profile nvidia build
+#
+# Mounting ros1 noetic docker with nvidia support in detached mode
+#   docker compose --profile nvidia up -d
+#
+# @Author [Louis Munier] - lmunier@protonmail.com
+# @version 0.4
+# @Date 2024-11-07
+#
+# Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+
+# Custom key for the common settings used in multiple containers
 x-common-settings: &common_settings
   env_file:
     - .env

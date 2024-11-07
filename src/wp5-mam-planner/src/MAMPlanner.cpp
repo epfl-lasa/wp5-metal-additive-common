@@ -2,11 +2,11 @@
  * @file MAMPlanner.cpp
  * @brief Declaration of the MAMPlanner class
  *
- * @author [Louis Munier] (lmunier@protonmail.com)
+ * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.1
  * @date 2024-09-12
  *
- * @copyright Copyright (c) 2024 - EPFL
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  */
 #include "MAMPlanner.h"
 
@@ -182,8 +182,9 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
 
     // Use IterativeParabolicTimeParameterization to retime the trajectory
     trajectory_processing::IterativeParabolicTimeParameterization iptp;
-    bool retimed =
-        iptp.computeTimeStamps(rt, 0.05); // TODO(lmunier): Check Velocity scaling factor to set: 1.0 for constant speed
+
+    // TODO(lmunier): Check Velocity scaling factor to set: 1.0 for constant speed
+    bool retimed = iptp.computeTimeStamps(rt, 0.2);
 
     if (!retimed) {
       ROS_WARN("[MAMPlanner] - Trajectory retiming failed");

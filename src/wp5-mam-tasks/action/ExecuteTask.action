@@ -1,8 +1,10 @@
 # Action to perform a given task using one of the available robot and version of ROS
 #
-# Louis Munier - lmunier@protonmail.com
-# Update 2024-03-08
-# Copyright (c) 2024 - EPFL
+# @Author [Louis Munier] - lmunier@protonmail.com
+# @version 0.1
+# @Date 2024-03-08
+#
+# Copyright (c) 2024 - EPFL - LASA. All rights reserved.
 
 # Define the goal
 uint32 task_id

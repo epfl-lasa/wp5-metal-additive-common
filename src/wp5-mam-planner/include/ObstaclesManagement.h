@@ -2,11 +2,11 @@
  * @file ObstaclesManagement.h
  * @brief
  *
- * @author Louis Munier (lmunier@protonmail.com)
+ * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.1
  * @date 2024-09-09
  *
- * @copyright Copyright (c) 2024 - EPFL
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *
  */
 #pragma once

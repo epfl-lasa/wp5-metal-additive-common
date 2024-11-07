@@ -1,11 +1,11 @@
 /**
  * @file math_tools.h
- * @author Louis Munier (lmunier@protonmail.com)
+ * @author [Louis Munier] - lmunier@protonmail.com
  * @brief
  * @version 0.3
  * @date 2024-11-05
  *
- * @copyright Copyright (c) 2024 - EPFL
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *
  */
 #pragma once

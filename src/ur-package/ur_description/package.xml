@@ -14,7 +14,7 @@
   <maintainer email="miguel.prada@tecnalia.com">Miguel Prada Sarasola</maintainer>
   <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
 
-  <license>BSD</license>
+  <license>BSD-3-Clause</license>
 
   <url type="website">http://wiki.ros.org/ur_description</url>
 

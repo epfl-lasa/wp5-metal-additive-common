@@ -6,7 +6,7 @@
 
   <maintainer email="lmunier@protonmail.com">Louis Munier</maintainer>
   <maintainer email="tristan_bonato@hotmail.com">Tristan Bonato</maintainer>
-  <license>BSD</license>
+  <license>BSD-3-Clause</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 

@@ -136,11 +136,16 @@ docker compose --profile coppeliasim up -d --build
 
 The optional *--build* argument will build the image if not already done.
 
+## License
+
+This project includes software licensed under the Apache License 2.0 and the BSD 3-Clause License.
+See the LICENSE file for more details for the overall project and ur-package/LICENSE file for the UR licensing part.
+
 ## Credits
 
 This repository use the work of the following repositories:
 
-- IK-Geo - <https://github.com/rpiRobotics/ik-geo>
+- IK-Geo-Cpp - <https://github.com/Verdant-Evolution/ik-geo-cpp>
 - ROS industrial - <https://github.com/ros-industrial/universal_robot>
 - Universal Robot - <https://github.com/UniversalRobots/Universal_Robots_ROS_Driver>
 - ROS modbus device driver - <https://github.com/epfl-lasa/ros-modbus-device-driver.git>
