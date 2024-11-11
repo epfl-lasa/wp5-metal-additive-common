@@ -1,5 +1,4 @@
 {
-    "cmake.sourceDirectory": "/home/lmunier/Documents/robetarme/wp5-metal-additive/src/anima_ros/anima_rokae_service",
     "ros.distro": "noetic",
     "terminal.integrated.defaultProfile.linux": "bash",
     "terminal.integrated.profiles.linux": {

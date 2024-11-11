@@ -8,10 +8,8 @@
       "includePath": [
         "/home/ros/catkin_ws/devel/include/**",
         "/opt/ros/noetic/include/**",
-        "/home/ros/catkin_ws/src/rokae_ros_package/rokae_hardware/include/**",
-        "/home/ros/catkin_ws/src/ur5_lasa/src/ur_calibration/include/**",
-        "/home/ros/catkin_ws/src/ur5_lasa/src/ur_kinematics/include/**",
-        "/home/ros/catkin_ws/src/ur5_lasa/src/ur_robot_driver/include/**",
+        "/home/ros/catkin_ws/src/ur-package/ur_robot_driver/include/**",
+        "/home/ros/catkin_ws/src/ur-package/ur_calibration/include/**",
         "/home/ros/catkin_ws/src/wp5-common-utilities/include/**",
         "/home/ros/catkin_ws/src/wp5-mam-planner/include/**",
         "/home/ros/catkin_ws/src/wp5-mam-tasks/include/**",
