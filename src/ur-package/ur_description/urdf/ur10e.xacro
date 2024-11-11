@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur10e_robot">
+  <xacro:arg name="ee_force_torque" default="none" />
+  <xacro:arg name="ee_tool" default="none" />
+
   <!--
     This is a convenience top-level xacro which loads the macro for the UR10e
     which defines the default values for the various "parameters files"
@@ -18,5 +21,5 @@
     Refer to 'inc/ur_macro.xacro' for more information.
   -->
   <xacro:include filename="$(find ur_description)/urdf/inc/ur10e_macro.xacro"/>
-  <xacro:ur10e_robot prefix="" />
+  <xacro:ur10e_robot prefix="" ee_tool="$(arg ee_tool)" ee_force_torque="$(arg ee_force_torque)" />
 </robot>

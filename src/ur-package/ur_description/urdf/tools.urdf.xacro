@@ -3,6 +3,6 @@
     <xacro:include filename="$(find experiments)/urdf/ee_logi_laser.urdf.xacro" />
 
     <xacro:if value="${ee_tool == 'logi_laser'}">
-        <xacro:ee_laser prefix="${prefix}" />
+        <xacro:ee_laser prefix="${prefix}" sensor_frame="${sensor_frame}" />
     </xacro:if>
 </robot>

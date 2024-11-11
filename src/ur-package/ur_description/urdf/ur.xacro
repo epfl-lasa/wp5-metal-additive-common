@@ -14,17 +14,18 @@
          - hardware_interface/VelocityJointInterface
          - hardware_interface/EffortJointInterface
    -->
-      <xacro:arg name="transmission_hw_interface"
-            default="hardware_interface/PositionJointInterface" />
+      <xacro:arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
       <xacro:arg name="safety_limits" default="false" />
       <xacro:arg name="safety_pos_margin" default="0.15" />
       <xacro:arg name="safety_k_position" default="20" />
 
+      <xacro:arg name="ee_force_torque" default="none" />
       <xacro:arg name="ee_tool" default="none" />
 
       <!-- arm -->
       <xacro:ur_robot
             prefix=""
+            ee_force_torque="$(arg ee_force_torque)"
             ee_tool="$(arg ee_tool)"
             joint_limits_parameters_file="$(arg joint_limit_params)"
             kinematics_parameters_file="$(arg kinematics_params)"

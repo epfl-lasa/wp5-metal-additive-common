@@ -65,7 +65,8 @@
     safety_limits:=false
     safety_pos_margin:=0.15
     safety_k_position:=20
-    ee_tool:=none"
+    ee_tool:=none
+    ee_force_torque:=none"
   >
     <!-- Load configuration data from the provided .yaml files -->
     <xacro:read_model_data
@@ -361,47 +362,15 @@
       <child link="${prefix}tool0" />
     </joint>
 
-    <!-- ROS-Industrial 'sensor' frame: attachment point for force-torque sensors -->
-    <!-- TODO Add the force torque sensor using a parameter -->
-    <link name="${prefix}sensor">
-      <visual>
-        <geometry>
-          <mesh
-            filename="package://ur_description/meshes/ur5/visual/force_torque.stl"
-            scale="1 1 1" />
-        </geometry>
+    <!-- Add force torque sensor -->
+    <xacro:property name="sensor_frame" value="tool0" />
 
-        <!-- Small offset to avoid any collisions between adjacent -->
-        <origin rpy="0 0 0" xyz="0 0 0" />
-        <material name="LightGrey" />
-      </visual>
+    <xacro:if value="${ee_force_torque != 'none'}">
+      <xacro:property name="sensor_frame" value="sensor" />
+      <xacro:include filename="$(find ur_description)/urdf/force_torque.urdf.xacro" />
+    </xacro:if>
 
-      <inertial>
-        <mass value="0.5" />
-        <inertia ixx="0.1" ixy="-0.000000" ixz="-0.000000" iyy="0.1" iyz="-0.000000"
-          izz="0.1" />
-        <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
-      </inertial>
-
-      <collision>
-        <geometry>
-          <mesh
-            filename="package://ur_description/meshes/ur5/collision/force_torque.stl"
-            scale="1 1 1" />
-        </geometry>
-
-        <!-- Small z offset to avoid any collisions between adjacent -->
-        <origin rpy="0 0 0" xyz="0 0 0" />
-      </collision>
-    </link>
-
-    <joint name="${prefix}tool0-sensor" type="fixed">
-      <!-- default toolframe: X+ left, Y+ up, Z+ front -->
-      <origin xyz="0 0 0.035" rpy="0 0 0" />
-      <parent link="${prefix}tool0" />
-      <child link="${prefix}sensor" />
-    </joint>
-
+    <!-- Add end-effector tool -->
     <xacro:if value="${ee_tool != 'none'}">
       <xacro:include filename="$(find ur_description)/urdf/tools.urdf.xacro" />
     </xacro:if>
@@ -409,12 +378,11 @@
     <xacro:if value="${ee_tool == 'none'}">
       <link name="${prefix}virtual_link" />
 
-      <joint name="${prefix}sensor-virtual_link" type="fixed">
-        <parent link="${prefix}sensor" />
+      <joint name="${prefix}${sensor_frame}-virtual_link" type="fixed">
+        <parent link="${prefix}${sensor_frame}" />
         <child link="${prefix}virtual_link" />
         <origin rpy="0 0 0" xyz="0 0 0" />
       </joint>
     </xacro:if>
-
   </xacro:macro>
 </robot>
