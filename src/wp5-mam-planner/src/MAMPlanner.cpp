@@ -160,7 +160,6 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
   if (isWelding) {
     // Compute Cartesian path
     vector<geometry_msgs::Pose> waypoints{};
-    waypoints.push_back(currentPose);
     waypoints.push_back(targetPose);
 
     double fraction = moveGroup_->computeCartesianPath(waypoints, 0.01, planTrajectory, true);
