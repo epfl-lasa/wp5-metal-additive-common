@@ -147,7 +147,7 @@ This repository use the work of the following repositories:
 
 - [Moveit!](https://github.com/moveit/moveit) - *BSD-3-Clause*
 - [IK-Geo-Cpp](https://github.com/Verdant-Evolution/ik-geo-cpp)
-- [ROS industrial](https://github.com/ros-industrial/universal_robot>)
+- [ROS industrial](https://github.com/ros-industrial/universal_robot)
 - [Universal Robot Driver](https://github.com/UniversalRobots/Universal_Robots_ROS_Driver) - *Apache 2.0*
 - [ROS modbus device driver](https://github.com/epfl-lasa/ros-modbus-device-driver.git) - *MPL-2.0*
 
