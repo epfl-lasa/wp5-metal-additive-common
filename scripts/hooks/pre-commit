@@ -18,13 +18,17 @@ if [ -n "$large_files" ]; then
   exit 1
 fi
 
-# Check if .gitmodules has changes related to submodule docker_ros_coppeliasim
+# Define a list of submodules to avoid pushing
+submodules=("tools/docker_ros_coppeliasim" "src/wp5-extern")
+
 if git diff --cached --name-only | grep -q '.gitmodules'; then
-  if git diff --cached .gitmodules | grep -q 'tools/docker_ros_coppeliasim'; then
-    # Stash changes to .gitmodules related to docker_ros_coppeliasim
-    git stash push -m "Stash .gitmodules changes for docker_ros_coppeliasim" .gitmodules
-    echo "Stashed changes to .gitmodules related to docker_ros_coppeliasim"
-  fi
+  for submodule in "${submodules[@]}"; do
+    if git diff --cached .gitmodules | grep -q "$submodule"; then
+      # Stash changes to .gitmodules related to the submodule
+      git stash push -m "Stash .gitmodules changes for $submodule" .gitmodules
+      echo "Stashed changes to .gitmodules related to $submodule"
+    fi
+  done
 fi
 
 exit 0

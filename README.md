@@ -154,4 +154,4 @@ This repository use the work of the following repositories:
 ## Maintainers
 
 - Louis Munier - <lmunier@protonmail.com>
-- Last Update - 2024-10-23
+- Last Update - 2024-11-11

@@ -5,10 +5,15 @@
 # Author: Louis Munier - lmunier@protonmail.com
 # Date: 2024-10-11
 
-# Apply the stashed changes related to docker_ros_coppeliasim
-if git stash list | grep -q 'Stash .gitmodules changes for docker_ros_coppeliasim'; then
-  git stash pop
-  echo "Applied stashed changes related to docker_ros_coppeliasim"
-fi
+# Define a list of submodules to check
+submodules=("tools/docker_ros_coppeliasim" "src/wp5-extern")
+
+# Apply the stashed changes related to each submodule
+for submodule in "${submodules[@]}"; do
+  if git stash list | grep -q "Stash .gitmodules changes for $submodule"; then
+    git stash pop
+    echo "Applied stashed changes related to $submodule"
+  fi
+done
 
 exit 0
