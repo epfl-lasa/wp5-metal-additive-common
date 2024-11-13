@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur5_robot">
+  <xacro:arg name="ee_force_torque" default="true" />
   <xacro:arg name="ee_tool" default="none" />
 
   <!--
@@ -20,5 +21,5 @@
     Refer to 'inc/ur_macro.xacro' for more information.
   -->
   <xacro:include filename="$(find ur_description)/urdf/inc/ur5_macro.xacro" />
-  <xacro:ur5_robot prefix="" ee_tool="$(arg ee_tool)" />
+  <xacro:ur5_robot prefix="" ee_tool="$(arg ee_tool)" ee_force_torque="$(arg ee_force_torque)" />
 </robot>

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    <!-- ROS-Industrial 'sensor' frame: attachment point for force-torque sensors -->
+    <link name="${prefix}sensor">
+        <visual>
+          <geometry>
+            <mesh
+              filename="package://ur_description/meshes/force_torque/visual/force_torque.stl"
+              scale="1 1 1" />
+          </geometry>
+
+          <origin rpy="0 0 0" xyz="0 0 0" />
+          <material name="LightGrey" />
+        </visual>
+
+        <inertial>
+          <mass value="0.5" />
+          <inertia ixx="0.1" ixy="-0.000000" ixz="-0.000000" iyy="0.1" iyz="-0.000000"
+            izz="0.1" />
+          <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+        </inertial>
+
+        <collision>
+          <geometry>
+            <mesh
+              filename="package://ur_description/meshes/force_torque/collision/force_torque.stl"
+              scale="1 1 1" />
+          </geometry>
+
+          <origin rpy="0 0 0" xyz="0 0 0" />
+        </collision>
+      </link>
+
+      <joint name="${prefix}tool0-sensor" type="fixed">
+        <origin xyz="0 0 0.035" rpy="0 0 0" />
+        <parent link="${prefix}tool0" />
+        <child link="${prefix}sensor" />
+      </joint>
+</robot>

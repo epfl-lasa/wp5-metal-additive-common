@@ -29,7 +29,9 @@
    transmission_hw_interface:=hardware_interface/PositionJointInterface
    safety_limits:=false
    safety_pos_margin:=0.15
-   safety_k_position:=20"
+   safety_k_position:=20
+   ee_force_torque:=none
+   ee_tool:=none"
   >
     <xacro:include filename="$(find ur_description)/urdf/inc/ur_macro.xacro"/>
     <xacro:ur_robot
@@ -42,6 +44,8 @@
       safety_limits="${safety_limits}"
       safety_pos_margin="${safety_pos_margin}"
       safety_k_position="${safety_k_position}"
+      ee_force_torque="${ee_force_torque}"
+      ee_tool="${ee_tool}"
     />
   </xacro:macro>
 </robot>

@@ -1,3 +1,15 @@
+/**
+ * @file RoboticArmFactory.h
+ * @author [Louis Munier] - lmunier@protonmail.com
+ * @brief
+ * @version 0.3
+ * @date 2024-11-11
+ *
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ *
+ */
+#pragma once
+
 #include <array>
 #include <functional>
 #include <iostream>
@@ -126,7 +138,7 @@ private:
       0.0, -0.57155, 0.0,
       0.17415, 0.0, 0.0,
       0.0, 0.0, -0.11985,
-      0.15155, 0.0, 0.0 // TODO(lmunier) : Check if adding sensor link offset is necessary
+      0.11655, 0.0, 0.0
   };
   // clang-format on
 };
