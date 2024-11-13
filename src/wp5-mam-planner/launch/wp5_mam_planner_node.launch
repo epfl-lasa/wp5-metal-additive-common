@@ -29,7 +29,6 @@
     </group>
 
     <group if="$(eval robot_type == 'ur10e')">
-        <include file="$(find ur_description)/launch/load_ur10e.launch" />
         <include file="$(find ur10e_moveit_config)/launch/ur10e_bringup_moveit.launch">
             <arg name="simu" value="$(arg simu)" />
             <arg name="ee_tool" value="$(arg ee_tool)" />

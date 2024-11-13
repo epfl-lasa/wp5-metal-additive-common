@@ -176,23 +176,6 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
   }
 
   if (success) {
-    // Retiming logic to ensure constant speed
-    robot_trajectory::RobotTrajectory rt(moveGroup_->getCurrentState()->getRobotModel(), robotGroup);
-    rt.setRobotTrajectoryMsg(*moveGroup_->getCurrentState(), planTrajectory);
-
-    // Use IterativeParabolicTimeParameterization to retime the trajectory
-    trajectory_processing::IterativeParabolicTimeParameterization iptp;
-
-    // TODO(lmunier): Check Velocity scaling factor to set: 1.0 for constant speed
-    bool retimed = iptp.computeTimeStamps(rt, 0.2);
-
-    if (!retimed) {
-      ROS_WARN("[MAMPlanner] - Trajectory retiming failed");
-    }
-
-    // Update the planTrajectory with the retimed data
-    rt.getRobotTrajectoryMsg(planTrajectory);
-
 #ifdef DEBUG_MODE
     DebugTools::publishTrajectory(*moveGroup_, planTrajectory, pubTrajectory_);
 #endif
