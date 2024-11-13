@@ -13,7 +13,7 @@ ur5_robot:
   chain_start: "base_link"
   chain_end: "sensor"
 ur10e_robot:
-  controller_frequency: 125 # [Hz]
+  controller_frequency: 500 # [Hz]
   path_urdf: "robot_description"
   joint_names:
   - "shoulder_pan_joint"

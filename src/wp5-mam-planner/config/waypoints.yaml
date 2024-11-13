@@ -6,5 +6,5 @@
 - frame: base_link
   type: V # V: vertical, H: horizontal
   positions:
-    start: [0.4, 0.5, 0.7] # [m] x,y,z
+    start: [0.3, 0.5, 0.7] # [m] x,y,z
     stop: [0.3, 0.5, 0.289] # [m] x,y,z

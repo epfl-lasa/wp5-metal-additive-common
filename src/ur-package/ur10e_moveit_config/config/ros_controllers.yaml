@@ -1,5 +1,7 @@
-manipulator_controller:
-  type: position_controllers/JointTrajectoryController
+controller_list:
+- name: "scaled_pos_joint_traj_controller"
+  action_ns: follow_joint_trajectory
+  type: FollowJointTrajectory
   joints:
     - shoulder_pan_joint
     - shoulder_lift_joint
@@ -7,34 +9,3 @@ manipulator_controller:
     - wrist_1_joint
     - wrist_2_joint
     - wrist_3_joint
-  gains:
-    shoulder_pan_joint:
-      p: 100
-      d: 1
-      i: 1
-      i_clamp: 1
-    shoulder_lift_joint:
-      p: 100
-      d: 1
-      i: 1
-      i_clamp: 1
-    elbow_joint:
-      p: 100
-      d: 1
-      i: 1
-      i_clamp: 1
-    wrist_1_joint:
-      p: 100
-      d: 1
-      i: 1
-      i_clamp: 1
-    wrist_2_joint:
-      p: 100
-      d: 1
-      i: 1
-      i_clamp: 1
-    wrist_3_joint:
-      p: 100
-      d: 1
-      i: 1
-      i_clamp: 1
