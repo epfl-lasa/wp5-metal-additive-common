@@ -174,11 +174,24 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
     planTrajectory = plan.trajectory_;
   }
 
-  if (success) {
 #ifdef DEBUG_MODE
-    DebugTools::publishTrajectory(*moveGroup_, planTrajectory, pubTrajectory_);
+  DebugTools::publishTrajectory(*moveGroup_, planTrajectory, pubTrajectory_);
+
+  bool msgShowed = false;
+  bool userInput = false;
+  while (!userInput) {
+    if (!msgShowed) {
+      ROS_INFO_STREAM("[MAMPlanner] - Path succes : " << success << " Press Enter to continue");
+      msgShowed = true;
+    }
+
+    if (cin.get() == '\n') {
+      userInput = true;
+    }
+  }
 #endif
 
+  if (success) {
     if (currentWPointID_ >= bestPlan_.size()) {
       bestPlan_.push_back(planTrajectory);
     } else {

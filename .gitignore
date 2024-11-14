@@ -11,7 +11,7 @@ logs/
 
 # Avoid pushing this tool for those who can not use it
 src/wp5-extern/
-tools/docker_ros_coppeliasim*
+tools/docker_ros_coppeliasim
 
 # Big files
 *.mp4
