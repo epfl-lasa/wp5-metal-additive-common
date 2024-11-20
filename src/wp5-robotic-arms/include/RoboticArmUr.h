@@ -30,10 +30,6 @@
  */
 class RoboticArmUr : public IRoboticArmBase {
 public:
-  // Declare the test class as a friend to allow access to private members
-  friend class RoboticArmUrTest_TestSwapJoints_Test;
-
-  explicit RoboticArmUr(ROSVersion rosVersion, std::string robotName, std::string configFilename);
   explicit RoboticArmUr(ROSVersion rosVersion,
                         std::string robotName,
                         std::string configFilename,

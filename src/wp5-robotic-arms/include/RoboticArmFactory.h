@@ -18,34 +18,18 @@
 
 #include "IRoboticArmBase.h"
 #include "IRosInterfaceBase.h"
-#include "RoboticArmCr7.h"
 #include "RoboticArmUr.h"
 
 class RoboticArmFactory {
 public:
-  using FactoryFunction = std::function<std::unique_ptr<IRoboticArmBase>(ROSVersion rosVersion)>;
+  // Prevent instantiation
+  RoboticArmFactory() = delete;
 
-  RoboticArmFactory() {
-    registerRobotArm("ur5_robot", [this](ROSVersion rosVersion) {
-      return std::make_unique<RoboticArmUr>(
-          rosVersion, "ur5_robot", std::string("robotic_arm.yaml"), UR_H_MATRIX, UR5_P_MATRIX);
-    });
-    registerRobotArm("ur10e_robot", [this](ROSVersion rosVersion) {
-      return std::make_unique<RoboticArmUr>(
-          rosVersion, "ur10e_robot", std::string("robotic_arm.yaml"), UR_H_MATRIX, UR10E_P_MATRIX);
-    });
-    registerRobotArm("xMateCR7", [](ROSVersion rosVersion) {
-      return std::make_unique<RoboticArmCr7>(rosVersion, std::string("robotic_arm.yaml"));
-    });
+  // Register a robotic arm
+  static void registerRobotArm(const std::string& name,
+                               std::function<std::unique_ptr<RoboticArmUr>(ROSVersion)> creator) {
+    getRegistry()[name] = creator;
   }
-
-  /**
-   * @brief Registers a robotic arm with its corresponding factory function.
-   *
-   * @param name The name of the robotic arm type.
-   * @param function The factory function that creates instances of the robotic arm type.
-   */
-  void registerRobotArm(std::string name, FactoryFunction function) { factoryFunctionRegistry[name] = function; }
 
   /**
    * @brief Creates an instance of a robotic arm based on its name.
@@ -55,19 +39,22 @@ public:
    * @return A unique pointer to the created robotic arm instance.
    * @throws std::runtime_error if the specified robotic arm name is invalid.
    */
-  std::unique_ptr<IRoboticArmBase> createRoboticArm(std::string name, ROSVersion rosVersion) {
-    auto it = factoryFunctionRegistry.find(name);
+  static std::unique_ptr<IRoboticArmBase> createRoboticArm(const std::string& name, ROSVersion rosVersion) {
+    auto it = getRegistry().find(name);
 
-    if (it != factoryFunctionRegistry.end()) {
+    if (it != getRegistry().end()) {
       return it->second(rosVersion);
     } else {
-      std::ostringstream errorMsg{}, oss{};
+      std::ostringstream errorMsg{};
+      errorMsg << "Invalid robotic arm type: " << name << ". Allowed values are [";
 
-      std::vector<std::string> allowedValues = getRoboticArmTypes();
-      std::copy(allowedValues.begin(), allowedValues.end() - 1, std::ostream_iterator<std::string>(oss, ", "));
+      for (const auto& type : getRoboticArmTypes()) {
+        errorMsg << type << ", ";
+      }
+      errorMsg << "]";
 
-      oss << allowedValues.back();
-      errorMsg << "Invalid robotic arm type: " << name << ". Allowed values are " << oss.str() << ".";
+      std::string errorMsgStr = errorMsg.str();
+      errorMsgStr = errorMsgStr.substr(0, errorMsgStr.size() - 2) + ".";
 
       throw std::runtime_error(errorMsg.str());
     }
@@ -78,10 +65,10 @@ public:
    *
    * @return A vector containing the names of the registered robotic arm types.
    */
-  std::vector<std::string> getRoboticArmTypes() {
+  static std::vector<std::string> getRoboticArmTypes() {
     std::vector<std::string> keys;
 
-    for (const auto& pair : factoryFunctionRegistry) {
+    for (const auto& pair : getRegistry()) {
       keys.push_back(pair.first);
     }
 
@@ -89,56 +76,36 @@ public:
   }
 
 private:
-  std::map<std::string, FactoryFunction> factoryFunctionRegistry;
+  // Get the registry of robotic arms
+  static std::unordered_map<std::string, std::function<std::unique_ptr<RoboticArmUr>(ROSVersion)>>& getRegistry() {
+    static std::unordered_map<std::string, std::function<std::unique_ptr<RoboticArmUr>(ROSVersion)>> registry;
+    return registry;
+  }
 
-  // clang-format off
-  /**
-   * @brief generic UR H matrix.
-   *
-   * The H matrix defines the orientation of the joint axis, in the reference frame (identity frame),
-   * in its home position.
-   * => define the rotation axis for each joint, in the base frame.
-   */
+  // Static initialization block
+  static bool initialize() {
+    registerRobotArm("ur5_robot", [](ROSVersion rosVersion) {
+      return std::make_unique<RoboticArmUr>(
+          rosVersion, "ur5_robot", std::string("robotic_arm.yaml"), UR_H_MATRIX, UR5_P_MATRIX);
+    });
+    registerRobotArm("ur10e_robot", [](ROSVersion rosVersion) {
+      return std::make_unique<RoboticArmUr>(
+          rosVersion, "ur10e_robot", std::string("robotic_arm.yaml"), UR_H_MATRIX, UR10E_P_MATRIX);
+    });
+    return true;
+  }
 
-  const std::array<double, 18> UR_H_MATRIX{
-      0.0, 0.0, 1.0,
-      1.0, 0.0, 0.0,
-      1.0, 0.0, 0.0,
-      1.0, 0.0, 0.0,
-      0.0, 0.0, -1.0,
-      1.0, 0.0, 0.0
-  };
-
-  /**
-   * The P matrix defines the position of the joint axis, in the reference frame (identity frame),
-   * in its home position.
-   * => define the position of each joint, with respect to the previous one, in the base frame.
-   */
+  // Static member to trigger initialization only once
+  static inline bool initialized = initialize();
 
   /**
-   * @brief UR5 P matrix.
+   * @brief Robotic Arm H matrices.
    */
-  const std::array<double, 21> UR5_P_MATRIX{
-      0.0, 0.0, 0.0,
-      0.0, 0.0, 0.0892,
-      0.0, -0.425, 0.0,
-      0.0, -0.3922, 0.0,
-      0.1091, 0.0, 0.0,
-      0.0, 0.0, -0.0946,
-      0.1173, 0.0, 0.0 // Adding sensor link offset
-  };
+  static const std::array<double, 18> UR_H_MATRIX;
 
   /**
-   * @brief UR10e P matrix.
+   * @brief Robotic Arm P matrices.
    */
-  const std::array<double, 21> UR10E_P_MATRIX{
-      0.0, 0.0, 0.0,
-      0.0, 0.0, 0.1807,
-      0.0, -0.6127, 0.0,
-      0.0, -0.57155, 0.0,
-      0.17415, 0.0, 0.0,
-      0.0, 0.0, -0.11985,
-      0.11655, 0.0, 0.0
-  };
-  // clang-format on
+  static const std::array<double, 21> UR5_P_MATRIX;
+  static const std::array<double, 21> UR10E_P_MATRIX;
 };

@@ -32,17 +32,16 @@ static uniform_real_distribution<> disJoint(-2 * M_PI, 2 * M_PI);
 static vector<vector<double>> jointPositions;
 static vector<pair<Eigen::Quaterniond, Eigen::Vector3d>> waypoints;
 
-class RoboticArmUrTest : public ::testing::Test {
+class IRoboticArmBaseTest : public ::testing::Test {
 protected:
   static void SetUpTestSuite() {
     ros::NodeHandle nh;
-    RoboticArmFactory armFactory = RoboticArmFactory();
 
     std::string robotName = "";
     std::string rosVersion = "";
     nh.getParam("robotName", robotName);
     nh.getParam("rosVersion", rosVersion);
-    roboticArm = armFactory.createRoboticArm(robotName, IRosInterfaceBase::rosVersionsMap.at(rosVersion));
+    roboticArm = RoboticArmFactory::createRoboticArm(robotName, IRosInterfaceBase::rosVersionsMap.at(rosVersion));
 
     generateWaypoints();
     generateJointPositions();
@@ -110,66 +109,10 @@ protected:
       jointPositions.push_back(jointPos);
     }
   }
-
-  static void quaternionToAxisAngle(const Eigen::Quaterniond& q, Eigen::Vector3d& axis, double& angle) {
-    // Ensure the quaternion is normalized
-    Eigen::Quaterniond normalized_q = q.normalized();
-
-    // Extract the components of the quaternion
-    double w = normalized_q.w();
-    double x = normalized_q.x();
-    double y = normalized_q.y();
-    double z = normalized_q.z();
-
-    // Compute the angle
-    angle = 2.0 * std::acos(w);
-
-    // Compute the axis
-    double sin_half_angle = std::sqrt(1.0 - w * w);
-    if (sin_half_angle < 1e-6) {
-      // If the angle is very small, the axis is not well-defined
-      axis = Eigen::Vector3d(1.0, 0.0, 0.0); // Default axis
-    } else {
-      axis = Eigen::Vector3d(x, y, z) / sin_half_angle;
-    }
-  }
-
-  // Function to compute angle difference between two quaternions
-  static double calculateRotationDifference(const Eigen::Quaterniond& q1, const Eigen::Quaterniond& q2) {
-    // Normalize the quaternions to ensure they are unit quaternions
-    Eigen::Quaterniond q1_normalized = q1.normalized();
-    Eigen::Quaterniond q2_normalized = q2.normalized();
-
-    // Compute the relative quaternion q_rel = q1.inverse() * q2
-    Eigen::Quaterniond q_rel = q1_normalized.conjugate() * q2_normalized;
-
-    // Extract the scalar part of the relative quaternion
-    double w_rel = q_rel.w();
-
-    // Calculate the rotation angle in radians
-    double theta = 2 * std::acos(w_rel);
-
-    return theta;
-  }
-
-  static void calculateAxisAngleDifference(const Eigen::Quaterniond& q1,
-                                           const Eigen::Quaterniond& q2,
-                                           Eigen::Vector3d& axis,
-                                           double& angle) {
-    // Normalize the quaternions to ensure they are unit quaternions
-    Eigen::Quaterniond q1_normalized = q1.normalized();
-    Eigen::Quaterniond q2_normalized = q2.normalized();
-
-    // Compute the relative quaternion q_rel = q1.inverse() * q2
-    Eigen::Quaterniond q_rel = q1_normalized.conjugate() * q2_normalized;
-
-    // Convert the relative quaternion to axis-angle representation
-    quaternionToAxisAngle(q_rel, axis, angle);
-  }
 };
 
 // Create a test to check the swapJoints_ function of the UR5 robotic arm
-TEST_F(RoboticArmUrTest, TestSwapJoints) {
+TEST_F(IRoboticArmBaseTest, TestSwapJoints) {
   // Generate fake input data to check swapJoints_ function
   int nbJoints = roboticArm->getNbJoints();
 
@@ -197,7 +140,7 @@ TEST_F(RoboticArmUrTest, TestSwapJoints) {
 }
 
 // Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
-TEST_F(RoboticArmUrTest, TestForwardComparison) {
+TEST_F(IRoboticArmBaseTest, TestForwardComparison) {
   for (auto& jointPos : jointPositions) {
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFKTrac(jointPos);
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKGeo(jointPos);
@@ -208,7 +151,7 @@ TEST_F(RoboticArmUrTest, TestForwardComparison) {
 }
 
 // Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
-TEST_F(RoboticArmUrTest, TestInverseComparison) {
+TEST_F(IRoboticArmBaseTest, TestInverseComparison) {
   for (auto& [quaternion, position] : waypoints) {
     vector<double> tracJointPos{};
     roboticArm->getIKTrac(quaternion, position, tracJointPos);
@@ -232,7 +175,7 @@ TEST_F(RoboticArmUrTest, TestInverseComparison) {
 }
 
 // Create a test to check coherency of the UR5 robotic arm trac-ik solver
-TEST_F(RoboticArmUrTest, TestTracIkSolver) {
+TEST_F(IRoboticArmBaseTest, TestTracIkSolver) {
   for (auto& [quaternion, position] : waypoints) {
     vector<double> jointPos{};
     roboticArm->getIKTrac(quaternion, position, jointPos);
@@ -246,7 +189,7 @@ TEST_F(RoboticArmUrTest, TestTracIkSolver) {
 }
 
 // Create a test to check coherency of the UR5 robotic arm geometric solver
-TEST_F(RoboticArmUrTest, TestIkGeoSolver) {
+TEST_F(IRoboticArmBaseTest, TestIkGeoSolver) {
   for (auto& [quaternion, position] : waypoints) {
     vector<vector<double>> ikSolutions;
     roboticArm->getIKGeo(quaternion, position, ikSolutions);

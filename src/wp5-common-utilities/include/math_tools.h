@@ -1,9 +1,10 @@
 /**
  * @file math_tools.h
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
- * @version 0.3
- * @date 2024-11-05
+ * @brief A collection of mathematical utility functions to centralize common operations.
+ *
+ * @version 0.4
+ * @date 2024-11-20
  *
  * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *

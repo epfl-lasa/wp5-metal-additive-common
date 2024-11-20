@@ -41,7 +41,7 @@ enum IkSolver : uint8_t {
 class IRoboticArmBase {
 public:
   // Declare the test class as a friend to allow access to private members
-  friend class RoboticArmUrTest_TestSwapJoints_Test;
+  friend class IRoboticArmBaseTest_TestSwapJoints_Test;
 
   /**
    * @brief Constructor for IRoboticArmBase.

@@ -22,11 +22,6 @@ using namespace std;
 
 const double RoboticArmUr::TOLERANCE = 1e-5;
 
-RoboticArmUr::RoboticArmUr(ROSVersion rosVersion, string robotName, string configFilename) :
-    IRoboticArmBase(string(robotName),
-                    rosVersion,
-                    YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_ROBOTIC_ARMS_DIR)))) {}
-
 RoboticArmUr::RoboticArmUr(ROSVersion rosVersion,
                            string robotName,
                            string configFilename,

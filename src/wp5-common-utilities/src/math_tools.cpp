@@ -1,9 +1,10 @@
 /**
  * @file math_tools.cpp
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
- * @version 0.3
- * @date 2024-11-05
+ * @brief A collection of mathematical utility functions to centralize common operations.
+ *
+ * @version 0.4
+ * @date 2024-11-20
  *
  * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *
@@ -29,14 +30,12 @@ const bool isNumber(const std::string& str) {
 }
 
 const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterniond& q2, double tolerance) {
-  Eigen::Matrix3d rot1 = q1.toRotationMatrix();
-  Eigen::Matrix3d rot2 = q2.toRotationMatrix();
-
-  return (rot1 - rot2).norm() < tolerance;
+  double dotProduct = q1.dot(q2);
+  return std::abs(dotProduct) > 1.0 - tolerance;
 }
 
 const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance) {
-  return (p1 - p2).norm() < tolerance;
+  return (p1 - p2).squaredNorm() < tolerance * tolerance;
 }
 
 geometry_msgs::Pose transformPose(tf2_ros::Buffer& tfBuffer,

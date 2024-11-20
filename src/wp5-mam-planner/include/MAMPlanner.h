@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "ObstaclesManagement.h"
-#include "RoboticArmCr7.h"
 #include "RoboticArmUr.h"
 #include "Subtask.h"
 
