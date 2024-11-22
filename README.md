@@ -30,9 +30,18 @@ This repository contains submodules :
 git clone --recurse-submodules git@github.com:epfl-lasa/wp5-metal-additive.git
 ```
 
-## Installation
+## Requirements
 
-We are currently using docker and its docker compose option. Please set it up before going forward.
+This code is supposed to run on Linux, tested on both Ubuntu 20.04 and 22.04. It uses docker, side to docker compose, with the nvidia toolkit if any nvidia graphics card is installed. So you need to install :
+
+- [docker](https://docs.docker.com/engine/install/ubuntu/)
+- [docker compose](https://docs.docker.com/compose/install/linux/#install-the-plugin-manually)
+
+If you have an nvidia graphic card :
+
+- [Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
+## Installation
 
 The easy way is to run the setup.sh script which is in the root folder of this git repository, as follow:
 
@@ -154,4 +163,4 @@ This repository use the work of the following repositories:
 ## Maintainers
 
 - Louis Munier - <lmunier@protonmail.com>
-- Last Update - 2024-11-11
+- Last Update - 2024-11-22
