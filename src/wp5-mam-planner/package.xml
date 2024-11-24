@@ -17,6 +17,6 @@
   <depend>moveit_ros_move_group</depend>
   <depend>std_msgs</depend>
   <depend>wp5_common_utilities</depend>
-  <depend>wp5_robotic_arms_drivers</depend>
+  <depend>wp5_robotic_arms</depend>
   <depend>wp5_ros_interface</depend>
 </package>

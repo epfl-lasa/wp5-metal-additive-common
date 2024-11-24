@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-    <name>wp5_robotic_arms_drivers</name>
+    <name>wp5_robotic_arms</name>
     <version>1.0.0</version>
     <description>Drivers to use different robotic arms</description>
 

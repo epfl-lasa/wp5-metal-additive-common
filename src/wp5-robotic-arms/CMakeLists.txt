@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.3)
-project(wp5_robotic_arms_drivers VERSION 0.1.0 DESCRIPTION "Drivers library to manage different robotic arms")
+project(wp5_robotic_arms VERSION 0.1.0 DESCRIPTION "Drivers library to manage different robotic arms")
 set(CMAKE_CXX_STANDARD 17)
 
 if(POLICY CMP0057)

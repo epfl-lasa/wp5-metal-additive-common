@@ -26,7 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   wp5_common_utilities
   wp5_mam_planner
-  wp5_robotic_arms_drivers
+  wp5_robotic_arms
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
@@ -38,7 +38,7 @@ catkin_package(
   roscpp
   wp5_common_utilities
   wp5_mam_planner
-  wp5_robotic_arms_drivers
+  wp5_robotic_arms
   DEPENDS YAML_CPP
 )
 

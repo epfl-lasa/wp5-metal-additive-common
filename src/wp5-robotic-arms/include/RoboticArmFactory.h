@@ -27,7 +27,7 @@ public:
 
   // Register a robotic arm
   static void registerRobotArm(const std::string& name,
-                               std::function<std::unique_ptr<RoboticArmUr>(ROSVersion)> creator) {
+                               std::function<std::unique_ptr<IRoboticArmBase>(ROSVersion)> creator) {
     getRegistry()[name] = creator;
   }
 
@@ -77,8 +77,8 @@ public:
 
 private:
   // Get the registry of robotic arms
-  static std::unordered_map<std::string, std::function<std::unique_ptr<RoboticArmUr>(ROSVersion)>>& getRegistry() {
-    static std::unordered_map<std::string, std::function<std::unique_ptr<RoboticArmUr>(ROSVersion)>> registry;
+  static std::unordered_map<std::string, std::function<std::unique_ptr<IRoboticArmBase>(ROSVersion)>>& getRegistry() {
+    static std::unordered_map<std::string, std::function<std::unique_ptr<IRoboticArmBase>(ROSVersion)>> registry;
     return registry;
   }
 

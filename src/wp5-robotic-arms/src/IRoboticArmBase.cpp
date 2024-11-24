@@ -87,7 +87,10 @@ const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
 
   // Compute IK
   isValid = tracIkSolver_->CartToJnt(nominalArray, endEffectorPose, result) >= 0;
-  jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
+
+  if (isValid) {
+    jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
+  }
 
   return isValid;
 }

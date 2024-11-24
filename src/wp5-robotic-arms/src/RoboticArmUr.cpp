@@ -20,8 +20,6 @@
 
 using namespace std;
 
-const double RoboticArmUr::TOLERANCE = 1e-5;
-
 RoboticArmUr::RoboticArmUr(ROSVersion rosVersion,
                            string robotName,
                            string configFilename,
