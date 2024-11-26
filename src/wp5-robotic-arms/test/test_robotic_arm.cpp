@@ -139,7 +139,37 @@ TEST_F(IRoboticArmBaseTest, TestSwapJoints) {
   EXPECT_EQ(jointTorqueOut, get<2>(state));
 }
 
-// Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
+// Create a test to check coherency of the robotic arm trac-ik solver
+TEST_F(IRoboticArmBaseTest, TestTracIkSolver) {
+  for (auto& [quaternion, position] : waypoints) {
+    vector<double> jointPos{};
+    roboticArm->getIKTrac(quaternion, position, jointPos);
+
+    // Compute forward kinematics
+    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFKTrac(jointPos);
+
+    EXPECT_TRUE(MathTools::areQuatEquivalent(quaternion, tracFKResult.first, TOLERANCE));
+    EXPECT_TRUE(MathTools::arePosEquivalent(position, tracFKResult.second, TOLERANCE));
+  }
+}
+
+// Create a test to check coherency of the robotic arm geometric solver
+TEST_F(IRoboticArmBaseTest, TestIkGeoSolver) {
+  for (auto& [quaternion, position] : waypoints) {
+    vector<vector<double>> ikSolutions;
+    roboticArm->getIKGeo(quaternion, position, ikSolutions);
+
+    // Compute forward kinematics
+    for (const auto& sol : ikSolutions) {
+      pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFKGeo(sol);
+
+      EXPECT_TRUE(MathTools::areQuatEquivalent(quaternion, geoFKResult.first, TOLERANCE));
+      EXPECT_TRUE(MathTools::arePosEquivalent(position, geoFKResult.second, TOLERANCE));
+    }
+  }
+}
+
+// Create a test to check the reference configuration of the robotic arm to fit the trac-ik one
 TEST_F(IRoboticArmBaseTest, TestForwardComparison) {
   for (auto& jointPos : jointPositions) {
     pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFKTrac(jointPos);
@@ -150,7 +180,7 @@ TEST_F(IRoboticArmBaseTest, TestForwardComparison) {
   }
 }
 
-// Create a test to check the reference configuration of the UR5 robotic arm to fit the trac-ik one
+// Create a test to compare the trac-ik and geometric ik solvers
 TEST_F(IRoboticArmBaseTest, TestInverseComparison) {
   for (auto& [quaternion, position] : waypoints) {
     vector<double> tracJointPos{};
@@ -159,47 +189,18 @@ TEST_F(IRoboticArmBaseTest, TestInverseComparison) {
     vector<vector<double>> ikSolutions;
     roboticArm->getIKGeo(quaternion, position, ikSolutions);
 
-    vector<double> geoJointPos = ikSolutions[0];
-    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFKTrac(tracJointPos);
-    pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFKTrac(geoJointPos);
+    for (const auto& geoJointPos : ikSolutions) {
+      pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFKTrac(tracJointPos);
+      pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFKTrac(geoJointPos);
 
-    EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE));
-    EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE));
+      EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE));
+      EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE));
 
-    tracFKResult = roboticArm->getFKGeo(tracJointPos);
-    geoFKResult = roboticArm->getFKGeo(geoJointPos);
+      tracFKResult = roboticArm->getFKGeo(tracJointPos);
+      geoFKResult = roboticArm->getFKGeo(geoJointPos);
 
-    EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE));
-    EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE));
-  }
-}
-
-// Create a test to check coherency of the UR5 robotic arm trac-ik solver
-TEST_F(IRoboticArmBaseTest, TestTracIkSolver) {
-  for (auto& [quaternion, position] : waypoints) {
-    vector<double> jointPos{};
-    roboticArm->getIKTrac(quaternion, position, jointPos);
-
-    // Compute forward kinematics
-    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFKTrac(jointPos);
-
-    EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, quaternion, TOLERANCE));
-    EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, position, TOLERANCE));
-  }
-}
-
-// Create a test to check coherency of the UR5 robotic arm geometric solver
-TEST_F(IRoboticArmBaseTest, TestIkGeoSolver) {
-  for (auto& [quaternion, position] : waypoints) {
-    vector<vector<double>> ikSolutions;
-    roboticArm->getIKGeo(quaternion, position, ikSolutions);
-
-    // Compute forward kinematics
-    for (const auto& sol : ikSolutions) {
-      pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFKGeo(sol);
-
-      EXPECT_TRUE(MathTools::areQuatEquivalent(geoFKResult.first, quaternion, TOLERANCE));
-      EXPECT_TRUE(MathTools::arePosEquivalent(geoFKResult.second, position, TOLERANCE));
+      EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE));
+      EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE));
     }
   }
 }

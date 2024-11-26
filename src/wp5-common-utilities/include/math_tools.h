@@ -34,7 +34,7 @@
  * This namespace contains functions for various mathematical checks and operations.
  */
 namespace MathTools {
-const double TOLERANCE = 1e-5;
+const double TOLERANCE = 2e-4;
 
 /**
  * @brief Checks if a given string represents a number.
@@ -45,6 +45,7 @@ const double TOLERANCE = 1e-5;
  * @return true if the string is a number, false otherwise.
  */
 const bool isNumber(const std::string& str);
+
 /**
  * @brief Converts radians to degrees.
  *
@@ -96,25 +97,6 @@ const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterni
  * @return true if the positions are equivalent within the given tolerance, false otherwise.
  */
 const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE);
-
-/**
- * @brief Converts Euler angles to a quaternion.
- *
- * This function converts a set of Euler angles to a quaternion.
- *
- * @tparam T The type of the Euler angles.
- * @param euler The Euler angles to convert.
- * @return The quaternion representation of the Euler angles.
- */
-template <typename T>
-Eigen::Quaternion<T> eulerToQuaternion(const std::array<T, 3>& euler) {
-  Eigen::Quaternion<T> q;
-  q = Eigen::AngleAxis<T>(euler[0], Eigen::Matrix<T, 3, 1>::UnitX())
-      * Eigen::AngleAxis<T>(euler[1], Eigen::Matrix<T, 3, 1>::UnitY())
-      * Eigen::AngleAxis<T>(euler[2], Eigen::Matrix<T, 3, 1>::UnitZ());
-
-  return q;
-}
 
 /**
  * @brief Transforms a pose from the source frame to the target frame using a TF listener.

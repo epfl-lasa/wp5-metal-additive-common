@@ -26,6 +26,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   tf
+  moveit_core
+  moveit_ros_planning
+  moveit_ros_planning_interface
 )
 
 ## The catkin_package macro generates cmake config files for your package
@@ -36,7 +39,13 @@ catkin_package(
     yaml_tools
     conversion_tools
     debug_tools
-  CATKIN_DEPENDS roscpp
+  CATKIN_DEPENDS
+    roscpp
+    std_msgs
+    tf
+    moveit_core
+    moveit_ros_planning
+    moveit_ros_planning_interface
   DEPENDS YAML_CPP
 )
 
@@ -55,6 +64,7 @@ add_library(math_tools
 target_link_libraries(math_tools
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}
+  debug_tools
 )
 
 # --- YAML tools library
@@ -77,7 +87,6 @@ add_library(conversion_tools
 target_link_libraries(conversion_tools
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}
-  math_tools
 )
 
 # --- Debug tools library
@@ -88,5 +97,5 @@ add_library(debug_tools
 target_link_libraries(debug_tools
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}
-  math_tools
+  conversion_tools
 )

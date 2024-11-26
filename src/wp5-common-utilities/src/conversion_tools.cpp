@@ -10,8 +10,6 @@
  */
 #include "conversion_tools.h"
 
-#include "math_tools.h"
-
 namespace ConversionTools {
 
 std::vector<double> geometryToVector(const geometry_msgs::Point& point) {
@@ -57,7 +55,7 @@ geometry_msgs::Quaternion vectorToGeometryQuat(const std::vector<double>& orient
   geometry_msgs::Quaternion newOrientation{};
   if (orientation.size() == 3) {
     std::array<double, 3> orientationArray = {orientation[0], orientation[1], orientation[2]};
-    newOrientation = eigenToGeometry(MathTools::eulerToQuaternion<double>(orientationArray));
+    newOrientation = eigenToGeometry(eulerToQuaternion<double>(orientationArray));
   } else if (orientation.size() == 4) {
     newOrientation.x = orientation[0];
     newOrientation.y = orientation[1];

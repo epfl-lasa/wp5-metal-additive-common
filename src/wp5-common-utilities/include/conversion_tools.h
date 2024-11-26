@@ -209,4 +209,23 @@ Eigen::Vector3d vectorToEigenVec(const std::vector<double>& position);
  * @throws std::invalid_argument if the input vector does not contain exactly four elements.
  */
 Eigen::Quaterniond vectorToEigenQuat(const std::vector<double>& orientation);
+
+/**
+ * @brief Converts Euler angles to a quaternion.
+ *
+ * This function converts a set of Euler angles to a quaternion.
+ *
+ * @tparam T The type of the Euler angles.
+ * @param euler The Euler angles to convert.
+ * @return The quaternion representation of the Euler angles.
+ */
+template <typename T>
+Eigen::Quaternion<T> eulerToQuaternion(const std::array<T, 3>& euler) {
+  Eigen::Quaternion<T> q;
+  q = Eigen::AngleAxis<T>(euler[0], Eigen::Matrix<T, 3, 1>::UnitX())
+      * Eigen::AngleAxis<T>(euler[1], Eigen::Matrix<T, 3, 1>::UnitY())
+      * Eigen::AngleAxis<T>(euler[2], Eigen::Matrix<T, 3, 1>::UnitZ());
+
+  return q;
+}
 } // namespace ConversionTools

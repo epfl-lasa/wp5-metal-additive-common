@@ -35,20 +35,28 @@ namespace DebugTools {
  * This function returns a string representation of a vector. The
  * string includes the values of each element in the vector, separated by commas.
  *
+ * @tparam T The type of elements in the vector.
  * @param vec The vector to convert to a string.
  * @return A string representation of the vector.
  */
 template <typename T>
 std::string getVecString(const std::vector<T>& vec) {
+  // Check if the vector is empty
+  if (vec.empty()) {
+    return "[]";
+  }
+
+  // Create a string stream to build the string representation
   std::ostringstream oss;
   oss << "[";
 
-  for (size_t i = 0; i < vec.size(); ++i) {
-    oss << vec[i];
+  // Handle first element separately to avoid adding a comma before it
+  auto it = vec.begin();
+  oss << *it;
+  ++it;
 
-    if (i < vec.size() - 1) {
-      oss << ", ";
-    }
+  for (; it != vec.end(); ++it) {
+    oss << ", " << *it;
   }
 
   oss << "]";
@@ -65,6 +73,30 @@ std::string getVecString(const std::vector<T>& vec) {
  * @return A string representation of the Pose message.
  */
 std::string getPoseString(const geometry_msgs::Pose& pose);
+
+/**
+ * @brief Converts an Eigen::VectorXd to a string representation.
+ *
+ * This function takes an Eigen::VectorXd object and returns a string
+ * that represents the vector. The elements of the vector are
+ * concatenated into a single string, typically separated by spaces
+ * or commas.
+ *
+ * @param vec The Eigen::VectorXd to be converted to a string.
+ * @return A string representation of the input vector.
+ */
+std::string getEigenVecString(const Eigen::VectorXd& vec);
+
+/**
+ * @brief Converts an Eigen Quaternion to a string representation.
+ *
+ * This function takes an Eigen::Quaterniond object and returns a string
+ * that represents the quaternion in a readable format.
+ *
+ * @param quat The Eigen::Quaterniond object to be converted to a string.
+ * @return A std::string representing the quaternion.
+ */
+std::string getEigenQuatString(const Eigen::Quaterniond& quat);
 
 /**
  * @brief Publishes a given pose to a specified ROS topic.
