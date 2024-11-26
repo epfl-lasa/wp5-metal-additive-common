@@ -121,6 +121,14 @@ std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation) {
   return newOrientation;
 }
 
+std::vector<double> eigenToVector(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation) {
+  std::vector<double> newPosition = eigenToVector(position);
+  std::vector<double> newOrientation = eigenToVector(orientation);
+
+  newPosition.insert(newPosition.end(), newOrientation.begin(), newOrientation.end());
+  return newPosition;
+}
+
 Eigen::Vector3d vectorToEigenVec(const std::vector<double>& position) {
   if (position.size() != 3) {
     ROS_ERROR("[ConversionTools] - Invalid position size, it should be 3.");

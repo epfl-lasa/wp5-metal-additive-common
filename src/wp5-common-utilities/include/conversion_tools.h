@@ -185,6 +185,18 @@ std::vector<double> eigenToVector(const Eigen::Vector3d& position);
 std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation);
 
 /**
+ * @brief Converts an Eigen::Vector3d and an Eigen::Quaterniond to a std::vector<double>.
+ *
+ * This function takes an Eigen::Vector3d representing a position and an Eigen::Quaterniond
+ * representing an orientation, and converts them into a single std::vector<double>.
+ *
+ * @param position The Eigen::Vector3d representing the position (x, y, z).
+ * @param orientation The Eigen::Quaterniond representing the orientation (x, y, z, w).
+ * @return A std::vector<double> containing the elements of the position followed by the elements of the orientation.
+ */
+std::vector<double> eigenToVector(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation);
+
+/**
  * @brief Converts a standard vector of doubles to an Eigen::Vector3d.
  *
  * This function takes a std::vector<double> representing a 3D position and converts it to an Eigen::Vector3d.
