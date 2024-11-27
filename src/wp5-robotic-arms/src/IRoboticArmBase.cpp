@@ -52,9 +52,7 @@ IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, const 
 
 const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFKTrac(const vector<double>& jointPos) {
   KDL::JntArray jointArray(getNbJoints());
-  for (size_t i = 0; i < getNbJoints(); ++i) {
-    jointArray(i) = jointPos[i];
-  }
+  std::copy(jointPos.begin(), jointPos.end(), jointArray.data.data());
 
   // Perform forward kinematics
   KDL::Frame cartesianPose;
@@ -72,18 +70,24 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFKTrac(const
 
 const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
                                       const Eigen::Vector3d& position,
-                                      vector<double>& jointPos,
-                                      const KDL::JntArray& nominal) {
-  // Ensure that the joint position vector has the correct size
+                                      std::vector<double>& jointPos,
+                                      const std::vector<double>& currentJointPos) {
   bool isValid = false;
-  KDL::JntArray nominalArray = nominal;
-  if (nominalArray.rows() != getNbJoints()) {
-    nominalArray = KDL::JntArray(getNbJoints());
+
+  // Ensure that the joint position vector has the correct size
+  KDL::JntArray nominalArray(getNbJoints());
+
+  if (!currentJointPos.empty()) {
+    if (currentJointPos.size() != getNbJoints()) {
+      ROS_ERROR_STREAM("[IRoboticArmBase] - Invalid joint position vector size. It should be " << getNbJoints());
+    } else {
+      std::copy(currentJointPos.begin(), currentJointPos.end(), nominalArray.data.data());
+    }
   }
 
   // Initialize computing materials
-  KDL::JntArray result{};
-  KDL::Frame endEffectorPose{};
+  KDL::JntArray result(getNbJoints());
+  KDL::Frame endEffectorPose;
 
   endEffectorPose.p = KDL::Vector(position.x(), position.y(), position.z());
   endEffectorPose.M = KDL::Rotation::Quaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
@@ -92,7 +96,7 @@ const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
   isValid = tracIkSolver_->CartToJnt(nominalArray, endEffectorPose, result) >= 0;
 
   if (isValid) {
-    jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
+    jointPos = std::vector<double>(result.data.data(), result.data.data() + result.data.size());
   }
 
   return isValid;
