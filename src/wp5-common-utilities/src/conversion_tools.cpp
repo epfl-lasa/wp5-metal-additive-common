@@ -82,7 +82,7 @@ Eigen::Quaterniond geometryToEigen(const geometry_msgs::Quaternion& orientation)
   return Eigen::Quaterniond{orientation.w, orientation.x, orientation.y, orientation.z};
 }
 
-geometry_msgs::Pose eigenToGeometry(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation) {
+geometry_msgs::Pose eigenToGeometry(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position) {
   geometry_msgs::Pose pose;
   pose.position = eigenToGeometry(position);
   pose.orientation = eigenToGeometry(orientation);
@@ -121,7 +121,7 @@ std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation) {
   return newOrientation;
 }
 
-std::vector<double> eigenToVector(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation) {
+std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position) {
   std::vector<double> newPosition = eigenToVector(position);
   std::vector<double> newOrientation = eigenToVector(orientation);
 

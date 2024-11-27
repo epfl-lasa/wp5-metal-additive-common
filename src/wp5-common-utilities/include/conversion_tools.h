@@ -132,11 +132,11 @@ Eigen::Quaterniond geometryToEigen(const geometry_msgs::Quaternion& orientation)
  * of the Eigen vector and x, y, z and w of the quaternion are directly mapped to
  * the corresponding fields in the Pose message.
  *
- * @param position The Eigen::Vector3d representing the position.
- * @param orientation The Eigen::Quaterniond representing the orientation.
+ * @param orientation The Eigen::Quaterniond representing the orientation (x, y, z, w).
+ * @param position The Eigen::Vector3d representing the position (x, y, z).
  * @return geometry_msgs::Pose The converted ROS Pose message.
  */
-geometry_msgs::Pose eigenToGeometry(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation);
+geometry_msgs::Pose eigenToGeometry(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position);
 
 /**
  * @brief Converts an Eigen::Vector3d to a geometry_msgs::Point.
@@ -190,11 +190,11 @@ std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation);
  * This function takes an Eigen::Vector3d representing a position and an Eigen::Quaterniond
  * representing an orientation, and converts them into a single std::vector<double>.
  *
- * @param position The Eigen::Vector3d representing the position (x, y, z).
  * @param orientation The Eigen::Quaterniond representing the orientation (x, y, z, w).
+ * @param position The Eigen::Vector3d representing the position (x, y, z).
  * @return A std::vector<double> containing the elements of the position followed by the elements of the orientation.
  */
-std::vector<double> eigenToVector(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation);
+std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position);
 
 /**
  * @brief Converts a standard vector of doubles to an Eigen::Vector3d.

@@ -51,14 +51,14 @@ const geometry_msgs::Pose ROI::getPoseROS(uint index) const {
     return geometry_msgs::Pose();
   }
 
-  return ConversionTools::eigenToGeometry(poses_[index].getPosition(), poses_[index].getOrientation());
+  return ConversionTools::eigenToGeometry(poses_[index].getOrientation(), poses_[index].getPosition());
 }
 
 const std::vector<geometry_msgs::Pose> ROI::getPosesROS() const {
   std::vector<geometry_msgs::Pose> posesROS;
 
   for (const auto& pose : poses_) {
-    posesROS.push_back(ConversionTools::eigenToGeometry(pose.getPosition(), pose.getOrientation()));
+    posesROS.push_back(ConversionTools::eigenToGeometry(pose.getOrientation(), pose.getPosition()));
   }
 
   return posesROS;
