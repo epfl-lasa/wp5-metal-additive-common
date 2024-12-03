@@ -22,6 +22,7 @@
 #include <cmath>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -106,14 +107,28 @@ const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2
  * transformed according to the latest available transform data.
  *
  * @param tfBuffer The TF buffer containing the latest transform data.
- * @param source_frame The name of the frame from which the pose is to be transformed.
- * @param target_frame The name of the frame to which the pose is to be transformed.
+ * @param sourceFrame The name of the frame from which the pose is to be transformed.
+ * @param targetFrame The name of the frame to which the pose is to be transformed.
  * @param pose The input geometry_msgs::Pose to be transformed.
  * @return The transformed geometry_msgs::Pose in the target frame.
  */
 geometry_msgs::Pose transformPose(tf2_ros::Buffer& tfBuffer,
-                                  const std::string& source_frame,
-                                  const std::string& target_frame,
+                                  const std::string& sourceFrame,
+                                  const std::string& targetFrame,
                                   const geometry_msgs::Pose& pose);
+
+/**
+ * @brief Adds an offset to a given quaternion and position pair.
+ *
+ * This function takes a pair of quaternion and position (without offset) and
+ * adds the specified offset to it, returning the resulting quaternion and position pair.
+ *
+ * @param quatPosNoOffset A pair consisting of a quaternion (Eigen::Quaterniond) and a position (Eigen::Vector3d) without offset.
+ * @param offset A pair consisting of a quaternion (Eigen::Quaterniond) and a position (Eigen::Vector3d) representing the offset to be added.
+ * @return A pair consisting of the resulting quaternion (Eigen::Quaterniond) and position (Eigen::Vector3d) after adding the offset.
+ */
+std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
+    const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& quatPosNoOffset,
+    const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& offset);
 
 } // namespace MathTools

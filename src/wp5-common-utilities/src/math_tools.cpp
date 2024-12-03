@@ -63,23 +63,23 @@ const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2
 }
 
 geometry_msgs::Pose transformPose(tf2_ros::Buffer& tfBuffer,
-                                  const std::string& source_frame,
-                                  const std::string& target_frame,
+                                  const std::string& sourceFrame,
+                                  const std::string& targetFrame,
                                   const geometry_msgs::Pose& pose) {
-  if (source_frame == target_frame) {
+  if (sourceFrame == targetFrame) {
     return pose;
   }
 
   // Define the pose in the source frame
   geometry_msgs::PoseStamped source_pose;
-  source_pose.header.frame_id = source_frame;
+  source_pose.header.frame_id = sourceFrame;
   source_pose.header.stamp = ros::Time::now();
   source_pose.pose = pose;
 
   try {
     // Lookup the transform from source frame to target frame
     geometry_msgs::TransformStamped transformStamped =
-        tfBuffer.lookupTransform(target_frame, source_frame, ros::Time(0), ros::Duration(1.0));
+        tfBuffer.lookupTransform(targetFrame, sourceFrame, ros::Time(0), ros::Duration(1.0));
 
     // Transform the pose
     geometry_msgs::PoseStamped target_pose;
@@ -90,6 +90,19 @@ geometry_msgs::Pose transformPose(tf2_ros::Buffer& tfBuffer,
     ROS_ERROR("[MathTools] - Received an exception trying to transform a pose: %s", ex.what());
     return pose;
   }
+}
+std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
+    const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& quatPosNoOffset,
+    const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& offset) {
+  // Apply the orientation offset, then normalize
+  Eigen::Quaterniond desiredQuat = (quatPosNoOffset.first * offset.first).normalized();
+
+  // Apply the position offset
+  Eigen::Matrix3d rotationMatrix = desiredQuat.toRotationMatrix();
+  Eigen::Vector3d posOffset = quatPosNoOffset.second - rotationMatrix * offset.second;
+
+  // Create the resulting pair using std::make_pair
+  return std::make_pair(desiredQuat, posOffset);
 }
 
 } // namespace MathTools
