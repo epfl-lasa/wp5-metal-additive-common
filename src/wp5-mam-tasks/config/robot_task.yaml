@@ -7,10 +7,14 @@
 welding:
   robot_name: "ur10e_robot"
   ros_version: "noetic"
-  ee_pos_offset: [0, 0, 0.05] # [m] x, y, z
+  home_configuration: [0, -1.57, 0, -1.57, 0, 0] # [rad] j1, j2, j3, j4, j5, j6
+  ee_pos_work_offset: [0, 0, 0.3] # [m] x, y, z
+  ee_pos_offset: [0, 0, 0.02] # [m] x, y, z
   ee_angle_offset: [-0.3491, 0, 0] # [rad] r, p, y
 cleaning:
   robot_name: "ur5_robot"
   ros_version: "noetic"
+  home_configuration: [0, -1.57, 0, -1.57, 0, 0] # [rad] j1, j2, j3, j4, j5, j6
+  ee_pos_work_offset: [0, 0, 0.3] # [m] x, y, z
   ee_pos_offset: [0, 0, 0.05] # [m] x, y, z
   ee_angle_offset: [-0.3491, 0, 0] # [rad] r, p, y

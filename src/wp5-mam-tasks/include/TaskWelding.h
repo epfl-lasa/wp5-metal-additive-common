@@ -15,7 +15,4 @@ public:
 
   bool computePath();
   bool execute();
-
-private:
-  const TaskType taskType_ = WELDING; ///< Task type.
 };

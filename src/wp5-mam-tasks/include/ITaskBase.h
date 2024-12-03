@@ -18,25 +18,10 @@
 #include "RoboticArmUr.h"
 
 /**
- * @brief Enum representing different types of tasks.
- */
-enum TaskType : int8_t {
-  TASK_UNDEFINED = -1, /**< Undefined task type. */
-  WELDING,             /**< Welding task type. */
-  CLEANING,            /**< Cleaning task type. */
-  NB_TASKS             /**< Number of task types. Keep at the end of enum. */
-};
-
-/**
  * @brief Base class for tasks.
  */
 class ITaskBase {
 public:
-  /**
-   * @brief Map of task names to TaskType enums.
-   */
-  inline static const std::map<std::string, TaskType> taskTypesMap{{"welding", WELDING}, {"cleaning", CLEANING}};
-
   /**
    * @brief Flag indicating if initialization has been checked.
    */
@@ -118,20 +103,15 @@ protected:
    * @brief Get the home joint configuration.
    * @return Home joint configuration.
    */
-  std::vector<double> getHomeJoint_() const { return homeJoint_; }
-
-  /**
-   * @brief Set the home joint configuration.
-   * @param desiredJoint Desired joint configuration.
-   */
-  void setHomeJoint_(std::vector<double> desiredJoint) { homeJoint_ = desiredJoint; }
+  const std::vector<double> getHomeConfig_() const { return homeConfig_; }
 
 private:
-  ros::NodeHandle nh_{};                      ///< ROS node handle.
-  const std::string robotName_{};             ///< Robot name.
-  const ROSVersion rosVersion_{};             ///< ROS version.
-  const std::vector<double> eePosOffset_{};   ///< End effector position offset.
-  const std::vector<double> eeAngleOffset_{}; ///< End effector angle offset.
+  ros::NodeHandle nh_{};          ///< ROS node handle.
+  const std::string robotName_{}; ///< Robot name.
+  const ROSVersion rosVersion_{}; ///< ROS version.
 
-  std::vector<double> homeJoint_{}; ///< Home joint configuration.
+  const std::vector<double> homeConfig_{};      ///< Home joint configuration.
+  const std::vector<double> eePosWorkOffset_{}; ///< End effector position offset when going to work position.
+  const std::vector<double> eePosOffset_{};     ///< End effector position offset.
+  const std::vector<double> eeAngleOffset_{};   ///< End effector angle offset.
 };

@@ -32,7 +32,6 @@ int main(int argc, char** argv) {
   internalFSM_.start();
   internalFSM_.process_event(Start());
   internalFSM_.stop();
-  cout << "TaskFSM is stopped" << endl;
 
   return 0;
 }
