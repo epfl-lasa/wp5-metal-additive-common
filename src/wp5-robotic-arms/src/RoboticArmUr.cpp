@@ -20,13 +20,6 @@
 
 using namespace std;
 
-const double RoboticArmUr::TOLERANCE = 1e-5;
-
-RoboticArmUr::RoboticArmUr(ROSVersion rosVersion, string robotName, string configFilename) :
-    IRoboticArmBase(string(robotName),
-                    rosVersion,
-                    YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_ROBOTIC_ARMS_DIR)))) {}
-
 RoboticArmUr::RoboticArmUr(ROSVersion rosVersion,
                            string robotName,
                            string configFilename,
@@ -73,7 +66,7 @@ const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
   Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, -0.5, -0.5, -0.5);
 
   uint totSolutions = 0;
-  const uint MAX_REJECTIONS = 90; // percentage of rejected solutions
+  const uint MAX_REJECTIONS = 85; // percentage of rejected solutions
   double posVector[3] = {position.x(), position.y(), position.z()};
 
   double rotMatrixArray[9]{};
@@ -101,8 +94,9 @@ const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
 
   // Check wether the number of rejected solutions is not too high
   totSolutions = ikSolutions.size();
-  if (totSolutions < MAX_REJECTIONS * jointPos.size() / 100) {
-    ROS_WARN("[IRoboticArmUR] - Too many solutions were rejected.");
+  if (jointPos.size() < MAX_REJECTIONS * totSolutions / 100) {
+    ROS_WARN_STREAM("[IRoboticArmUR] - Too many solutions were rejected " << jointPos.size() << " remaining, over "
+                                                                          << totSolutions << " total solutions.");
     return false;
   }
 

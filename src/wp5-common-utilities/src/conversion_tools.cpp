@@ -10,8 +10,6 @@
  */
 #include "conversion_tools.h"
 
-#include "math_tools.h"
-
 namespace ConversionTools {
 
 std::vector<double> geometryToVector(const geometry_msgs::Point& point) {
@@ -57,7 +55,7 @@ geometry_msgs::Quaternion vectorToGeometryQuat(const std::vector<double>& orient
   geometry_msgs::Quaternion newOrientation{};
   if (orientation.size() == 3) {
     std::array<double, 3> orientationArray = {orientation[0], orientation[1], orientation[2]};
-    newOrientation = eigenToGeometry(MathTools::eulerToQuaternion<double>(orientationArray));
+    newOrientation = eigenToGeometry(eulerToQuaternion<double>(orientationArray));
   } else if (orientation.size() == 4) {
     newOrientation.x = orientation[0];
     newOrientation.y = orientation[1];
@@ -84,7 +82,7 @@ Eigen::Quaterniond geometryToEigen(const geometry_msgs::Quaternion& orientation)
   return Eigen::Quaterniond{orientation.w, orientation.x, orientation.y, orientation.z};
 }
 
-geometry_msgs::Pose eigenToGeometry(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation) {
+geometry_msgs::Pose eigenToGeometry(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position) {
   geometry_msgs::Pose pose;
   pose.position = eigenToGeometry(position);
   pose.orientation = eigenToGeometry(orientation);
@@ -121,6 +119,14 @@ std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation) {
   std::vector<double> newOrientation{orientation.x(), orientation.y(), orientation.z(), orientation.w()};
 
   return newOrientation;
+}
+
+std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position) {
+  std::vector<double> newPosition = eigenToVector(position);
+  std::vector<double> newOrientation = eigenToVector(orientation);
+
+  newPosition.insert(newPosition.end(), newOrientation.begin(), newOrientation.end());
+  return newPosition;
 }
 
 Eigen::Vector3d vectorToEigenVec(const std::vector<double>& position) {

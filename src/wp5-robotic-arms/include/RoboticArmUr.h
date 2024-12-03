@@ -30,10 +30,6 @@
  */
 class RoboticArmUr : public IRoboticArmBase {
 public:
-  // Declare the test class as a friend to allow access to private members
-  friend class RoboticArmUrTest_TestSwapJoints_Test;
-
-  explicit RoboticArmUr(ROSVersion rosVersion, std::string robotName, std::string configFilename);
   explicit RoboticArmUr(ROSVersion rosVersion,
                         std::string robotName,
                         std::string configFilename,
@@ -77,9 +73,7 @@ public:
 private:
   const std::array<double, 18> UR_H_MATRIX{}; ///< H matrix for the UR robot, size 3*6
   const std::array<double, 21> UR_P_MATRIX{}; ///< P matrix for the UR robot, size 3*7
-
-  static const double TOLERANCE;            ///< Tolerance for comparing quaternions and positions
-  ik_geo::Robot* robotGeoSolver_ = nullptr; ///< IK-Geo solver
+  ik_geo::Robot* robotGeoSolver_ = nullptr;   ///< IK-Geo solver
 
   void swapJoints_(std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>& currentRobotState);
 };

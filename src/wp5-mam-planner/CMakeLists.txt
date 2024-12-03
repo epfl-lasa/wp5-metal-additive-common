@@ -34,7 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_move_group
   wp5_common_utilities
   wp5_ros_interface
-  wp5_robotic_arms_drivers
+  wp5_robotic_arms
 )
 
 catkin_package(
@@ -48,7 +48,7 @@ catkin_package(
     moveit_ros_move_group
     wp5_common_utilities
     wp5_ros_interface
-    wp5_robotic_arms_drivers
+    wp5_robotic_arms
   DEPENDS YAML_CPP EIGEN3
 )
 

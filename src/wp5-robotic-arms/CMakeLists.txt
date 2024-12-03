@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.3)
-project(wp5_robotic_arms_drivers VERSION 0.1.0 DESCRIPTION "Drivers library to manage different robotic arms")
+project(wp5_robotic_arms VERSION 0.1.0 DESCRIPTION "Drivers library to manage different robotic arms")
 set(CMAKE_CXX_STANDARD 17)
 
 if(POLICY CMP0057)
@@ -61,10 +61,11 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
+# Create library
 add_library(${PROJECT_NAME}
     src/IRoboticArmBase.cpp
-    src/RoboticArmCr7.cpp
     src/RoboticArmUr.cpp
+    src/RoboticArmFactory.cpp
 )
 
 # Set lib version
@@ -105,7 +106,7 @@ export(PACKAGE ${PROJECT_NAME})
 # -------------------------
 # Add the test executable
 # -------------------------
-set(test_exe_name test_robotic_arm_ur)
+set(test_exe_name test_robotic_arm)
 
 # Add gtest dependency
 if (CATKIN_ENABLE_TESTING)
@@ -118,10 +119,10 @@ if (CATKIN_ENABLE_TESTING)
 
   # Add the test executable only once
   add_executable(${test_exe_name}
-    test/test_robotic_arm_ur.cpp
-    src/RoboticArmUr.cpp
-    src/RoboticArmCr7.cpp
+    test/test_robotic_arm.cpp
     src/IRoboticArmBase.cpp
+    src/RoboticArmUr.cpp
+    src/RoboticArmFactory.cpp
   )
   target_link_libraries(${test_exe_name}
     ${catkin_LIBRARIES}

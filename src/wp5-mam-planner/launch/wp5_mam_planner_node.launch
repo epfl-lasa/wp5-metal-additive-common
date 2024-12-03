@@ -7,11 +7,13 @@
     <arg name="camera" doc="Realsens camera to run : [1, 2, all, none]"
         default="none" />
 
-    <arg name="robot_type" doc="Which robot to use : [ur5, ur10e, xMateCR7]" default="ur5" />
+    <arg name="robot_type" doc="Which robot to use : [ur5, ur10e]" default="ur5" />
     <param name="robot_type" value="$(arg robot_type)" />
 
     <arg name="calibration_filename" default="ur10e_default" />
-    <arg name="ee_tool" default="none" doc="Add the end effector tool to consider on the robot to have it in collision / visual. [none, logi_laser]" />
+    <arg name="ee_tool"
+        doc="Type of the tool attached to the end effector : [none, welding_laser, marker, logi_laser]"
+        default="none" />
 
     <!-- Setup Robot ip -->
     <arg unless="$(eval simu=='ON')" name="robot_ip" value="192.168.2.100" />

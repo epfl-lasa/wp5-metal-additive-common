@@ -1,9 +1,10 @@
 /**
  * @file math_tools.cpp
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
- * @version 0.3
- * @date 2024-11-05
+ * @brief A collection of mathematical utility functions to centralize common operations.
+ *
+ * @version 0.4
+ * @date 2024-11-20
  *
  * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *
@@ -13,6 +14,8 @@
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
+
+#include "debug_tools.h"
 
 namespace MathTools {
 
@@ -29,14 +32,34 @@ const bool isNumber(const std::string& str) {
 }
 
 const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterniond& q2, double tolerance) {
-  Eigen::Matrix3d rot1 = q1.toRotationMatrix();
-  Eigen::Matrix3d rot2 = q2.toRotationMatrix();
+  double dotProduct = q1.dot(q2);
+  bool areEquivalent = std::abs(dotProduct) > 1.0 - tolerance;
 
-  return (rot1 - rot2).norm() < tolerance;
+#ifdef DEBUG_MODE
+  if (!areEquivalent) {
+    std::string quat1 = DebugTools::getEigenQuatString(q1);
+    std::string quat2 = DebugTools::getEigenQuatString(q2);
+
+    ROS_WARN_STREAM("[MathTools] - Quaternions are not equivalent: " << quat1 << " and " << quat2);
+  }
+#endif
+
+  return areEquivalent;
 }
 
 const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance) {
-  return (p1 - p2).norm() < tolerance;
+  bool areEquivalent = (p1 - p2).norm() < tolerance;
+
+#ifdef DEBUG_MODE
+  if (!areEquivalent) {
+    std::string pos1 = DebugTools::getEigenVecString(p1);
+    std::string pos2 = DebugTools::getEigenVecString(p2);
+
+    ROS_WARN_STREAM("[MathTools] - Positions are not equivalent: " << pos1 << " and " << pos2);
+  }
+#endif
+
+  return areEquivalent;
 }
 
 geometry_msgs::Pose transformPose(tf2_ros::Buffer& tfBuffer,

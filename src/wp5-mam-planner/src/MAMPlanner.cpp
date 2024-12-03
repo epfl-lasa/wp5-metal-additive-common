@@ -24,8 +24,7 @@ using namespace std;
 
 MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) :
     spinner_(4), nh_(nh), tfListener_(tfBuffer_), subtask_(make_unique<Subtask>(nh_)) {
-  RoboticArmFactory armFactory = RoboticArmFactory();
-  robot_ = armFactory.createRoboticArm(robotName, rosVersion);
+  robot_ = RoboticArmFactory::createRoboticArm(robotName, rosVersion);
   robot_->printInfo();
 
   initMoveit_();

@@ -33,13 +33,16 @@ IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, const 
     chainEnd_(YamlTools::loadYamlValue<string>(config, robotName + "/chain_end")),
     referenceFrame_(YamlTools::loadYamlValue<string>(config, robotName + "/reference_frame")),
     originalHomeJoint_(YamlTools::loadYamlValue<vector<double>>(config, robotName + "/original_home_joint")) {
-  // Initialize Trac-IK solver
   initializeTracIkSolver_();
 
   if (getNbJoints() != chain_.getNrOfJoints()) {
     throw runtime_error(
         "[IRoboticArmBase] - Number of joints in the kinematic chain does not match the number of joint names");
   }
+
+#ifdef DEBUG_MODE
+  printInfo();
+#endif
 
   // Initialize ROS interface
   if (rosVersion_ == ROSVersion::ROS1_NOETIC) {
@@ -49,9 +52,7 @@ IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, const 
 
 const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFKTrac(const vector<double>& jointPos) {
   KDL::JntArray jointArray(getNbJoints());
-  for (size_t i = 0; i < getNbJoints(); ++i) {
-    jointArray(i) = jointPos[i];
-  }
+  std::copy(jointPos.begin(), jointPos.end(), jointArray.data.data());
 
   // Perform forward kinematics
   KDL::Frame cartesianPose;
@@ -69,25 +70,34 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> IRoboticArmBase::getFKTrac(const
 
 const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
                                       const Eigen::Vector3d& position,
-                                      vector<double>& jointPos,
-                                      const KDL::JntArray& nominal) {
-  // Ensure that the joint position vector has the correct size
+                                      std::vector<double>& jointPos,
+                                      const std::vector<double>& currentJointPos) {
   bool isValid = false;
-  KDL::JntArray nominalArray = nominal;
-  if (nominalArray.rows() != getNbJoints()) {
-    nominalArray = KDL::JntArray(getNbJoints());
+
+  // Ensure that the joint position vector has the correct size
+  KDL::JntArray nominalArray(getNbJoints());
+
+  if (!currentJointPos.empty()) {
+    if (currentJointPos.size() != getNbJoints()) {
+      ROS_ERROR_STREAM("[IRoboticArmBase] - Invalid joint position vector size. It should be " << getNbJoints());
+    } else {
+      std::copy(currentJointPos.begin(), currentJointPos.end(), nominalArray.data.data());
+    }
   }
 
   // Initialize computing materials
-  KDL::JntArray result{};
-  KDL::Frame endEffectorPose{};
+  KDL::JntArray result(getNbJoints());
+  KDL::Frame endEffectorPose;
 
   endEffectorPose.p = KDL::Vector(position.x(), position.y(), position.z());
   endEffectorPose.M = KDL::Rotation::Quaternion(quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w());
 
   // Compute IK
   isValid = tracIkSolver_->CartToJnt(nominalArray, endEffectorPose, result) >= 0;
-  jointPos = vector<double>(result.data.data(), result.data.data() + result.data.size());
+
+  if (isValid) {
+    jointPos = std::vector<double>(result.data.data(), result.data.data() + result.data.size());
+  }
 
   return isValid;
 }
@@ -111,22 +121,23 @@ const bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos) {
 
 void IRoboticArmBase::printInfo() const {
   string tmpString = "";
+  ROS_INFO("[IRoboticArmBase] ----- Robot Information START -----");
+
   ROS_INFO_STREAM("[IRoboticArmBase] - Robot name: " << robotName_);
   ROS_INFO_STREAM("[IRoboticArmBase] - URDF Path: " << pathUrdf_);
   ROS_INFO_STREAM("[IRoboticArmBase] - Number of joints: " << getNbJoints());
+  ROS_INFO_STREAM("[IRoboticArmBase] - Controller frequency: " << contFreq_ << " Hz");
 
-  tmpString = "[IRoboticArmBase] - Joint names: [";
-  for (const string& jointName : jointNames_) {
-    tmpString += jointName + ", ";
-  }
-  ROS_INFO_STREAM(tmpString << "]");
+  tmpString = "[IRoboticArmBase] - Joint names: ";
+  ROS_INFO_STREAM(tmpString + DebugTools::getVecString<string>(jointNames_));
+
+  ROS_INFO_STREAM("[IRoboticArmBase] - Chain : " << chainStart_ << " <-> " << chainEnd_);
   ROS_INFO_STREAM("[IRoboticArmBase] - Reference frame: " << referenceFrame_);
 
-  tmpString = "[IRoboticArmBase] - Original home joint: [";
-  for (double joint : originalHomeJoint_) {
-    tmpString += to_string(joint) + ", ";
-  }
-  ROS_INFO_STREAM(tmpString << "]");
+  tmpString = "[IRoboticArmBase] - Original home joint: ";
+  ROS_INFO_STREAM(tmpString + DebugTools::getVecString<double>(originalHomeJoint_));
+
+  ROS_INFO("[IRoboticArmBase] ----- Robot Information END -----");
 }
 
 void IRoboticArmBase::initializeTracIkSolver_() {

@@ -41,7 +41,7 @@ enum IkSolver : uint8_t {
 class IRoboticArmBase {
 public:
   // Declare the test class as a friend to allow access to private members
-  friend class RoboticArmUrTest_TestSwapJoints_Test;
+  friend class IRoboticArmBaseTest_TestSwapJoints_Test;
 
   /**
    * @brief Constructor for IRoboticArmBase.
@@ -99,17 +99,16 @@ public:
 
   /**
    * @brief Get the inverse kinematics of the robotic arm using Trac-IK algorithm.
-   * @param ikSolver Type of inverse kinematics solver to use.
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
    * @param jointPos Joint positions of the robotic arm.
-   * @param nominal (Optional) Nominal joint positions.
-   * @return Pair of the return code and the next joint positions.
+   * @param currentJointPos Current joint positions of the robotic arm.
+   * @return True if the IK was successful, false otherwise.
    */
   const bool getIKTrac(const Eigen::Quaterniond& quaternion,
                        const Eigen::Vector3d& position,
                        std::vector<double>& jointPos,
-                       const KDL::JntArray& nominal = KDL::JntArray());
+                       const std::vector<double>& currentJointPos = {});
 
   /**
    * @brief Get the inverse kinematics of the robotic arm.

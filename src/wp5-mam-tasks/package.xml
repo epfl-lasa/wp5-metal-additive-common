@@ -14,5 +14,5 @@
   <depend>std_msgs</depend>
   <depend>wp5_common_utilities</depend>
   <depend>wp5_mam_planner</depend>
-  <depend>wp5_robotic_arms_drivers</depend>
+  <depend>wp5_robotic_arms</depend>
 </package>
