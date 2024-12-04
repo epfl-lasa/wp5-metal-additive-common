@@ -13,6 +13,6 @@ class TaskCleaning : public ITaskBase {
 public:
   TaskCleaning(ros::NodeHandle& nh, std::string configFilename);
 
-  bool computePath();
+  bool computeTrajectory(std::vector<geometry_msgs::Pose> waypoints);
   bool execute();
 };

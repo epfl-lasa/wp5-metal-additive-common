@@ -3,7 +3,7 @@
  * @brief Declaration of the MAMPlanner class
  *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @version 0.1
+ * @version 0.2
  * @date 2024-09-12
  *
  * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
@@ -22,11 +22,8 @@
 
 using namespace std;
 
-MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) :
-    spinner_(4), nh_(nh), tfListener_(tfBuffer_), subtask_(make_unique<Subtask>(nh_)) {
+MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) : spinner_(4), nh_(nh) {
   robot_ = RoboticArmFactory::createRoboticArm(robotName, rosVersion);
-  robot_->printInfo();
-
   initMoveit_();
 
   pubWeldingState_ = nh_.advertise<std_msgs::Bool>("welding_state", 1);
@@ -42,73 +39,79 @@ MAMPlanner::MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh, string robotN
 }
 
 bool MAMPlanner::planTrajectory() {
-  currentWPointID_ = 0;
   bestPlan_.clear();
   geometry_msgs::Pose currentPose = moveGroup_->getCurrentPose().pose;
-
-  while (subtask_->empty()) {
-    float TIME_WAIT = 0.2;
-    ROS_WARN("[MAMPlanner] - Waiting for Waypoints");
-    ros::Duration(TIME_WAIT).sleep();
-  }
-
-  while (!subtask_->empty()) {
-    optional<ROI> roi = subtask_->popROI();
-
-    if (!roi.has_value()) {
-      ROS_ERROR("[MAMPlanner] - No ROI received");
-      return false;
-    }
-
-    geometry_msgs::Pose startTaskPose = roi.value().getPoseROS(0);
-    geometry_msgs::Pose endTaskPose = roi.value().getPoseROS(1);
-
-    // Robot welding task
-    if (!computeTrajectory_(startTaskPose, endTaskPose, true)) {
-      return false;
-    }
-    currentWPointID_++;
-  }
 
   return true;
 }
 
-void MAMPlanner::executeTrajectory() {
+bool MAMPlanner::executeTrajectory() {
   bool success = false;
+  int currentStep = 0;
   vector<double> firstJointConfig{};
 
   if (bestPlan_.empty()) {
     ROS_ERROR("[MAMPlanner] - No trajectory to execute");
-    return;
+    return success;
   }
 
   for (const auto& trajectory : bestPlan_) {
-    firstJointConfig = trajectory.joint_trajectory.points[0].positions;
+    currentStep++;
 
-    if (!robot_->isAtJointPosition(firstJointConfig)) {
-      moveGroup_->setJointValueTarget(firstJointConfig);
+    // Check the first joint configuration to be able to begin trajectory execution
+    if (firstJointConfig.empty()) {
+      firstJointConfig = trajectory.joint_trajectory.points[0].positions;
 
-      success = moveGroup_->move() == moveit::core::MoveItErrorCode::SUCCESS;
-      moveGroup_->stop();
-      moveGroup_->clearPoseTargets();
+      if (!robot_->isAtJointPosition(firstJointConfig)) {
+        success = goToJointConfig(firstJointConfig);
 
-      if (!success) {
-        ROS_ERROR("[MAMPlanner] - Failed to move to the starting joint configuration.");
-        return;
+        if (!success) {
+          ROS_ERROR("[MAMPlanner] - Failed to move to the first joint configuration");
+          return success;
+        }
       }
     }
 
+    // Execute the trajectory
     success = moveGroup_->execute(trajectory) == moveit::core::MoveItErrorCode::SUCCESS;
     moveGroup_->stop();
     moveGroup_->clearPoseTargets();
 
-    if (success) {
-      ROS_INFO("[MAMPlanner] - Trajectory executed successfully");
-    } else {
-      ROS_ERROR("[MAMPlanner] - Failed to execute trajectory");
-      return;
+    if (!success) {
+      ROS_ERROR_STREAM("[MAMPlanner] - Failed to execute trajectory at step " << currentStep);
+      return success;
     }
+
+    ROS_INFO("[MAMPlanner] - Trajectory executed successfully");
   }
+
+  return success;
+}
+
+bool MAMPlanner::goToJointConfig(const vector<double>& jointConfig) {
+  moveGroup_->setJointValueTarget(jointConfig);
+  bool success = move_();
+
+  if (!success) {
+    string jointConfigStr = DebugTools::getVecString<double>(jointConfig);
+
+    ROS_ERROR_STREAM("[MAMPlanner] - Failed to move to the joint configuration " << jointConfigStr);
+  }
+
+  return success;
+}
+
+bool MAMPlanner::goToPose(const geometry_msgs::Pose& targetPose) {
+  moveGroup_->setPoseTarget(targetPose);
+  bool success = move_();
+
+  if (!success) {
+    string targetPoseStr = DebugTools::getPoseString(targetPose);
+
+    ROS_ERROR_STREAM("[MAMPlanner] - Failed to move to the target pose " << targetPoseStr);
+  }
+
+  return success;
 }
 
 void MAMPlanner::initMoveit_() {
@@ -190,18 +193,18 @@ bool MAMPlanner::computePath_(const vector<double>& startConfig,
   }
 #endif
 
-  if (success) {
-    if (currentWPointID_ >= bestPlan_.size()) {
-      bestPlan_.push_back(planTrajectory);
-    } else {
-      double currentPlanSize = planTrajectory.joint_trajectory.points.size();
-      double bestPlanSize = bestPlan_[currentWPointID_].joint_trajectory.points.size();
+  // if (success) {
+  //   if (currentWPointID_ >= bestPlan_.size()) {
+  //     bestPlan_.push_back(planTrajectory);
+  //   } else {
+  //     double currentPlanSize = planTrajectory.joint_trajectory.points.size();
+  //     double bestPlanSize = bestPlan_[currentWPointID_].joint_trajectory.points.size();
 
-      if (currentPlanSize < bestPlanSize) {
-        bestPlan_[currentWPointID_] = planTrajectory;
-      }
-    }
-  }
+  //     if (currentPlanSize < bestPlanSize) {
+  //       bestPlan_[currentWPointID_] = planTrajectory;
+  //     }
+  //   }
+  // }
 
   return success;
 }
@@ -237,14 +240,10 @@ bool MAMPlanner::computeTrajectory_(const geometry_msgs::Pose currentPose,
   return true;
 }
 
-void MAMPlanner::createNewFrame_(const string& parentFrame,
-                                 const string& newFrame,
-                                 const geometry_msgs::Transform& transform) {
-  geometry_msgs::TransformStamped transformStamped;
-  transformStamped.header.stamp = ros::Time::now();
-  transformStamped.header.frame_id = parentFrame;
-  transformStamped.child_frame_id = newFrame;
-  transformStamped.transform = transform;
+bool MAMPlanner::move_() {
+  bool success = moveGroup_->move() == moveit::core::MoveItErrorCode::SUCCESS;
+  moveGroup_->stop();
+  moveGroup_->clearPoseTargets();
 
-  br_.sendTransform(transformStamped);
+  return success;
 }

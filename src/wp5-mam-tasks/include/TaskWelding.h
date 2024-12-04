@@ -13,6 +13,6 @@ class TaskWelding : public ITaskBase {
 public:
   TaskWelding(ros::NodeHandle& nh, std::string configFilename);
 
-  bool computePath();
+  bool computeTrajectory(std::vector<geometry_msgs::Pose> waypoints);
   bool execute();
 };

@@ -56,6 +56,9 @@ add_executable(${node_name}
   src/ITaskBase.cpp
   src/TaskWelding.cpp
   src/TaskCleaning.cpp
+  src/Subtask.cpp
+  src/ROI.cpp
+  src/WaypointParser.cpp
 )
 
 target_link_libraries(${node_name} PRIVATE
@@ -63,3 +66,48 @@ target_link_libraries(${node_name} PRIVATE
   ${Boost_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
 )
+
+# -------------------------
+# Add the python scripts
+# -------------------------
+catkin_install_python(PROGRAMS
+  scripts/publish_waypoints.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+
+install(DIRECTORY config/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+)
+
+# -------------------------
+# Add the test executable
+# -------------------------
+set(test_exe_name test_waypoint_parser)
+
+# Add gtest dependency
+if (CATKIN_ENABLE_TESTING)
+  find_package(GTest REQUIRED)
+  include_directories(
+    ${GTEST_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIR}
+    ${catkin_INCLUDE_DIRS}
+  )
+
+  # Add the test executable only once
+  add_executable(${test_exe_name}
+    test/test_waypoint_parser.cpp
+    src/WaypointParser.cpp
+  )
+  target_link_libraries(${test_exe_name}
+    ${catkin_LIBRARIES}
+    ${GTEST_LIBRARIES}
+    ${GTEST_MAIN_LIBRARIES}
+    ${EIGEN3_LIBRARIES}
+    ${YAML_CPP_LIBRARIES}
+    pthread
+  )
+endif()

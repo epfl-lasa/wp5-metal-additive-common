@@ -10,6 +10,8 @@
 #include <boost/msm/front/state_machine_def.hpp>
 
 // Other
+#include <ros/ros.h>
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -23,9 +25,11 @@ namespace mp11 = boost::mp11;
 // List of FSM events
 class Initialized {};
 class AreaScanned {};
+class AreaEmpty {};
 class PathComputed {};
 class Start {};
-class Finished {};
+class SubtasksFinished {};
+class SubtasksNotFinished {};
 
 class ErrorTrigger {};
 class ErrorAcknowledgement {};
@@ -60,20 +64,28 @@ protected:
 
   std::string error_ = "";
   std::shared_ptr<ITaskBase> currentTask_;
+  std::shared_ptr<Subtask> subtask_;
 
 public:
-  TaskFSM(std::shared_ptr<ITaskBase> task) : currentTask_(task) {};
+  TaskFSM(std::shared_ptr<ITaskBase> task, ros::NodeHandle& nh) :
+      currentTask_(task), subtask_(std::make_unique<Subtask>(nh)) {};
 
   bool getExit() { return exit_; }
   bool getHomed() { return homed_; }
   bool getReady() { return ready_; }
   std::string getError() { return error_; }
   std::shared_ptr<ITaskBase> getCurrentTask() { return currentTask_; }
+  std::shared_ptr<Subtask> getSubtask() { return subtask_; }
 
   void setExit(bool exit) { exit_ = exit; }
   void setHome(bool homed) { homed_ = homed; }
   void setReady(bool ready) { ready_ = ready; }
   void setError(std::string error) { error_ = error; }
+
+  void reachError(std::string errorMsg) {
+    ROS_ERROR_STREAM(errorMsg);
+    setError(errorMsg);
+  }
 
   /**
    * @brief Action functor class for the goWorkingPosition event in the TaskFSM.
@@ -100,7 +112,7 @@ public:
       if (feedback) {
         fsm.setReady(true);
       } else {
-        fsm.setError("[FSM] - Error: Task goWorkingPosition failed");
+        fsm.reachError("[FSM] - Error: Task goWorkingPosition failed");
         fsm.process_event(ErrorTrigger());
       }
     }
@@ -185,6 +197,7 @@ public:
 
       // Scanning ---------------------------------------------
       msmf::Row<Scanning, AreaScanned, Planning, msmf::none, msmf::none>,
+      msmf::Row<Scanning, AreaEmpty, Homing, msmf::none, msmf::none>,
 
       // Planning ---------------------------------------------
       msmf::Row<Planning, PathComputed, Ready, goWorkingPosition, msmf::none>,
@@ -193,8 +206,11 @@ public:
       msmf::Row<Ready, Start, Executing, msmf::none, isReady>,
 
       // Executing --------------------------------------------
-      msmf::Row<Executing, Finished, Ready, goWorkingPosition, msmf::euml::Not_<isExiting>>,
-      msmf::Row<Executing, Finished, Homing, msmf::none, isExiting>,
+      msmf::Row<Executing, SubtasksFinished, Scanning, msmf::none, msmf::euml::Not_<isExiting>>,
+      msmf::Row<Executing, SubtasksNotFinished, Planning, msmf::none, msmf::euml::Not_<isExiting>>,
+
+      msmf::Row<Executing, SubtasksFinished, Homing, msmf::none, isExiting>,
+      msmf::Row<Executing, SubtasksNotFinished, Homing, msmf::none, isExiting>,
 
       // Homing -----------------------------------------------
       msmf::Row<Homing, msmf::none, Exit, msmf::none, isHomed>,
@@ -226,12 +242,14 @@ public:
    */
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
+    ROS_INFO("[FSM] - Entering: TaskFSM - Initializing");
+
     bool feedback = fsm.getCurrentTask()->initialize();
 
     if (feedback) {
       fsm.process_event(Initialized());
     } else {
-      fsm.setError("[FSM] - Error: Task initialization failed");
+      fsm.reachError("[FSM] - Error: Task initialization failed");
       fsm.process_event(ErrorTrigger());
     }
   }
@@ -256,12 +274,18 @@ public:
    */
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
+    ROS_INFO("[FSM] - Entering: TaskFSM - Scanning");
+
     bool feedback = fsm.getCurrentTask()->scanArea();
 
     if (feedback) {
-      fsm.process_event(AreaScanned());
+      if (fsm.getSubtask()->empty()) {
+        fsm.process_event(AreaEmpty());
+      } else {
+        fsm.process_event(AreaScanned());
+      }
     } else {
-      fsm.setError("[FSM] - Error: Scanning area failed");
+      fsm.reachError("[FSM] - Error: Scanning area failed");
       fsm.process_event(ErrorTrigger());
     }
   }
@@ -286,12 +310,22 @@ public:
    */
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
-    bool feedback = fsm.getCurrentTask()->computePath();
+    ROS_INFO("[FSM] - Entering: TaskFSM - Planning");
+
+    std::optional<ROI> roi = fsm.getSubtask()->popROI();
+    std::vector<geometry_msgs::Pose> waypoints = roi.value().getPosesROS();
+
+    if (!roi.has_value()) {
+      fsm.reachError("[FSM] - Error: No ROI received");
+      fsm.process_event(ErrorTrigger());
+    }
+
+    bool feedback = fsm.getCurrentTask()->computeTrajectory(waypoints);
 
     if (feedback) {
       fsm.process_event(PathComputed());
     } else {
-      fsm.setError("[FSM] - Error: Path computation failed");
+      fsm.reachError("[FSM] - Error: Path computation failed");
       fsm.process_event(ErrorTrigger());
     }
   }
@@ -315,7 +349,7 @@ public:
    */
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
-    std::cout << "Entering: TaskFSM - Ready" << std::endl;
+    ROS_INFO("[FSM] - Entering: TaskFSM - Ready");
   }
 
   /**
@@ -328,7 +362,7 @@ public:
      */
   template <class Event, class FSM>
   void on_exit(Event const& event, FSM& fsm) {
-    std::cout << "Leaving: TaskFSM - Ready" << std::endl;
+    ROS_INFO("[FSM] - Exiting: TaskFSM - Ready");
   }
 };
 
@@ -342,7 +376,7 @@ public:
    *
    * This state represents the execution of a task in the finite state machine.
    * When entering this state, the `on_entry` function is called, which executes the current task.
-   * If the task execution is successful, the state machine transitions to the `Finished` state.
+   * If the task execution is successful, the state machine transitions to the `SubtasksFinished` state.
    * If the task execution fails, an error message is set and the state machine transitions to the `ErrorTrigger` state.
    *
    * @tparam Event The type of the event.
@@ -352,12 +386,19 @@ public:
    */
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
+    ROS_INFO("[FSM] - Entering: TaskFSM - Executing");
+
     bool feedback = fsm.getCurrentTask()->execute();
 
     if (feedback) {
-      fsm.process_event(Finished());
+      if (fsm.getSubtask()->empty()) {
+        fsm.setExit(true);
+        fsm.process_event(SubtasksFinished());
+      } else {
+        fsm.process_event(SubtasksNotFinished());
+      }
     } else {
-      fsm.setError("[FSM] - Error: Task execution failed");
+      fsm.reachError("[FSM] - Error: Task execution failed");
       fsm.process_event(ErrorTrigger());
     }
   }
@@ -371,7 +412,7 @@ public:
   /**
    * @brief Called when entering the "Homing" state.
    *
-   * This function executes the `goHomingPosition()` function of the current task and checks the feedback. If the
+   * This function executes the `goHomingConfiguration()` function of the current task and checks the feedback. If the
    * feedback indicates a failure, it sets an error message and triggers the `ErrorTrigger` event to transition to
    * the error state.
    *
@@ -382,30 +423,16 @@ public:
    */
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
-    bool feedback = fsm.getCurrentTask()->goHomingPosition();
+    ROS_INFO("[FSM] - Entering: TaskFSM - Homing");
+
+    bool feedback = fsm.getCurrentTask()->goHomingConfiguration();
 
     if (feedback) {
       fsm.setHome(true);
     } else {
-      fsm.setError("[FSM] - Error: Task homing failed");
+      fsm.reachError("[FSM] - Error: Task homing failed");
       fsm.process_event(ErrorTrigger());
     }
-  }
-
-  /**
-   * @brief Called when exiting the "Homing" state.
-   *
-   * This function is called when transitioning out of the "Homing" state. It simply prints a message indicating that
-   * the state is being left.
-   *
-   * @tparam Event The type of the event.
-   * @tparam FSM The type of the state machine.
-   * @param event The event that triggered the state transition.
-   * @param fsm The state machine instance.
-   */
-  template <class Event, class FSM>
-  void on_exit(Event const& event, FSM& fsm) {
-    std::cout << "Leaving: TaskFSM - Homing" << std::endl;
   }
 };
 
@@ -424,22 +451,9 @@ public:
    */
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
-    std::cout << "Entering: TaskFSM - Exit" << std::endl;
+    ROS_INFO("[FSM] - Entering: TaskFSM - Exit");
 
-    ros::shutdown(); // Signal ROS to shut down
-  }
-
-  /**
-   * @brief Called when exiting the Exit state.
-   *
-   * @tparam Event The type of the event.
-   * @tparam FSM The type of the finite state machine.
-   * @param event The event that triggered the state transition.
-   * @param fsm The finite state machine instance.
-   */
-  template <class Event, class FSM>
-  void on_exit(Event const& event, FSM& fsm) {
-    std::cout << "Leaving: TaskFSM - Exit" << std::endl;
+    ros::shutdown();
   }
 };
 
@@ -458,7 +472,7 @@ public:
    */
   template <class Event, class FSM>
   void on_entry(Event const&, FSM&) {
-    std::cout << "starting: AllOk" << std::endl;
+    ROS_INFO("[FSM] - Entering: AllOk");
   }
 
   /**
@@ -471,7 +485,7 @@ public:
    */
   template <class Event, class FSM>
   void on_exit(Event const&, FSM&) {
-    std::cout << "finishing: AllOk" << std::endl;
+    ROS_INFO("[FSM] - Exiting: AllOk");
   }
 };
 
@@ -490,7 +504,7 @@ public:
    */
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
-    std::cout << "starting: ErrorMode" << std::endl;
+    ROS_INFO("[FSM] - Entering: ErrorMode");
   }
 
   /**
@@ -503,6 +517,6 @@ public:
    */
   template <class Event, class FSM>
   void on_exit(Event const& event, FSM& fsm) {
-    std::cout << "finishing: ErrorMode" << std::endl;
+    ROS_INFO("[FSM] - Exiting: ErrorMode");
   }
 };

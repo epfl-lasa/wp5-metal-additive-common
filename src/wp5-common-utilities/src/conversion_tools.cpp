@@ -47,12 +47,16 @@ geometry_msgs::Point vectorToGeometryPoint(const std::vector<double>& point) {
 }
 
 geometry_msgs::Quaternion vectorToGeometryQuat(const std::vector<double>& orientation) {
+  geometry_msgs::Quaternion newOrientation{};
+
   if (orientation.size() != 3 && orientation.size() != 4) {
-    ROS_ERROR("[ConversionTools] - Invalid orientation size it should be 3 for Euler use or 4 for Quaternions.");
-    return geometry_msgs::Quaternion();
+    ROS_ERROR_STREAM(
+        "[ConversionTools] - Invalid orientation size, it should be 3 for Euler use or 4 for Quaternions instead of "
+        << orientation.size());
+
+    return newOrientation;
   }
 
-  geometry_msgs::Quaternion newOrientation{};
   if (orientation.size() == 3) {
     std::array<double, 3> orientationArray = {orientation[0], orientation[1], orientation[2]};
     newOrientation = eigenToGeometry(eulerToQuaternion<double>(orientationArray));
@@ -67,9 +71,19 @@ geometry_msgs::Quaternion vectorToGeometryQuat(const std::vector<double>& orient
 }
 
 geometry_msgs::Pose vectorToGeometryPose(const std::vector<double>& pose) {
-  geometry_msgs::Pose newPose;
-  newPose.position = vectorToGeometryPoint(std::vector<double>(pose.begin(), pose.begin() + 3));
-  newPose.orientation = vectorToGeometryQuat(std::vector<double>(pose.begin() + 3, pose.end()));
+  geometry_msgs::Pose newPose{};
+  int8_t orientationSize = (pose.size() == 7) ? 4 : 3;
+
+  if (pose.size() != 6 && pose.size() != 7) {
+    ROS_ERROR_STREAM(
+        "[ConversionTools] - Invalid pose size, it should be 6 for Euler use or 7 for Quaternions instead of "
+        << pose.size());
+
+    return newPose;
+  }
+
+  newPose.orientation = vectorToGeometryQuat(std::vector<double>(pose.begin(), pose.begin() + orientationSize));
+  newPose.position = vectorToGeometryPoint(std::vector<double>(pose.begin() + orientationSize, pose.end()));
 
   return newPose;
 }
@@ -84,8 +98,8 @@ Eigen::Quaterniond geometryToEigen(const geometry_msgs::Quaternion& orientation)
 
 geometry_msgs::Pose eigenToGeometry(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position) {
   geometry_msgs::Pose pose;
-  pose.position = eigenToGeometry(position);
   pose.orientation = eigenToGeometry(orientation);
+  pose.position = eigenToGeometry(position);
 
   return pose;
 }
@@ -122,11 +136,11 @@ std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation) {
 }
 
 std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position) {
-  std::vector<double> newPosition = eigenToVector(position);
   std::vector<double> newOrientation = eigenToVector(orientation);
+  std::vector<double> newPosition = eigenToVector(position);
 
-  newPosition.insert(newPosition.end(), newOrientation.begin(), newOrientation.end());
-  return newPosition;
+  newOrientation.insert(newOrientation.end(), newPosition.begin(), newPosition.end());
+  return newOrientation;
 }
 
 Eigen::Vector3d vectorToEigenVec(const std::vector<double>& position) {

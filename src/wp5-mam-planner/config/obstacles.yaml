@@ -2,40 +2,40 @@
 # obstacles:
 #   - name: obstacle_box
 #     type: box
-#     size: [0.1, 0.1, 0.1] # [m]
-#     pose: [0.5, 0.5, 0.5, 0, 0, 0] # World space [xyz, xyzw] in [m, rad]
+#     size: [0.1, 0.1, 0.1] # xyz [m]
+#     pose: [0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5] # World space [xyzw, xyz] in [rad, m]
 #   - name: obstacle_sphere
 #     type: sphere
 #     radius: 0.1 # [m]
-#     pose: [0.5, 0.5, 0.5, 0, 0, 0] # World space [xyz, xyzw] in [m, rad]
+#     pose: [0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5] # World space [xyzw, xyz] in [rad, m]
 #   - name: obstacle_cylinder
 #     type: cylinder
 #     radius: 0.1 # [m]
 #     height: 0.2 # [m]
-#     pose: [0.5, 0.5, 0.5, 0, 0, 0] # World space [xyz, xyzw] in [m, rad]
+#     pose: [0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5] # World space [xyzw, xyz] in [rad, m]
 #   - name: obstacle_mesh
 #     type: mesh
 #     path: /home/ros/catkin_ws/src/anima_ros/laser_description/meshes/collision/laser_holder_collision.stl
-#     pose: [0.5, 0.5, 0.5, 0, 0, 0] # World space [xyz, xyzw] in [m, rad]
+#     pose: [0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5] # World space [xyzw, xyz] in [rad, m]
 obstacles:
 #  - name: ridgeback_platform
 #    type: box
-#    size: [0.97, 0.77, 0.3] # [m]
-#    pose: [-0.185, 0, -0.15, 0.0, 0.0, 0.0, 1.0] # World space [xyz, xyzw] in [m, rad]
+#    size: [0.97, 0.77, 0.3] # xyz [m]
+#    pose: [0.0, 0.0, 0.0, 1.0, -0.185, 0, -0.15] # World space [xyzw, xyz] in [rad, m]
 #  - name: ridgeback_arch
 #    type: box
-#    size: [0.15, 0.55, 0.85] # [m]
-#    pose: [-0.62, 0.0, 0.425, 0.0, 0.0, 0.0, 1.0] # World space [xyz, xyzw] in [m, rad]
+#    size: [0.15, 0.55, 0.85] # xyz [m]
+#    pose: [0.0, 0.0, 0.0, 1.0, -0.62, 0.0, 0.425] # World space [xyzw, xyz] in [rad, m]
   - name: ground
     type: box
-    size: [2.0, 2.0, 0.2] # [m]
-    pose: [0.0, 0.0, -0.1, 0.0, 0.0, 0.0, 1.0] # World space [xyz, xyzw] in [m, rad]
+    size: [2.0, 2.0, 0.2] # xyz [m]
+    pose: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -0.1] # World space [xyzw, xyz] in [rad, m]
 # TODO(lmunier): Add ANiMA's basements walls
 #  - name: wall_rebars
 #    type: box
-#    size: [0.2, 3.0, 3.0] # [m]
-#    pose: [-0.41, -0.44, 0.5, 0.0, 0.0, -0.399, 0.917] # World space [xyz, xyzw] in [m, rad]
+#    size: [0.2, 3.0, 3.0] # xyz [m]
+#    pose: [0.0, 0.0, -0.399, 0.917, -0.41, -0.44, 0.5] # World space [xyzw, xyz] in [rad, m]
 #  - name: wall
 #    type: box
-#    size: [0.2, 3.0, 3.0] # [m]
- #   pose: [-0.41, -0.44, 0.5, 0.0, 0.0, 0.367, 0.930] # World space [xyz, xyzw] in [m, rad]
+#    size: [0.2, 3.0, 3.0] # xyz [m]
+ #   pose: [0.0, 0.0, 0.367, 0.930, -0.41, -0.44, 0.5] # World space [xyzw, xyz] in [rad, m]

@@ -67,7 +67,7 @@ public:
 
   void emplaceBackPose(const std::string frame, const std::vector<double>& poseVector);
 
-  void emplaceBackPose(const std::string frame, const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position);
+  void emplaceBackPose(const std::string frame, const Eigen::Quaterniond& quat, const Eigen::Vector3d& pos);
 
 private:
   std::string id_{};

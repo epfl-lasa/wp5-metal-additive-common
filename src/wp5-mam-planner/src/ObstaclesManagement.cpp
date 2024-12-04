@@ -84,7 +84,7 @@ void ObstaclesManagement::addStaticObstacles() {
   planningSceneInterface_->applyCollisionObjects(collisionObjects);
 }
 
-void ObstaclesManagement::removeObstacles(const std::vector<std::string>& obstacleIds) {
+void ObstaclesManagement::removeObstacles(const vector<string>& obstacleIds) {
   planningSceneInterface_->removeCollisionObjects(obstacleIds);
 }
 
@@ -107,7 +107,7 @@ void ObstaclesManagement::updatePlanningScene() {
 }
 
 const shape_msgs::SolidPrimitive ObstaclesManagement::createBox_(const string& name, const vector<double>& size) const {
-  ROS_INFO("[ObstacleManagement] - Adding box %s...", name.c_str());
+  ROS_INFO_STREAM("[ObstacleManagement] - Adding box " << name << "...");
   shape_msgs::SolidPrimitive primitive;
   primitive.type = primitive.BOX;
 
@@ -120,7 +120,7 @@ const shape_msgs::SolidPrimitive ObstaclesManagement::createBox_(const string& n
 const shape_msgs::SolidPrimitive ObstaclesManagement::createCylinder_(const string& name,
                                                                       const double height,
                                                                       const double radius) const {
-  ROS_INFO("[ObstacleManagement] - Adding cylinder %s...", name.c_str());
+  ROS_INFO_STREAM("[ObstacleManagement] - Adding cylinder " << name << "...");
   shape_msgs::SolidPrimitive primitive;
   primitive.type = primitive.CYLINDER;
 
@@ -131,7 +131,7 @@ const shape_msgs::SolidPrimitive ObstaclesManagement::createCylinder_(const stri
 }
 
 const shape_msgs::SolidPrimitive ObstaclesManagement::createSphere_(const string& name, const double radius) const {
-  ROS_INFO("[ObstacleManagement] - Adding sphere %s...", name.c_str());
+  ROS_INFO_STREAM("[ObstacleManagement] - Adding sphere " << name << "...");
   shape_msgs::SolidPrimitive primitive;
   primitive.type = primitive.SPHERE;
 
@@ -142,7 +142,7 @@ const shape_msgs::SolidPrimitive ObstaclesManagement::createSphere_(const string
 }
 
 const shape_msgs::Mesh ObstaclesManagement::createMesh_(const string& name, const string& meshPath) const {
-  ROS_INFO("[ObstacleManagement] - Adding mesh %s...", name.c_str());
+  ROS_INFO_STREAM("[ObstacleManagement] - Adding mesh " << name << "...");
   shapes::Mesh* m = shapes::createMeshFromResource(meshPath);
 
   shape_msgs::Mesh mesh;

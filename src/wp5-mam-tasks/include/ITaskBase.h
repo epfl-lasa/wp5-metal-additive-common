@@ -16,6 +16,7 @@
 #include "IRosInterfaceBase.h"
 #include "MAMPlanner.h"
 #include "RoboticArmUr.h"
+#include "Subtask.h"
 
 /**
  * @brief Base class for tasks.
@@ -72,10 +73,16 @@ public:
   bool scanArea();
 
   /**
-   * @brief Computes the path for the task.
-   * @return True if path computation is successful, false otherwise.
+   * @brief Computes the trajectory based on the given waypoints.
+   *
+   * This is a pure virtual function that must be implemented by derived classes.
+   * It takes a vector of geometry_msgs::Pose objects representing the waypoints
+   * and computes the corresponding trajectory.
+   *
+   * @param waypoints A vector of geometry_msgs::Pose objects representing the waypoints.
+   * @return true if the trajectory computation is successful, false otherwise.
    */
-  virtual bool computePath() = 0;
+  virtual bool computeTrajectory(std::vector<geometry_msgs::Pose> waypoints) = 0;
 
   /**
    * @brief Executes the task.
@@ -84,10 +91,10 @@ public:
   virtual bool execute() = 0;
 
   /**
-   * @brief Moves to the homing position.
+   * @brief Moves to the homing configuration.
    * @return True if successful, false otherwise.
    */
-  virtual bool goHomingPosition();
+  virtual bool goHomingConfiguration();
 
   /**
    * @brief Moves to the working position.
@@ -96,6 +103,7 @@ public:
   virtual bool goWorkingPosition();
 
 protected:
+  std::unique_ptr<Subtask> subtask_ = nullptr;    ///< Subtask
   std::unique_ptr<MAMPlanner> planner_ = nullptr; ///< Pointer to MAMPlanner instance.
 
   /**
@@ -121,8 +129,8 @@ private:
   const std::string robotName_{}; ///< Robot name.
   const ROSVersion rosVersion_{}; ///< ROS version.
 
-  const std::vector<double> homeConfig_{};      ///< Home joint configuration.
-  const std::vector<double> eePosWorkOffset_{}; ///< End effector position offset when going to work position.
-  const std::vector<double> eePosOffset_{};     ///< End effector position offset.
-  const std::vector<double> eeAngleOffset_{};   ///< End effector angle offset.
+  const std::vector<double> homeConfig_{};       ///< Home joint configuration.
+  const std::vector<double> eePoseScan_{};       ///< End effector sacnning pose offset.
+  const std::vector<double> eePoseWorkOffset_{}; ///< End effector  working pose offset.
+  const std::vector<double> eePoseOffset_{};     ///< End effector pose offset.
 };

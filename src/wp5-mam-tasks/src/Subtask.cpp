@@ -42,7 +42,7 @@ void Subtask::parseROI_(const string& str) {
   bool unpackedSuccess = waypointParser_.unpackWaypoint(str, ',', waypointID, waypointsPos);
 
   if (unpackedSuccess && waypointsPos.size() != MSG_POS_SIZE) {
-    ROS_ERROR_STREAM("[Subtask] - Waypoint ROS message " << str.c_str() << " doesn't have the correct size, should be "
+    ROS_ERROR_STREAM("[Subtask] - Waypoint ROS message " << str << " doesn't have the correct size, should be "
                                                          << MSG_POS_SIZE << " instead of " << waypointsPos.size());
   }
 

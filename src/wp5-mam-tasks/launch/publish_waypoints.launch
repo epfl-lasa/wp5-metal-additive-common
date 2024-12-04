@@ -1,12 +1,12 @@
 <launch>
   <!-- Define an argument for the YAML file path -->
-  <arg name="yaml_file" default="$(find wp5_mam_planner)/config/waypoints.yaml" />
+  <arg name="yaml_file" default="$(find wp5_mam_tasks)/config/waypoints.yaml" />
 
   <!-- Pass the YAML file path as a parameter to the node -->
   <param name="yaml_file" value="$(arg yaml_file)" />
 
   <!-- Run the Python script -->
-  <node name="waypoint_publisher" pkg="wp5_mam_planner" type="publish_waypoints.py" output="screen">
+  <node name="waypoint_publisher" pkg="wp5_mam_tasks" type="publish_waypoints.py" output="screen">
     <param name="yaml_file" value="$(arg yaml_file)" />
   </node>
 </launch>

@@ -75,6 +75,6 @@ void ROI::emplaceBackPose(const std::string frame, const vector<double>& poseVec
                       Eigen::Vector3d(poseVector[4], poseVector[5], poseVector[6]));
 }
 
-void ROI::emplaceBackPose(const std::string frame, const Eigen::Vector3d& pos, const Eigen::Quaterniond& orient) {
-  poses_.emplace_back(frame, pos, orient);
+void ROI::emplaceBackPose(const std::string frame, const Eigen::Quaterniond& quat, const Eigen::Vector3d& pos) {
+  poses_.emplace_back(frame, quat, pos);
 }

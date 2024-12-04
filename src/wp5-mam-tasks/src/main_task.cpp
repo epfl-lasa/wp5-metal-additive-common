@@ -10,11 +10,13 @@ using namespace std;
 
 int main(int argc, char** argv) {
   bool valid = false;
+  double rosFreq = 125;
   TaskFactory taskFactory{};
 
   // Init ros and check for the needed parameter taskType
   ros::init(argc, argv, "wp5_mam_main_task_node");
   ros::NodeHandle nh;
+  ros::Rate loopRate(rosFreq);
 
   string taskType;
   if (!ros::param::get("~taskType", taskType)) {
@@ -26,7 +28,7 @@ int main(int argc, char** argv) {
   ROS_INFO("[MainTask] - Creating Task - %s", taskType.c_str());
   shared_ptr<ITaskBase> task = taskFactory.createTask(taskType, nh, string("robot_task.yaml"));
 
-  taskFsm_ internalFSM_(task);
+  taskFsm_ internalFSM_(task, nh);
 
   // Initialize and test the FSM
   internalFSM_.start();

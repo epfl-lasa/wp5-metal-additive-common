@@ -1,8 +1,11 @@
 /**
  * @file MAMPlanner.h
  * @brief Declaration of the MAMPlanner class
- * @author [Louis Munier]
- * @date 2024-09-03
+ *
+ * @version 0.2
+ * @date 2024-09-12
+ *
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  */
 
 #pragma once
@@ -24,7 +27,6 @@
 
 #include "ObstaclesManagement.h"
 #include "RoboticArmUr.h"
-#include "Subtask.h"
 
 class MAMPlanner {
 public:
@@ -46,25 +48,24 @@ public:
   /**
    * @brief Executes the trajectory of the robot.
    */
-  void executeTrajectory();
+  bool executeTrajectory();
+
+  bool goToJointConfig(const std::vector<double>& jointConfig);
+
+  bool goToPose(const geometry_msgs::Pose& targetPose);
 
 private:
   std::unique_ptr<IRoboticArmBase> robot_ = nullptr;         ///< Robotic arm
   std::unique_ptr<ObstaclesManagement> obstacles_ = nullptr; ///< Obstacles management
 
-  ros::NodeHandle nh_; ///< ROS node handle
-  ros::AsyncSpinner spinner_;
-  tf2_ros::Buffer tfBuffer_;
-  tf2_ros::TransformListener tfListener_;
-  tf2_ros::TransformBroadcaster br_; ///< ROS spinner to handle callbacks asynchronously
+  ros::NodeHandle nh_;        ///< ROS node handle
+  ros::AsyncSpinner spinner_; ///< ROS spinner to handle callbacks asynchronously
 
-  ros::Publisher pubWeldingState_;             ///< Publisher for the welding state
-  ros::Publisher pubWaypointRviz_;             ///< Publisher for the waypoint in Rviz
-  ros::Publisher pubTrajectory_;               ///< Publisher for the path
-  std::unique_ptr<Subtask> subtask_ = nullptr; ///< Subtask
+  ros::Publisher pubWeldingState_; ///< Publisher for the welding state
+  ros::Publisher pubWaypointRviz_; ///< Publisher for the waypoint in Rviz
+  ros::Publisher pubTrajectory_;   ///< Publisher for the path
 
   bool pathFound_ = false;
-  int currentWPointID_ = 0;
   std::vector<moveit_msgs::RobotTrajectory> bestPlan_;
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
@@ -81,7 +82,5 @@ private:
                           const geometry_msgs::Pose nextPose,
                           const bool welding);
 
-  void createNewFrame_(const std::string& parentFrame,
-                       const std::string& newFrame,
-                       const geometry_msgs::Transform& transform);
+  bool move_();
 };
