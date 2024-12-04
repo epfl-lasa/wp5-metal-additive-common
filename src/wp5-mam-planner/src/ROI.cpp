@@ -26,8 +26,8 @@ void ROI::print() const {
 
   uint idx = 0;
   for (const auto& pose : poses_) {
+    Eigen::Quaterniond quat = pose.getQuaternion();
     Eigen::Vector3d pos = pose.getPosition();
-    Eigen::Quaterniond quat = pose.getOrientation();
 
     ROS_INFO_STREAM("[ROI] - Pose " << idx++);
     ROS_INFO_STREAM("[ROI] - Reference Frame: " << pose.getFrameRef());
@@ -51,14 +51,14 @@ const geometry_msgs::Pose ROI::getPoseROS(uint index) const {
     return geometry_msgs::Pose();
   }
 
-  return ConversionTools::eigenToGeometry(poses_[index].getOrientation(), poses_[index].getPosition());
+  return ConversionTools::eigenToGeometry(poses_[index].getQuaternion(), poses_[index].getPosition());
 }
 
 const std::vector<geometry_msgs::Pose> ROI::getPosesROS() const {
   std::vector<geometry_msgs::Pose> posesROS;
 
   for (const auto& pose : poses_) {
-    posesROS.push_back(ConversionTools::eigenToGeometry(pose.getOrientation(), pose.getPosition()));
+    posesROS.push_back(ConversionTools::eigenToGeometry(pose.getQuaternion(), pose.getPosition()));
   }
 
   return posesROS;
@@ -71,8 +71,8 @@ void ROI::emplaceBackPose(const std::string frame, const vector<double>& poseVec
   }
 
   poses_.emplace_back(frame,
-                      Eigen::Vector3d(poseVector[0], poseVector[1], poseVector[2]),
-                      Eigen::Quaterniond(poseVector[3], poseVector[4], poseVector[5], poseVector[6]));
+                      Eigen::Quaterniond(poseVector[0], poseVector[1], poseVector[2], poseVector[3]),
+                      Eigen::Vector3d(poseVector[4], poseVector[5], poseVector[6]));
 }
 
 void ROI::emplaceBackPose(const std::string frame, const Eigen::Vector3d& pos, const Eigen::Quaterniond& orient) {

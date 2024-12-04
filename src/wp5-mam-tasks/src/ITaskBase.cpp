@@ -10,13 +10,18 @@ ITaskBase::ITaskBase(ros::NodeHandle& nh, const YAML::Node& config) :
     robotName_(YamlTools::loadYamlValue<string>(config, "robot_name")),
     rosVersion_(IRosInterfaceBase::rosVersionsMap.at(YamlTools::loadYamlValue<string>(config, "ros_version"))),
     homeConfig_(YamlTools::loadYamlValue<vector<double>>(config, "home_configuration")),
-    eePosWorkOffset_(YamlTools::loadYamlValue<vector<double>>(config, "ee_pos_work_offset")),
-    eePosOffset_(YamlTools::loadYamlValue<vector<double>>(config, "ee_pos_offset")),
-    eeAngleOffset_(YamlTools::loadYamlValue<vector<double>>(config, "ee_angle_offset")) {}
+    eePoseScan(YamlTools::loadYamlValue<vector<double>>(config, "ee_pose_scan")),
+    eePoseWorkOffset(YamlTools::loadYamlValue<vector<double>>(config, "ee_pose_work_offset")),
+    eePoseOffset(YamlTools::loadYamlValue<vector<double>>(config, "ee_pose_offset")) {}
 
 bool ITaskBase::initialize() {
   planner_ = make_unique<MAMPlanner>(rosVersion_, nh_, robotName_);
 
+  return true;
+}
+
+bool ITaskBase::scanArea() {
+  cout << "Scan Area" << endl;
   return true;
 }
 

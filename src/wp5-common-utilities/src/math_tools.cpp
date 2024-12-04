@@ -91,6 +91,7 @@ geometry_msgs::Pose transformPose(tf2_ros::Buffer& tfBuffer,
     return pose;
   }
 }
+
 std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
     const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& quatPosNoOffset,
     const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& offset) {

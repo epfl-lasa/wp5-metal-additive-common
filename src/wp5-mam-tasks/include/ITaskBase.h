@@ -61,6 +61,17 @@ public:
   bool initialize();
 
   /**
+   * @brief Scans a specified area.
+   *
+   * This function performs a scan operation over a designated area.
+   * The specifics of the scan operation, such as the area to be scanned
+   * and the scanning parameters, are determined by the implementation.
+   *
+   * @return true if the scan operation is successful, false otherwise.
+   */
+  bool scanArea();
+
+  /**
    * @brief Computes the path for the task.
    * @return True if path computation is successful, false otherwise.
    */

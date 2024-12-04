@@ -22,6 +22,7 @@ namespace mp11 = boost::mp11;
 
 // List of FSM events
 class Initialized {};
+class AreaScanned {};
 class PathComputed {};
 class Start {};
 class Finished {};
@@ -42,6 +43,7 @@ class TaskFSM : public msmf::state_machine_def<TaskFSM> {
 private:
   // List of FSM states
   class Initializing;
+  class Scanning;
   class Planning;
   class Ready;
   class Executing;
@@ -60,7 +62,7 @@ protected:
   std::shared_ptr<ITaskBase> currentTask_;
 
 public:
-  TaskFSM(std::shared_ptr<ITaskBase> task) : currentTask_(task) { std::cout << "Inside TaskFSM : " << std::endl; };
+  TaskFSM(std::shared_ptr<ITaskBase> task) : currentTask_(task) {};
 
   bool getExit() { return exit_; }
   bool getHomed() { return homed_; }
@@ -98,7 +100,7 @@ public:
       if (feedback) {
         fsm.setReady(true);
       } else {
-        fsm.setError("Error: Task goWorkingPosition failed");
+        fsm.setError("[FSM] - Error: Task goWorkingPosition failed");
         fsm.process_event(ErrorTrigger());
       }
     }
@@ -179,7 +181,10 @@ public:
   // Each row correspond to : Start, Event, Next, Action, Guard
   using transition_table = mp11::mp_list<
       // Initializing -----------------------------------------
-      msmf::Row<Initializing, Initialized, Planning, msmf::none, msmf::none>,
+      msmf::Row<Initializing, Initialized, Scanning, msmf::none, msmf::none>,
+
+      // Scanning ---------------------------------------------
+      msmf::Row<Scanning, AreaScanned, Planning, msmf::none, msmf::none>,
 
       // Planning ---------------------------------------------
       msmf::Row<Planning, PathComputed, Ready, goWorkingPosition, msmf::none>,
@@ -226,7 +231,37 @@ public:
     if (feedback) {
       fsm.process_event(Initialized());
     } else {
-      fsm.setError("Error: Task initialization failed");
+      fsm.setError("[FSM] - Error: Task initialization failed");
+      fsm.process_event(ErrorTrigger());
+    }
+  }
+};
+
+/**
+ * @brief The Scanning state of the TaskFSM class.
+ */
+class TaskFSM::Scanning : public msmf::state<> {
+public:
+  /**
+   * @brief Called when entering the "Scanning" state.
+   *
+   * This state is responsible for scanning the current area.
+   * If the scan is successful, it transitions to the Planning state.
+   * If the scan fails, it sets an error message and transitions to the ErrorTrigger state.
+   *
+   * @tparam Event The type of the event.
+   * @tparam FSM The type of the state machine.
+   * @param event The event that triggered the state transition.
+   * @param fsm The state machine instance.
+   */
+  template <class Event, class FSM>
+  void on_entry(Event const& event, FSM& fsm) {
+    bool feedback = fsm.getCurrentTask()->scanArea();
+
+    if (feedback) {
+      fsm.process_event(AreaScanned());
+    } else {
+      fsm.setError("[FSM] - Error: Scanning area failed");
       fsm.process_event(ErrorTrigger());
     }
   }
@@ -256,7 +291,7 @@ public:
     if (feedback) {
       fsm.process_event(PathComputed());
     } else {
-      fsm.setError("Error: Path computation failed");
+      fsm.setError("[FSM] - Error: Path computation failed");
       fsm.process_event(ErrorTrigger());
     }
   }
@@ -322,7 +357,7 @@ public:
     if (feedback) {
       fsm.process_event(Finished());
     } else {
-      fsm.setError("Error: Task execution failed");
+      fsm.setError("[FSM] - Error: Task execution failed");
       fsm.process_event(ErrorTrigger());
     }
   }
@@ -352,7 +387,7 @@ public:
     if (feedback) {
       fsm.setHome(true);
     } else {
-      fsm.setError("Error: Task homing failed");
+      fsm.setError("[FSM] - Error: Task homing failed");
       fsm.process_event(ErrorTrigger());
     }
   }

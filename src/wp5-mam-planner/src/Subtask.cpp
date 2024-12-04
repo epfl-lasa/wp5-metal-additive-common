@@ -55,8 +55,8 @@ void Subtask::parseROI_(const string& str) {
     Eigen::Vector3d posEnd(waypointsPos[3], waypointsPos[4], waypointsPos[5]);
     Eigen::Quaterniond quat(rotateVectorInPlan_({posStart, posEnd, robotPos_}));
 
-    roi.emplaceBackPose("base_link", posStart, quat);
-    roi.emplaceBackPose("base_link", posEnd, quat);
+    roi.emplaceBackPose("base_link", quat, posStart);
+    roi.emplaceBackPose("base_link", quat, posEnd);
 
     dequeROI_.push_back(roi);
 

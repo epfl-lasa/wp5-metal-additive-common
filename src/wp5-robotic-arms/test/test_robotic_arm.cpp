@@ -47,7 +47,10 @@ protected:
     generateJointPositions();
   }
 
-  static void TearDownTestSuite() {}
+  static void TearDownTestSuite() {
+    roboticArm.reset();
+    ros::shutdown();
+  }
 
   // Function to generate a random quaternion
   static Eigen::Quaterniond generateRandomQuaternion() {
@@ -146,10 +149,10 @@ TEST_F(IRoboticArmBaseTest, TestTracIkSolver) {
     roboticArm->getIKTrac(quaternion, position, jointPos);
 
     // Compute forward kinematics
-    pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFKTrac(jointPos);
+    pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFKTrac(jointPos);
 
-    EXPECT_TRUE(MathTools::areQuatEquivalent(quaternion, tracFKResult.first, TOLERANCE));
-    EXPECT_TRUE(MathTools::arePosEquivalent(position, tracFKResult.second, TOLERANCE));
+    EXPECT_TRUE(MathTools::areQuatEquivalent(quaternion, fkTracResult.first, TOLERANCE));
+    EXPECT_TRUE(MathTools::arePosEquivalent(position, fkTracResult.second, TOLERANCE));
   }
 }
 
@@ -161,10 +164,10 @@ TEST_F(IRoboticArmBaseTest, TestIkGeoSolver) {
 
     // Compute forward kinematics
     for (const auto& sol : ikSolutions) {
-      pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFKGeo(sol);
+      pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKGeo(sol);
 
-      EXPECT_TRUE(MathTools::areQuatEquivalent(quaternion, geoFKResult.first, TOLERANCE));
-      EXPECT_TRUE(MathTools::arePosEquivalent(position, geoFKResult.second, TOLERANCE));
+      EXPECT_TRUE(MathTools::areQuatEquivalent(quaternion, fkGeoResult.first, TOLERANCE));
+      EXPECT_TRUE(MathTools::arePosEquivalent(position, fkGeoResult.second, TOLERANCE));
     }
   }
 }
@@ -190,17 +193,17 @@ TEST_F(IRoboticArmBaseTest, TestInverseComparison) {
     roboticArm->getIKGeo(quaternion, position, ikSolutions);
 
     for (const auto& geoJointPos : ikSolutions) {
-      pair<Eigen::Quaterniond, Eigen::Vector3d> tracFKResult = roboticArm->getFKTrac(tracJointPos);
-      pair<Eigen::Quaterniond, Eigen::Vector3d> geoFKResult = roboticArm->getFKTrac(geoJointPos);
+      pair<Eigen::Quaterniond, Eigen::Vector3d> fkTracResult = roboticArm->getFKTrac(tracJointPos);
+      pair<Eigen::Quaterniond, Eigen::Vector3d> fkGeoResult = roboticArm->getFKTrac(geoJointPos);
 
-      EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE));
-      EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE));
+      EXPECT_TRUE(MathTools::areQuatEquivalent(fkTracResult.first, fkGeoResult.first, TOLERANCE));
+      EXPECT_TRUE(MathTools::arePosEquivalent(fkTracResult.second, fkGeoResult.second, TOLERANCE));
 
-      tracFKResult = roboticArm->getFKGeo(tracJointPos);
-      geoFKResult = roboticArm->getFKGeo(geoJointPos);
+      fkTracResult = roboticArm->getFKGeo(tracJointPos);
+      fkGeoResult = roboticArm->getFKGeo(geoJointPos);
 
-      EXPECT_TRUE(MathTools::areQuatEquivalent(tracFKResult.first, geoFKResult.first, TOLERANCE));
-      EXPECT_TRUE(MathTools::arePosEquivalent(tracFKResult.second, geoFKResult.second, TOLERANCE));
+      EXPECT_TRUE(MathTools::areQuatEquivalent(fkTracResult.first, fkGeoResult.first, TOLERANCE));
+      EXPECT_TRUE(MathTools::arePosEquivalent(fkTracResult.second, fkGeoResult.second, TOLERANCE));
     }
   }
 }
