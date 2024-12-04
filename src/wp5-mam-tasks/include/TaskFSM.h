@@ -312,6 +312,7 @@ public:
   void on_entry(Event const& event, FSM& fsm) {
     ROS_INFO("[FSM] - Entering: TaskFSM - Planning");
 
+    bool firstWaypoint = true;
     std::optional<ROI> roi = fsm.getSubtask()->popROI();
     std::vector<geometry_msgs::Pose> waypoints = roi.value().getPosesROS();
 

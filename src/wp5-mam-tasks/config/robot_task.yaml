@@ -2,19 +2,25 @@
 # Possible robot_name to set, depending on the task :
 # - ur5_robot
 # - ur10e_robot
-# Louis Munier : 2024-09-12
+#
+# Possible pose to set :
+# - ee_pose_scan : Pose to scan the environment
+# - ee_pose_work_offset : Pose to work in the environment
+# - ee_pose_offset : Offset to apply to the pose
+#
+# Louis Munier : 2024-12-04
 
 welding:
   robot_name: "ur10e_robot"
   ros_version: "noetic"
   home_configuration: [0, -1.57, 0, -1.57, 0, 0] # [rad] j1, j2, j3, j4, j5, j6
-  ee_pose_scan: [0, 0, 0, 0.5, 0.5, 0.5] # [deg] rpy [m] xyz
-  ee_pose_work_offset: [0, 0, 0, 0, 0, 0.3] # [deg] rpy [m] xyz
-  ee_pose_offset: [20, 0, 0, 0, 0, 0.02] # [deg] rpy [m] xyz
+  ee_pose_scan: [0, 0, 0, 1, 0.5, 0.5, 0.5] # [rad] xyzw, [m] xyz
+  ee_pose_work_offset: [0, 0, 0, 1, 0, 0, 0.3] # [rad] xyzw, [m] xyz
+  ee_pose_offset: [0.1736482, 0, 0, 0.9848078, 0, 0, 0.02] # [rad] xyzw, [m] xyz
 cleaning:
   robot_name: "ur5_robot"
   ros_version: "noetic"
   home_configuration: [0, -1.57, 0, -1.57, 0, 0] # [rad] j1, j2, j3, j4, j5, j6
-  ee_pose_scan: [0, 0, 0, 0.5, 0.5, 0.5] # [deg] rpy [m] xyz
-  ee_pose_work_offset: [0, 0, 0, 0, 0, 0.3] # [deg] rpy [m] xyz
-  ee_pose_offset: [20, 0, 0, 0, 0, 0.02] # [deg] rpy [m] xyz
+  ee_pose_scan: [0, 0, 0, 1, 0.5, 0.5, 0.5] # [rad] xyzw, [m] xyz
+  ee_pose_work_offset: [0, 0, 0, 1, 0, 0, 0.3] # [rad] xyzw, [m] xyz
+  ee_pose_offset: [0.1736482, 0, 0, 0.9848078, 0, 0, 0.02] # [rad] xyzw, [m] xyz

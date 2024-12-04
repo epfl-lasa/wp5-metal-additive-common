@@ -144,19 +144,39 @@ std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation, const E
 }
 
 Eigen::Vector3d vectorToEigenVec(const std::vector<double>& position) {
-  if (position.size() != 3) {
-    ROS_ERROR("[ConversionTools] - Invalid position size, it should be 3.");
+  int8_t POS_SIZE = 3;
+
+  if (position.size() != POS_SIZE) {
+    ROS_ERROR_STREAM("[ConversionTools] - Invalid position size, it should be " << POS_SIZE << " in xyz order.");
   }
 
   return Eigen::Vector3d{position[0], position[1], position[2]};
 }
 
 Eigen::Quaterniond vectorToEigenQuat(const std::vector<double>& orientation) {
-  if (orientation.size() != 4) {
-    ROS_ERROR("[ConversionTools] - Invalid orientation size, it should be 4 in xyzw order.");
+  int8_t QUAT_SIZE = 4;
+
+  if (orientation.size() != QUAT_SIZE) {
+    ROS_ERROR_STREAM("[ConversionTools] - Invalid orientation size, it should be " << QUAT_SIZE << " in xyzw order.");
   }
 
   return Eigen::Quaterniond{orientation[0], orientation[1], orientation[2], orientation[3]};
+}
+
+std::pair<Eigen::Quaterniond, Eigen::Vector3d> vectorToEigenQuatPose(const std::vector<double>& quatPos) {
+  int8_t QUAT_SIZE = 4;
+  int8_t QUAT_POSE_SIZE = 7;
+
+  if (quatPos.size() != QUAT_POSE_SIZE) {
+    ROS_ERROR_STREAM("[ConversionTools] - Invalid quaternion-position size, it should be " << QUAT_POSE_SIZE
+                                                                                           << " in xyzw, xyz order.");
+  }
+
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> quatPosPair;
+  quatPosPair.first = vectorToEigenQuat(std::vector<double>(quatPos.begin(), quatPos.begin() + QUAT_SIZE));
+  quatPosPair.second = vectorToEigenVec(std::vector<double>(quatPos.begin() + QUAT_SIZE, quatPos.end()));
+
+  return quatPosPair;
 }
 
 } // namespace ConversionTools

@@ -131,4 +131,20 @@ std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
     const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& quatPosNoOffset,
     const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& offset);
 
+/**
+ * @brief Adds an offset to a given pose.
+ *
+ * This function takes a pose without an offset and applies a specified offset
+ * to it. The offset is provided as a pair consisting of a quaternion (for
+ * rotational offset) and a vector (for translational offset).
+ *
+ * @param poseNoOffset The original pose without any offset.
+ * @param offset A pair containing the rotational and translational offsets.
+ *               - First element: Eigen::Quaterniond representing the rotational offset.
+ *               - Second element: Eigen::Vector3d representing the translational offset.
+ * @return geometry_msgs::Pose The pose with the applied offset.
+ */
+geometry_msgs::Pose addOffset(const geometry_msgs::Pose& poseNoOffset,
+                              const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& offset);
+
 } // namespace MathTools

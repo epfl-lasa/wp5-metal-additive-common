@@ -43,7 +43,7 @@ public:
   /**
    * @brief Plans the trajectory of the robot.
    */
-  bool planTrajectory();
+  bool planTrajectory(std::vector<geometry_msgs::Pose> waypoints);
 
   /**
    * @brief Executes the trajectory of the robot.
@@ -65,8 +65,9 @@ private:
   ros::Publisher pubWaypointRviz_; ///< Publisher for the waypoint in Rviz
   ros::Publisher pubTrajectory_;   ///< Publisher for the path
 
-  bool pathFound_ = false;
-  std::vector<moveit_msgs::RobotTrajectory> bestPlan_;
+  bool pathFound_ = false;                             ///< Flag indicating if a path is found
+  int8_t currentWPointID_ = 0;                         ///< Current waypoint ID
+  std::vector<moveit_msgs::RobotTrajectory> bestPlan_; ///< Best plan containing the list of trajectories
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
@@ -74,13 +75,8 @@ private:
   void initMoveit_();
   void setupMovegroup_();
   bool computePath_(const std::vector<double>& startConfig,
-                    const geometry_msgs::Pose& currentPose,
                     const geometry_msgs::Pose& targetPose,
                     const bool isWeldging = false);
-
-  bool computeTrajectory_(const geometry_msgs::Pose currentPose,
-                          const geometry_msgs::Pose nextPose,
-                          const bool welding);
 
   bool move_();
 };

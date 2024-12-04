@@ -15,6 +15,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
 
+#include "conversion_tools.h"
 #include "debug_tools.h"
 
 namespace MathTools {
@@ -104,6 +105,20 @@ std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
 
   // Create the resulting pair using std::make_pair
   return std::make_pair(desiredQuat, posOffset);
+}
+
+geometry_msgs::Pose addOffset(const geometry_msgs::Pose& poseNoOffset,
+                              const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& offset) {
+  // Convert the geometry_msgs::Pose to Eigen::Quaterniond and Eigen::Vector3d
+  Eigen::Quaterniond quatPosNoOffset = ConversionTools::geometryToEigen(poseNoOffset.orientation);
+  Eigen::Vector3d posNoOffset = ConversionTools::geometryToEigen(poseNoOffset.position);
+
+  // Apply the offset
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> quatPosOffset =
+      addOffset(std::make_pair(quatPosNoOffset, posNoOffset), offset);
+
+  // Convert the resulting pair to geometry_msgs::Pose
+  return ConversionTools::eigenToGeometry(quatPosOffset.first, quatPosOffset.second);
 }
 
 } // namespace MathTools

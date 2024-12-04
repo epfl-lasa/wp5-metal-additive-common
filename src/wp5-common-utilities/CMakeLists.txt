@@ -56,29 +56,6 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
-# --- Math tools library
-add_library(math_tools
-  src/math_tools.cpp
-)
-
-target_link_libraries(math_tools
-  ${catkin_LIBRARIES}
-  ${EIGEN3_LIBRARIES}
-  debug_tools
-)
-
-# --- YAML tools library
-set(YAML_TOOLS_LIBRARY yaml_tools)
-
-add_library(yaml_tools
-  src/yaml_tools.cpp
-)
-
-target_link_libraries(yaml_tools
-  ${catkin_LIBRARIES}
-  ${YAML_CPP_LIBRARIES}
-)
-
 # --- Convertion tools library
 add_library(conversion_tools
   src/conversion_tools.cpp
@@ -98,4 +75,28 @@ target_link_libraries(debug_tools
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}
   conversion_tools
+)
+
+# --- Math tools library
+add_library(math_tools
+  src/math_tools.cpp
+)
+
+target_link_libraries(math_tools
+  ${catkin_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
+  debug_tools
+  conversion_tools
+)
+
+# --- YAML tools library
+set(YAML_TOOLS_LIBRARY yaml_tools)
+
+add_library(yaml_tools
+  src/yaml_tools.cpp
+)
+
+target_link_libraries(yaml_tools
+  ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
 )

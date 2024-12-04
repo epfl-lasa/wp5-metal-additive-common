@@ -24,31 +24,6 @@
 class ITaskBase {
 public:
   /**
-   * @brief Flag indicating if initialization has been checked.
-   */
-  bool checkInitialization = false;
-
-  /**
-   * @brief Flag indicating if task completion has been checked.
-   */
-  bool checkFinish = false;
-
-  /**
-   * @brief Flag indicating if path computation has been checked.
-   */
-  bool checkPath = false;
-
-  /**
-   * @brief Flag indicating if homing position has been checked.
-   */
-  bool checkHomingPosition = false;
-
-  /**
-   * @brief Flag indicating if working position has been checked.
-   */
-  bool checkWorkingPosition = false;
-
-  /**
    * @brief Constructor.
    * @param nh Node handle for ROS.
    * @param config YAML node configuration for the task.
@@ -106,31 +81,13 @@ protected:
   std::unique_ptr<Subtask> subtask_ = nullptr;    ///< Subtask
   std::unique_ptr<MAMPlanner> planner_ = nullptr; ///< Pointer to MAMPlanner instance.
 
-  /**
-   * @brief Get the ROS node handle.
-   * @return ROS node handle.
-   */
-  ros::NodeHandle getRosNodehandle_() const { return nh_; }
-
-  /**
-   * @brief Get the ROS version of the task.
-   * @return ROS version.
-   */
-  const ROSVersion getRosVersion_() const { return rosVersion_; }
-
-  /**
-   * @brief Get the home joint configuration.
-   * @return Home joint configuration.
-   */
-  const std::vector<double> getHomeConfig_() const { return homeConfig_; }
+  const std::vector<double> homeConfig_{};       ///< Home joint configuration.
+  const std::vector<double> eePoseScan_{};       ///< End effector sacnning pose offset.
+  const std::vector<double> eePoseWorkOffset_{}; ///< End effector  working pose offset.
+  const std::vector<double> eePoseOffset_{};     ///< End effector pose offset.
 
 private:
   ros::NodeHandle nh_{};          ///< ROS node handle.
   const std::string robotName_{}; ///< Robot name.
   const ROSVersion rosVersion_{}; ///< ROS version.
-
-  const std::vector<double> homeConfig_{};       ///< Home joint configuration.
-  const std::vector<double> eePoseScan_{};       ///< End effector sacnning pose offset.
-  const std::vector<double> eePoseWorkOffset_{}; ///< End effector  working pose offset.
-  const std::vector<double> eePoseOffset_{};     ///< End effector pose offset.
 };

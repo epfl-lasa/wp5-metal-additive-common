@@ -203,8 +203,6 @@ std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation, const E
  *
  * @param position A std::vector<double> containing three elements representing the x, y, and z coordinates.
  * @return Eigen::Vector3d The corresponding Eigen::Vector3d representation of the input position.
- *
- * @throws std::invalid_argument if the input vector does not contain exactly three elements.
  */
 Eigen::Vector3d vectorToEigenVec(const std::vector<double>& position);
 
@@ -217,10 +215,20 @@ Eigen::Vector3d vectorToEigenVec(const std::vector<double>& position);
  *
  * @param orientation A std::vector<double> containing four elements representing the quaternion components.
  * @return An Eigen::Quaterniond object representing the orientation.
- *
- * @throws std::invalid_argument if the input vector does not contain exactly four elements.
  */
 Eigen::Quaterniond vectorToEigenQuat(const std::vector<double>& orientation);
+
+/**
+ * @brief Converts a vector of doubles representing a quaternion and position into an Eigen quaternion and vector.
+ *
+ * This function takes a std::vector<double> containing 7 elements, where the first 4 elements represent the quaternion
+ * (w, x, y, z) and the last 3 elements represent the position (x, y, z). It returns a std::pair containing an
+ * Eigen::Quaterniond and an Eigen::Vector3d.
+ *
+ * @param quatPos A std::vector<double> containing 7 elements: the first 4 for the quaternion and the last 3 for the position.
+ * @return std::pair<Eigen::Quaterniond, Eigen::Vector3d> A pair containing the Eigen quaternion and position vector.
+ */
+std::pair<Eigen::Quaterniond, Eigen::Vector3d> vectorToEigenQuatPose(const std::vector<double>& quatPos);
 
 /**
  * @brief Converts Euler angles to a quaternion.
