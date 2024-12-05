@@ -1,7 +1,8 @@
 /**
  * @file RoboticArmUr.h
+ * @brief Declaration of the RoboticArmUr class
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
  * @version 0.1
  * @date 2024-09-09
  *

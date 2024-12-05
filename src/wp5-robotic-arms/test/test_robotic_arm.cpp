@@ -1,7 +1,8 @@
 /**
  * @file test_robotic_arm_ur5.cpp
+ * @brief Test the RoboticArmUr class
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
  * @version 0.2
  * @date 2024-10-01
  *

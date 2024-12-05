@@ -1,13 +1,16 @@
 /**
  * @file conversion_tools.cpp
+ * @brief A collection of utility functions for converting between different
+ * representations of poses, points, and quaternions in ROS and Eigen.
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
  * @version 0.2
  * @date 2024-10-10
  *
  * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *
  */
+
 #include "conversion_tools.h"
 
 namespace ConversionTools {

@@ -1,8 +1,9 @@
 /**
  * @file RoboticArmUr.cpp
+ * @brief Implementation of the RoboticArmUr class
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @author Tristan Bonato (tristan_bonato@hotmail.com)
- * @brief
+ * @author [Tristan Bonato] - tristan_bonato@hotmail.com
  * @version 0.2
  * @date 2024-10-01
  *

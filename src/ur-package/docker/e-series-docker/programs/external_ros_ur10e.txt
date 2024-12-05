@@ -1,4 +1,4 @@
  Program
    Variables Setup
    Robot Program
-     Control by 127.0.0.1
+     Missing: External Control

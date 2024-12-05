@@ -1,14 +1,15 @@
 /**
  * @file math_tools.h
- * @author [Louis Munier] - lmunier@protonmail.com
  * @brief A collection of mathematical utility functions to centralize common operations.
  *
+ * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.4
  * @date 2024-11-20
  *
  * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *
  */
+
 #pragma once
 
 #include <geometry_msgs/Pose.h>

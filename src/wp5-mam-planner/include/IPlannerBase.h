@@ -1,9 +1,10 @@
 /**
- * @file MAMPlanner.h
- * @brief Declaration of the MAMPlanner class
+ * @file IPlannerBase.h
+ * @brief Declaration of the IPlannerBase class
  *
+ * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.2
- * @date 2024-09-12
+ * @date 2024-12-05
  *
  * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  */
@@ -28,22 +29,22 @@
 #include "ObstaclesManagement.h"
 #include "RoboticArmUr.h"
 
-class MAMPlanner {
+class IPlannerBase {
 public:
   /**
    * @brief Constructor.
    */
-  MAMPlanner(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName);
+  IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName);
 
   /**
    * @brief Destructor.
    */
-  ~MAMPlanner() = default;
+  ~IPlannerBase() = default;
 
   /**
    * @brief Plans the trajectory of the robot.
    */
-  bool planTrajectory(std::vector<geometry_msgs::Pose> waypoints);
+  virtual bool planTrajectory(std::vector<geometry_msgs::Pose> waypoints) = 0;
 
   /**
    * @brief Executes the trajectory of the robot.
@@ -54,14 +55,14 @@ public:
 
   bool goToPose(const geometry_msgs::Pose& targetPose);
 
-private:
+protected:
   std::unique_ptr<IRoboticArmBase> robot_ = nullptr;         ///< Robotic arm
   std::unique_ptr<ObstaclesManagement> obstacles_ = nullptr; ///< Obstacles management
 
   ros::NodeHandle nh_;        ///< ROS node handle
   ros::AsyncSpinner spinner_; ///< ROS spinner to handle callbacks asynchronously
 
-  ros::Publisher pubWeldingState_; ///< Publisher for the welding state
+  ros::Publisher pubLaserState_;   ///< Publisher for the welding state
   ros::Publisher pubWaypointRviz_; ///< Publisher for the waypoint in Rviz
   ros::Publisher pubTrajectory_;   ///< Publisher for the path
 
@@ -72,11 +73,9 @@ private:
   moveit::core::RobotStatePtr robotState_ = nullptr;
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
 
+private:
   void initMoveit_();
   void setupMovegroup_();
-  bool computePath_(const std::vector<double>& startConfig,
-                    const geometry_msgs::Pose& targetPose,
-                    const bool isWeldging = false);
 
   bool move_();
 };

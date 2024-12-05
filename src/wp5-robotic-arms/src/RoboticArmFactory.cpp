@@ -1,7 +1,8 @@
 /**
  * @file RoboticArmFactory.cpp
+ * @brief Factory class to create instances of robotic arms.
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
  * @version 0.3
  * @date 2024-11-20
  *

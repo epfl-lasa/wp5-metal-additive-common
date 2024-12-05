@@ -1,8 +1,9 @@
 /**
- * @file RosInterfaceNoetic.cpp
+ * @file RosInterfaceNoetic.
+ * @brief Create a ROS interface with respect to the ROS version to communicate with the robotic armcpp
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @author Tristan Bonato (tristan_bonato@hotmail.com)
- * @brief Create a ROS interface with respect to the ROS version to communicate with the robotic arm
+ * @author [Tristan Bonato] - tristan_bonato@hotmail.com
  * @version 0.1
  * @date 2024-03-07
  *

@@ -1,7 +1,8 @@
 /**
  * @file yaml_tools.cpp
+ * @brief A collection of YAML utility functions to centralize common operations.
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
  * @version 0.2
  * @date 2024-10-10
  *

@@ -1,3 +1,14 @@
+/**
+ * @file TaskCleaning.h
+ * @brief Declaration of the TaskCleaning class
+ *
+ * @author [Louis Munier] - lmunier@protonmail.com
+ * @version 0.2
+ * @date 2024-12-05
+ *
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ */
+
 #include "ITaskBase.h"
 
 #include "RoboticArmFactory.h"
@@ -14,12 +25,6 @@ ITaskBase::ITaskBase(ros::NodeHandle& nh, const YAML::Node& config) :
     eePoseScan_(YamlTools::loadYamlValue<vector<double>>(config, "ee_pose_scan")),
     eePoseWorkOffset_(YamlTools::loadYamlValue<vector<double>>(config, "ee_pose_work_offset")),
     eePoseOffset_(YamlTools::loadYamlValue<vector<double>>(config, "ee_pose_offset")) {}
-
-bool ITaskBase::initialize() {
-  planner_ = make_unique<MAMPlanner>(rosVersion_, nh_, robotName_);
-
-  return true;
-}
 
 bool ITaskBase::scanArea() {
   geometry_msgs::Pose scanPose = ConversionTools::vectorToGeometryPose(eePoseScan_);

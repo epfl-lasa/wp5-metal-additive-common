@@ -1,7 +1,8 @@
 /**
  * @file test_waypoint_parser.cpp
+ * @brief Test the WaypointParser class
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
  * @version 0.1
  * @date 2024-10-10
  *

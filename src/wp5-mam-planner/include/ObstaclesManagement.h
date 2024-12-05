@@ -1,6 +1,6 @@
 /**
  * @file ObstaclesManagement.h
- * @brief
+ * @brief Declaration of the ObstaclesManagement class
  *
  * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.1

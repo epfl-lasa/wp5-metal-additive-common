@@ -63,7 +63,9 @@ include_directories(
 
 # Create a library
 add_library(${PROJECT_NAME}
-  src/MAMPlanner.cpp
+  src/IPlannerBase.cpp
+  src/PlannerWelding.cpp
+  src/PlannerCleaning.cpp
   src/ObstaclesManagement.cpp
 )
 
@@ -74,7 +76,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 # Add the main node
 add_library(${PROJECT_NAME}_node
-  src/MAMPlanner.cpp
+  src/IPlannerBase.cpp
+  src/PlannerWelding.cpp
+  src/PlannerCleaning.cpp
   src/ObstaclesManagement.cpp
 )
 

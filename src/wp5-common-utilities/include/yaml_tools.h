@@ -1,13 +1,15 @@
 /**
  * @file yaml_tools.h
+ * @brief A collection of YAML utility functions to centralize common operations.
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
  * @version 0.2
  * @date 2024-10-10
  *
  * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *
  */
+
 #pragma once
 
 #include <ros/ros.h>

@@ -1,7 +1,8 @@
 /**
  * @file debug_tools.cpp
+ * @brief A collection of utility functions for debugging and visualization.
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
  * @version 0.1
  * @date 2024-10-29
  *

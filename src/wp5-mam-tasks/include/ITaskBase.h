@@ -1,3 +1,14 @@
+/**
+ * @file ITaskBase.h
+ * @brief Declaration of the ITaskBase class
+ *
+ * @author [Louis Munier] - lmunier@protonmail.com
+ * @version 0.2
+ * @date 2024-12-05
+ *
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ */
+
 #pragma once
 
 /**
@@ -12,9 +23,9 @@
 #include <string>
 #include <vector>
 
+#include "IPlannerBase.h"
 #include "IRoboticArmBase.h"
 #include "IRosInterfaceBase.h"
-#include "MAMPlanner.h"
 #include "RoboticArmUr.h"
 #include "Subtask.h"
 
@@ -34,7 +45,7 @@ public:
    * @brief Initializes the task.
    * @return True if initialization is successful, false otherwise.
    */
-  bool initialize();
+  virtual bool initialize() = 0;
 
   /**
    * @brief Scans a specified area.
@@ -78,16 +89,15 @@ public:
   virtual bool goWorkingPosition();
 
 protected:
-  std::unique_ptr<Subtask> subtask_ = nullptr;    ///< Subtask
-  std::unique_ptr<MAMPlanner> planner_ = nullptr; ///< Pointer to MAMPlanner instance.
+  ros::NodeHandle nh_{};          ///< ROS node handle.
+  const std::string robotName_{}; ///< Robot name.
+  const ROSVersion rosVersion_{}; ///< ROS version.
+
+  std::unique_ptr<Subtask> subtask_ = nullptr;      ///< Subtask
+  std::unique_ptr<IPlannerBase> planner_ = nullptr; ///< Pointer to MAMPlanner instance.
 
   const std::vector<double> homeConfig_{};       ///< Home joint configuration.
   const std::vector<double> eePoseScan_{};       ///< End effector sacnning pose offset.
   const std::vector<double> eePoseWorkOffset_{}; ///< End effector  working pose offset.
   const std::vector<double> eePoseOffset_{};     ///< End effector pose offset.
-
-private:
-  ros::NodeHandle nh_{};          ///< ROS node handle.
-  const std::string robotName_{}; ///< Robot name.
-  const ROSVersion rosVersion_{}; ///< ROS version.
 };

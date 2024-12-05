@@ -1,8 +1,8 @@
 /**
  * @file math_tools.cpp
- * @author [Louis Munier] - lmunier@protonmail.com
  * @brief A collection of mathematical utility functions to centralize common operations.
  *
+ * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.4
  * @date 2024-11-20
  *

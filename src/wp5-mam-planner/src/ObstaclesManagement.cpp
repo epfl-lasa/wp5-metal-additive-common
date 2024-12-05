@@ -1,9 +1,10 @@
 /**
  * @file ObstaclesManagement.cpp
+ * @brief Implementation of the ObstaclesManagement class
+ *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @brief
  * @version 0.1
- * @date 2024-09-09-
+ * @date 2024-09-09
  *
  * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
  *
