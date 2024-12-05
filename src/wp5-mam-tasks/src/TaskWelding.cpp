@@ -30,17 +30,19 @@ bool TaskWelding::computeTrajectory(std::vector<geometry_msgs::Pose> waypoints) 
   std::vector<geometry_msgs::Pose> waypointsToPlan{};
   std::pair<Eigen::Quaterniond, Eigen::Vector3d> poseOffset{};
 
-  bool firstWaypoint = true;
-  for (const auto& pose : waypoints) {
-    if (firstWaypoint) {
+  for (size_t i = 0; i < waypoints.size(); ++i) {
+    if (i == 0) {
       poseOffset = ConversionTools::vectorToEigenQuatPose(eePoseWorkOffset_);
-      waypointsToPlan.push_back(MathTools::addOffset(pose, poseOffset));
+      waypointsToPlan.push_back(MathTools::addOffset(waypoints[i], poseOffset));
+    } else if (i == waypoints.size() - 1) {
+      poseOffset = ConversionTools::vectorToEigenQuatPose(eePoseWorkOffset_);
+      poseOffset.second *= -1;
 
-      firstWaypoint = false;
+      waypointsToPlan.push_back(MathTools::addOffset(waypoints[i], poseOffset));
     }
 
     poseOffset = ConversionTools::vectorToEigenQuatPose(eePoseOffset_);
-    waypointsToPlan.push_back(MathTools::addOffset(pose, poseOffset));
+    waypointsToPlan.push_back(MathTools::addOffset(waypoints[i], poseOffset));
   }
 
   return planner_->planTrajectory(waypointsToPlan);

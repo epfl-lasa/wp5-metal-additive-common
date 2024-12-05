@@ -70,4 +70,22 @@ void printTrajectoryTimeStamps(const moveit_msgs::RobotTrajectory& trajectory) {
     ROS_INFO("Waypoint %zu: time_from_start = %f", i, points[i].time_from_start.toSec());
   }
 }
+
+void waitOnUser(const std::string& message) {
+  bool msgShowed = false;
+  bool userInput = false;
+
+  while (!userInput) {
+    if (!msgShowed) {
+      ROS_INFO_STREAM(message);
+      msgShowed = true;
+    }
+
+    if (std::cin.get() == '\n') {
+      userInput = true;
+    }
+
+    ros::Duration(0.1).sleep();
+  }
+}
 } // namespace DebugTools

@@ -11,7 +11,6 @@
 #include "IPlannerBase.h"
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <std_msgs/Bool.h>
 
 #include "RoboticArmFactory.h"
@@ -43,12 +42,12 @@ bool IPlannerBase::executeTrajectory() {
   int currentStep = 0;
   vector<double> firstJointConfig{};
 
-  if (bestPlan_.empty()) {
+  if (trajectoryToExecute_.empty()) {
     ROS_ERROR("[IPlannerBase] - No trajectory to execute");
     return success;
   }
 
-  for (const auto& trajectory : bestPlan_) {
+  for (const auto& trajectory : trajectoryToExecute_) {
     currentStep++;
 
     // Check the first joint configuration to be able to begin trajectory execution
@@ -64,9 +63,16 @@ bool IPlannerBase::executeTrajectory() {
     }
 
     // Execute the trajectory
-    success = moveGroup_->execute(trajectory) == moveit::core::MoveItErrorCode::SUCCESS;
-    moveGroup_->stop();
-    moveGroup_->clearPoseTargets();
+#ifdef DEBUG_MODE
+    string userMsg =
+        "[IPlannerBase] - Execute trajectory at step " + to_string(currentStep) + ". Press Enter to continue.";
+
+    DebugTools::publishTrajectory(*moveGroup_, trajectory, pubTrajectory_);
+    DebugTools::waitOnUser(userMsg);
+#endif
+
+    success = (moveGroup_->execute(trajectory) == moveit::core::MoveItErrorCode::SUCCESS);
+    cleanMoveGroup_();
 
     if (!success) {
       ROS_ERROR_STREAM("[IPlannerBase] - Failed to execute trajectory at step " << currentStep);
@@ -79,7 +85,39 @@ bool IPlannerBase::executeTrajectory() {
   return success;
 }
 
+bool IPlannerBase::planCartesianFromJointConfig(const std::vector<double>& startJointConfig,
+                                                const std::vector<geometry_msgs::Pose>& waypoints,
+                                                std::vector<moveit_msgs::RobotTrajectory>& pathPlanned) {
+  cleanMoveGroup_();
+  bool success = false;
+
+  const double eef_step = 0.01;
+  const std::string robotGroup = "manipulator";
+  moveit_msgs::RobotTrajectory planTrajectory;
+
+  // Create a RobotState object and set it to the desired starting joint configuration
+  moveit::core::RobotState startState(*moveGroup_->getCurrentState());
+  const moveit::core::JointModelGroup* jointModelGroup = startState.getJointModelGroup(robotGroup);
+  startState.setJointGroupPositions(jointModelGroup, startJointConfig);
+  moveGroup_->setStartState(startState);
+
+  // Compute Cartesian path
+  moveit_msgs::MoveItErrorCodes error_code;
+  success = (moveGroup_->computeCartesianPath(waypoints, eef_step, planTrajectory, true) == 1.0);
+
+  if (success) {
+    ROS_INFO("[IPlannerBase] - Cartesian path computed successfully.");
+    pathPlanned.push_back(planTrajectory);
+  } else {
+    ROS_ERROR_STREAM("[IPlannerBase] - Failed to compute the Cartesian path. Error code: " << error_code.val);
+  }
+
+  return success;
+}
+
 bool IPlannerBase::goToJointConfig(const vector<double>& jointConfig) {
+  cleanMoveGroup_();
+
   moveGroup_->setJointValueTarget(jointConfig);
   bool success = move_();
 
@@ -93,6 +131,8 @@ bool IPlannerBase::goToJointConfig(const vector<double>& jointConfig) {
 }
 
 bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
+  cleanMoveGroup_();
+
   moveGroup_->setPoseTarget(targetPose);
   bool success = move_();
 
@@ -103,6 +143,73 @@ bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
   }
 
   return success;
+}
+
+bool IPlannerBase::extractJointConfig(const moveit_msgs::RobotTrajectory& trajectory,
+                                      std::vector<double>& jointConfig,
+                                      const ConfigPosition position) {
+  if (trajectory.joint_trajectory.points.empty()) {
+    ROS_WARN("[IPlannerBase] - The trajectory is empty.");
+    return false;
+  }
+
+  const auto& point = (position == ConfigPosition::FIRST) ? trajectory.joint_trajectory.points.front()
+                                                          : trajectory.joint_trajectory.points.back();
+  jointConfig = point.positions;
+  return true;
+}
+
+void IPlannerBase::reverseTrajectory(moveit_msgs::RobotTrajectory& trajectory) {
+  // Reverse the joint trajectory points
+  std::reverse(trajectory.joint_trajectory.points.begin(), trajectory.joint_trajectory.points.end());
+
+  // Optionally, reverse the multi-dof joint trajectory points if they exist
+  if (!trajectory.multi_dof_joint_trajectory.points.empty()) {
+    std::reverse(trajectory.multi_dof_joint_trajectory.points.begin(),
+                 trajectory.multi_dof_joint_trajectory.points.end());
+  }
+}
+
+double IPlannerBase::computeTotalJerk_(const moveit_msgs::RobotTrajectory& trajectory) {
+  const int8_t MIN_POINTS = 3;
+  double totalJerk = 0.0;
+
+  const auto& points = trajectory.joint_trajectory.points;
+  if (points.size() < MIN_POINTS) {
+    ROS_WARN_STREAM("[IPlannerBase] - Not enough points to compute jerk : current size of " << points.size());
+    return totalJerk;
+  }
+
+  for (size_t i = 1; i < points.size() - 1; ++i) {
+    const auto& prev = points[i - 1];
+    const auto& curr = points[i];
+    const auto& next = points[i + 1];
+
+    Eigen::VectorXd velPrev = Eigen::VectorXd::Map(prev.velocities.data(), prev.velocities.size());
+    Eigen::VectorXd velCurr = Eigen::VectorXd::Map(curr.velocities.data(), curr.velocities.size());
+    Eigen::VectorXd velNext = Eigen::VectorXd::Map(next.velocities.data(), next.velocities.size());
+
+    double timePrev = prev.time_from_start.toSec();
+    double timeCurr = curr.time_from_start.toSec();
+    double timeNext = next.time_from_start.toSec();
+
+    Eigen::VectorXd accPrev = (velCurr - velPrev) / (timeCurr - timePrev);
+    Eigen::VectorXd accNext = (velNext - velCurr) / (timeNext - timeCurr);
+
+    Eigen::VectorXd jerk = (accNext - accPrev) / (timeNext - timePrev);
+
+    totalJerk += jerk.norm();
+  }
+
+  return totalJerk;
+}
+
+void IPlannerBase::sortTrajectoriesByJerk_(std::vector<moveit_msgs::RobotTrajectory>& trajectories) {
+  std::sort(sortedWeldingPaths_.begin(),
+            sortedWeldingPaths_.end(),
+            [this](const moveit_msgs::RobotTrajectory& a, const moveit_msgs::RobotTrajectory& b) {
+              return computeTotalJerk_(a) < computeTotalJerk_(b);
+            });
 }
 
 void IPlannerBase::initMoveit_() {
@@ -116,14 +223,14 @@ void IPlannerBase::initMoveit_() {
     return;
   }
 
-  setupMovegroup_();
+  setupMoveGroup_();
   spinner_.start();
 
   // Wait for the scene to get ready
   ros::Duration(1.0).sleep();
 }
 
-void IPlannerBase::setupMovegroup_() {
+void IPlannerBase::setupMoveGroup_() {
   moveGroup_->setPoseReferenceFrame(robot_->getReferenceFrame());
   moveGroup_->setPlannerId("RRTConnect");
   moveGroup_->setPlanningTime(2.0);
@@ -132,10 +239,28 @@ void IPlannerBase::setupMovegroup_() {
   moveGroup_->setGoalOrientationTolerance(0.01);
 }
 
-bool IPlannerBase::move_() {
-  bool success = moveGroup_->move() == moveit::core::MoveItErrorCode::SUCCESS;
+void IPlannerBase::cleanMoveGroup_() {
   moveGroup_->stop();
   moveGroup_->clearPoseTargets();
+  moveGroup_->setStartStateToCurrentState();
+}
+
+bool IPlannerBase::move_() {
+  moveit::planning_interface::MoveGroupInterface::Plan currentPlan;
+  bool success = (moveGroup_->plan(currentPlan) == moveit::core::MoveItErrorCode::SUCCESS);
+
+  if (success) {
+#ifdef DEBUG_MODE
+    string userMsg = "[IPlannerBase] - Path succes : " + to_string(success) + " Press Enter to continue.";
+    const moveit_msgs::RobotTrajectory& robotTrajectory = currentPlan.trajectory_;
+
+    DebugTools::publishTrajectory(*moveGroup_, robotTrajectory, pubTrajectory_);
+    DebugTools::waitOnUser(userMsg);
+#endif
+
+    success = (moveGroup_->execute(currentPlan) == moveit::core::MoveItErrorCode::SUCCESS);
+    cleanMoveGroup_();
+  }
 
   return success;
 }

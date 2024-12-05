@@ -19,101 +19,107 @@ PlannerWelding::PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, strin
     IPlannerBase(rosVersion, nh, robotName) {}
 
 bool PlannerWelding::planTrajectory(std::vector<geometry_msgs::Pose> waypoints) {
-  bestPlan_.clear();
-
   bool success = false;
-  bool isPathComputed = false;
-  vector<vector<double>> ikSolutions{};
+  int failedStep = -1;
+  const int8_t MIN_WAYPOINTS = 4;
 
-  for (size_t i = 0; i < waypoints.size() - 1; ++i) {
-    geometry_msgs::Pose pose = waypoints[i];
-    geometry_msgs::Pose nextPose = waypoints[i + 1];
-    bool welding = i == waypoints.size() - 2; // Last section is the welding one
+  vector<double> startConfig{};
 
-    bool ikSuccess = robot_->getIKGeo(ConversionTools::geometryToEigen(pose.orientation),
-                                      ConversionTools::geometryToEigen(pose.position),
-                                      ikSolutions);
+  if (waypoints.size() != MIN_WAYPOINTS) {
+    ROS_ERROR_STREAM("[PlannerWelding] - The number of waypoints must be " << MIN_WAYPOINTS);
+    return success;
+  }
 
-    if (ikSuccess) {
-      for (const auto& ikSol : ikSolutions) {
-        isPathComputed = computePath_(ikSol, nextPose, welding);
-        success = success || isPathComputed;
-      }
+  success = computeWeldingPossiblePaths_(waypoints[1], waypoints[2]);
+  failedStep = success ? -1 : 1;
 
-      if (!success) {
-        ROS_WARN_STREAM("[IPlannerBase] - No path found to go to Pose " << DebugTools::getPoseString(nextPose));
-        return success;
-      }
+  vector<geometry_msgs::Pose> tmpWaypoints{};
+  for (auto& plan : sortedWeldingPaths_) {
+    trajectoryToExecute_.clear();
+
+    // Compute first transition path in reverse direction
+    extractJointConfig(plan, startConfig, ConfigPosition::FIRST);
+    tmpWaypoints.clear();
+    tmpWaypoints.push_back(waypoints[0]);
+
+    success = computeTransitionPath_(startConfig, tmpWaypoints, MotionDir::BACKWARD);
+    failedStep = success ? -1 : 2;
+
+    // Compute first transition path in forward direction
+    extractJointConfig(plan, startConfig, ConfigPosition::LAST);
+    tmpWaypoints.clear();
+    tmpWaypoints.push_back(waypoints[3]);
+
+    success = computeTransitionPath_(startConfig, tmpWaypoints, MotionDir::FORWARD);
+    failedStep = success ? -1 : 3;
+
+    // If all the paths are computed, store them and break the loop
+    if (failedStep == -1) {
+      trajectoryToExecute_.insert(trajectoryToExecute_.begin() + 1, plan);
+      break;
     } else {
-      ROS_WARN("[IPlannerBase] - No IK solutions found");
-      return success;
+      ROS_WARN_STREAM("[PlannerWelding] - Failed to compute the welding trajectory at step " << failedStep);
     }
+  }
+
+  if (failedStep != -1) {
+    ROS_ERROR_STREAM("[PlannerWelding] - Failed to compute the welding trajectory.");
+    success = false;
   }
 
   return success;
 }
 
-bool PlannerWelding::computePath_(const vector<double>& startConfig,
-                                  const geometry_msgs::Pose& targetPose,
-                                  const bool isWelding) {
+// Compute the welding path and store each feasible solutions in a vector
+bool PlannerWelding::computeWeldingPossiblePaths_(const geometry_msgs::Pose& startPose,
+                                                  const geometry_msgs::Pose& targetPose) {
+  sortedWeldingPaths_.clear();
+
   bool success = false;
-  const string robotGroup = "manipulator";
-  moveit_msgs::RobotTrajectory planTrajectory;
+  bool isPathComputed = false;
 
-  moveGroup_->clearPoseTargets();
+  vector<geometry_msgs::Pose> weldingTarget{targetPose};
+  vector<vector<double>> ikSolutions{};
 
-  // Create a RobotState object and set it to the desired starting joint configuration
-  moveit::core::RobotState startState(*moveGroup_->getCurrentState());
-  const moveit::core::JointModelGroup* jointModelGroup = startState.getJointModelGroup(robotGroup);
-  startState.setJointGroupPositions(jointModelGroup, startConfig);
+  bool ikSuccess = robot_->getIKGeo(ConversionTools::geometryToEigen(startPose.orientation),
+                                    ConversionTools::geometryToEigen(startPose.position),
+                                    ikSolutions);
 
-  // Set the starting state in the planning scene
-  moveGroup_->setStartState(startState);
+  if (ikSuccess) {
+    ROS_INFO_STREAM("[PlannerWelding] - Found " << ikSolutions.size() << " IK solutions");
 
-  if (isWelding) { // Planify a cartesian path
-    vector<geometry_msgs::Pose> waypoints{};
-    waypoints.push_back(targetPose);
-
-    double fraction = moveGroup_->computeCartesianPath(waypoints, 0.01, planTrajectory, true);
-
-    // Path 100% computed
-    success = fraction == 1.0;
-  } else { // Planify a path
-    moveGroup_->setPoseTarget(targetPose);
-
-    moveit::planning_interface::MoveGroupInterface::Plan plan;
-    success = moveGroup_->plan(plan) == moveit::core::MoveItErrorCode::SUCCESS;
-    planTrajectory = plan.trajectory_;
-  }
-
-#ifdef DEBUG_MODE
-  DebugTools::publishTrajectory(*moveGroup_, planTrajectory, pubTrajectory_);
-
-  bool msgShowed = false;
-  bool userInput = false;
-  while (!userInput) {
-    if (!msgShowed) {
-      ROS_INFO_STREAM("[IPlannerBase] - Path succes : " << success << " Press Enter to continue");
-      msgShowed = true;
+    for (const auto& ikSol : ikSolutions) {
+      isPathComputed = planCartesianFromJointConfig(ikSol, weldingTarget, sortedWeldingPaths_);
+      success = success || isPathComputed;
     }
 
-    if (cin.get() == '\n') {
-      userInput = true;
+    if (!success) {
+      ROS_WARN_STREAM("[PlannerWelding] - No path found to go to Pose " << DebugTools::getPoseString(targetPose));
+      return success;
     }
+
+    // Sort the path by the total jerk
+    sortTrajectoriesByJerk_(sortedWeldingPaths_);
+  } else {
+    ROS_WARN("[PlannerWelding] - No IK solutions found");
+    return success;
   }
-#endif
+
+  return success;
+}
+
+bool PlannerWelding::computeTransitionPath_(const vector<double>& startConfig,
+                                            const vector<geometry_msgs::Pose>& targetPose,
+                                            const MotionDir direction) {
+  vector<moveit_msgs::RobotTrajectory> trajectory{};
+  bool success = planCartesianFromJointConfig(startConfig, targetPose, trajectory);
 
   if (success) {
-    if (currentWPointID_ >= bestPlan_.size()) {
-      bestPlan_.push_back(planTrajectory);
-    } else {
-      double currentPlanSize = planTrajectory.joint_trajectory.points.size();
-      double bestPlanSize = bestPlan_[currentWPointID_].joint_trajectory.points.size();
-
-      if (currentPlanSize < bestPlanSize) {
-        bestPlan_[currentWPointID_] = planTrajectory;
-      }
+    if (direction == MotionDir::BACKWARD) {
+      reverseTrajectory(trajectory[0]);
     }
+
+    trajectoryToExecute_.push_back(trajectory[0]);
   }
 
   return success;

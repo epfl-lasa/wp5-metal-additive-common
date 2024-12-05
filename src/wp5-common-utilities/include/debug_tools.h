@@ -135,4 +135,13 @@ void publishTrajectory(const moveit::planning_interface::MoveGroupInterface& mov
  * @param trajectory The robot trajectory whose time stamps are to be printed.
  */
 void printTrajectoryTimeStamps(const moveit_msgs::RobotTrajectory& trajectory);
+
+/**
+ * @brief Pauses the program execution and waits for user input.
+ *
+ * This function displays a message to the user and waits for the user to press Enter before continuing.
+ *
+ * @param message The message to display to the user.
+ */
+void waitOnUser(const std::string& message);
 } // namespace DebugTools

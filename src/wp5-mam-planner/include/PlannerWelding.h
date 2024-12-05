@@ -37,7 +37,9 @@ public:
   bool planTrajectory(std::vector<geometry_msgs::Pose> waypoints);
 
 private:
-  bool computePath_(const std::vector<double>& startConfig,
-                    const geometry_msgs::Pose& targetPose,
-                    const bool isWeldging = false);
+  bool computeWeldingPossiblePaths_(const geometry_msgs::Pose& startPose, const geometry_msgs::Pose& targetPose);
+
+  bool computeTransitionPath_(const std::vector<double>& startConfig,
+                              const std::vector<geometry_msgs::Pose>& targetPose,
+                              const MotionDir direction);
 };
