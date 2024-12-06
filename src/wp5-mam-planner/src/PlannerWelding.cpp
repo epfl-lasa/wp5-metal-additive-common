@@ -21,7 +21,7 @@ PlannerWelding::PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, strin
 bool PlannerWelding::planTrajectory(std::vector<geometry_msgs::Pose> waypoints) {
   bool success = false;
   int failedStep = -1;
-  const int8_t MIN_WAYPOINTS = 4;
+  const int MIN_WAYPOINTS = 4;
 
   vector<double> startConfig{};
 

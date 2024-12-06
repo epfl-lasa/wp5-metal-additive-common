@@ -75,7 +75,7 @@ geometry_msgs::Quaternion vectorToGeometryQuat(const std::vector<double>& orient
 
 geometry_msgs::Pose vectorToGeometryPose(const std::vector<double>& pose) {
   geometry_msgs::Pose newPose{};
-  int8_t orientationSize = (pose.size() == 7) ? 4 : 3;
+  int orientationSize = (pose.size() == 7) ? 4 : 3;
 
   if (pose.size() != 6 && pose.size() != 7) {
     ROS_ERROR_STREAM(
@@ -97,6 +97,10 @@ Eigen::Vector3d geometryToEigen(const geometry_msgs::Point& point) {
 
 Eigen::Quaterniond geometryToEigen(const geometry_msgs::Quaternion& orientation) {
   return Eigen::Quaterniond{orientation.w, orientation.x, orientation.y, orientation.z};
+}
+
+std::pair<Eigen::Quaterniond, Eigen::Vector3d> geometryToEigen(const geometry_msgs::Pose& pose) {
+  return std::make_pair(geometryToEigen(pose.orientation), geometryToEigen(pose.position));
 }
 
 geometry_msgs::Pose eigenToGeometry(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position) {
@@ -147,7 +151,7 @@ std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation, const E
 }
 
 Eigen::Vector3d vectorToEigenVec(const std::vector<double>& position) {
-  const int8_t POS_SIZE = 3;
+  const int POS_SIZE = 3;
 
   if (position.size() != POS_SIZE) {
     ROS_ERROR_STREAM("[ConversionTools] - Invalid position size, it should be " << POS_SIZE << " in xyz order.");
@@ -157,7 +161,7 @@ Eigen::Vector3d vectorToEigenVec(const std::vector<double>& position) {
 }
 
 Eigen::Quaterniond vectorToEigenQuat(const std::vector<double>& orientation) {
-  const int8_t QUAT_SIZE = 4;
+  const int QUAT_SIZE = 4;
 
   if (orientation.size() != QUAT_SIZE) {
     ROS_ERROR_STREAM("[ConversionTools] - Invalid orientation size, it should be " << QUAT_SIZE << " in xyzw order.");
@@ -167,8 +171,8 @@ Eigen::Quaterniond vectorToEigenQuat(const std::vector<double>& orientation) {
 }
 
 std::pair<Eigen::Quaterniond, Eigen::Vector3d> vectorToEigenQuatPose(const std::vector<double>& quatPos) {
-  const int8_t QUAT_SIZE = 4;
-  const int8_t QUAT_POSE_SIZE = 7;
+  const int QUAT_SIZE = 4;
+  const int QUAT_POSE_SIZE = 7;
 
   if (quatPos.size() != QUAT_POSE_SIZE) {
     ROS_ERROR_STREAM("[ConversionTools] - Invalid quaternion-position size, it should be " << QUAT_POSE_SIZE

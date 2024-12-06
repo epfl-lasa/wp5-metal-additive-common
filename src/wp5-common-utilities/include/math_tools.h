@@ -16,11 +16,13 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <ros/ros.h>
 #include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 
 #include <Eigen/Dense>
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -37,6 +39,22 @@
  */
 namespace MathTools {
 const double TOLERANCE = 2e-4;
+
+class TfBufferSingleton {
+public:
+  static TfBufferSingleton& getInstance() {
+    static TfBufferSingleton instance;
+    return instance;
+  }
+
+  tf2_ros::Buffer& getBuffer() { return tfBuffer; }
+
+private:
+  TfBufferSingleton() : tfListener(tfBuffer) {}
+
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tfListener;
+};
 
 /**
  * @brief Checks if a given string represents a number.
@@ -107,14 +125,12 @@ const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2
  * source frame to the target frame. It is essential for ensuring that the pose is correctly
  * transformed according to the latest available transform data.
  *
- * @param tfBuffer The TF buffer containing the latest transform data.
  * @param sourceFrame The name of the frame from which the pose is to be transformed.
  * @param targetFrame The name of the frame to which the pose is to be transformed.
  * @param pose The input geometry_msgs::Pose to be transformed.
  * @return The transformed geometry_msgs::Pose in the target frame.
  */
-geometry_msgs::Pose transformPose(tf2_ros::Buffer& tfBuffer,
-                                  const std::string& sourceFrame,
+geometry_msgs::Pose transformPose(const std::string& sourceFrame,
                                   const std::string& targetFrame,
                                   const geometry_msgs::Pose& pose);
 
@@ -140,12 +156,10 @@ std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
  * rotational offset) and a vector (for translational offset).
  *
  * @param poseNoOffset The original pose without any offset.
- * @param offset A pair containing the rotational and translational offsets.
- *               - First element: Eigen::Quaterniond representing the rotational offset.
- *               - Second element: Eigen::Vector3d representing the translational offset.
+ * @param offset The offset pose to add
  * @return geometry_msgs::Pose The pose with the applied offset.
  */
-geometry_msgs::Pose addOffset(const geometry_msgs::Pose& poseNoOffset,
-                              const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& offset);
+geometry_msgs::Pose addOffset(const geometry_msgs::Pose& poseNoOffset, const geometry_msgs::Pose& offset);
 
+geometry_msgs::Pose applyRotationToPose(const geometry_msgs::Pose& pose, const geometry_msgs::Quaternion& rotation);
 } // namespace MathTools

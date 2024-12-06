@@ -68,7 +68,7 @@ public:
    * @param waypoints A vector of geometry_msgs::Pose objects representing the waypoints.
    * @return true if the trajectory computation is successful, false otherwise.
    */
-  virtual bool computeTrajectory(std::vector<geometry_msgs::Pose> waypoints) = 0;
+  virtual bool computeTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) = 0;
 
   /**
    * @brief Executes the task.

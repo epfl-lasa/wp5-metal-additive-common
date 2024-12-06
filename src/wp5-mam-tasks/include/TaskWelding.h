@@ -30,6 +30,6 @@ public:
    */
   bool initialize();
 
-  bool computeTrajectory(std::vector<geometry_msgs::Pose> waypoints);
+  bool computeTrajectory(const std::vector<geometry_msgs::Pose>& waypoints);
   bool execute();
 };

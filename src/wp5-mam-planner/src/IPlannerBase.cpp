@@ -153,25 +153,35 @@ bool IPlannerBase::extractJointConfig(const moveit_msgs::RobotTrajectory& trajec
     return false;
   }
 
-  const auto& point = (position == ConfigPosition::FIRST) ? trajectory.joint_trajectory.points.front()
-                                                          : trajectory.joint_trajectory.points.back();
+  const trajectory_msgs::JointTrajectoryPoint& point = (position == ConfigPosition::FIRST)
+                                                           ? trajectory.joint_trajectory.points.front()
+                                                           : trajectory.joint_trajectory.points.back();
   jointConfig = point.positions;
   return true;
 }
 
 void IPlannerBase::reverseTrajectory(moveit_msgs::RobotTrajectory& trajectory) {
   // Reverse the joint trajectory points
-  std::reverse(trajectory.joint_trajectory.points.begin(), trajectory.joint_trajectory.points.end());
+  std::vector<trajectory_msgs::JointTrajectoryPoint>& points = trajectory.joint_trajectory.points;
 
-  // Optionally, reverse the multi-dof joint trajectory points if they exist
-  if (!trajectory.multi_dof_joint_trajectory.points.empty()) {
-    std::reverse(trajectory.multi_dof_joint_trajectory.points.begin(),
-                 trajectory.multi_dof_joint_trajectory.points.end());
+  // Copy the time_from_start values
+  std::vector<ros::Duration> time_from_start_values;
+  time_from_start_values.reserve(points.size());
+  for (const auto& point : points) {
+    time_from_start_values.push_back(point.time_from_start);
+  }
+
+  // Reverse the points
+  std::reverse(points.begin(), points.end());
+
+  // Reassign the time_from_start values in ascending order
+  for (size_t i = 0; i < points.size(); ++i) {
+    points[i].time_from_start = time_from_start_values[i];
   }
 }
 
 double IPlannerBase::computeTotalJerk_(const moveit_msgs::RobotTrajectory& trajectory) {
-  const int8_t MIN_POINTS = 3;
+  const int MIN_POINTS = 3;
   double totalJerk = 0.0;
 
   const auto& points = trajectory.joint_trajectory.points;

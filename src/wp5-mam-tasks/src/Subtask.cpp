@@ -53,7 +53,8 @@ void Subtask::parseROI_(const string& str) {
     // Compute quaternion to restrain the orientation in the plan defined by the 3 points
     Eigen::Vector3d posStart(waypointsPos[0], waypointsPos[1], waypointsPos[2]);
     Eigen::Vector3d posEnd(waypointsPos[3], waypointsPos[4], waypointsPos[5]);
-    Eigen::Quaterniond quat(rotateVectorInPlan_({posStart, posEnd, robotPos_}));
+    // Eigen::Quaterniond quat(rotateVectorInPlan_({posStart, posEnd, robotPos_}));
+    Eigen::Quaterniond quat(0, 1, 0, 0);
 
     roi.emplaceBackPose("base_link", quat, posStart);
     roi.emplaceBackPose("base_link", quat, posEnd);

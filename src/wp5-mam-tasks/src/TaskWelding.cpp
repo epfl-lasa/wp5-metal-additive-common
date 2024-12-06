@@ -26,24 +26,27 @@ bool TaskWelding::initialize() {
   return true;
 }
 
-bool TaskWelding::computeTrajectory(std::vector<geometry_msgs::Pose> waypoints) {
+//TODO(lmunier) - Solve adding the offset to the waypoints, with the orientation
+bool TaskWelding::computeTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) {
   std::vector<geometry_msgs::Pose> waypointsToPlan{};
   std::pair<Eigen::Quaterniond, Eigen::Vector3d> poseOffset{};
 
+  geometry_msgs::Pose eePoseWorkOffset = ConversionTools::vectorToGeometryPose(eePoseWorkOffset_);
+  // eePoseWorkOffset = MathTools::applyRotationToPose(eePoseWorkOffset, quatTransform);
+
+  geometry_msgs::Pose eePoseOffset = ConversionTools::vectorToGeometryPose(eePoseOffset_);
+  // eePoseOffset = MathTools::applyRotationToPose(eePoseOffset, quatTransform);
+
+  // Add moving to welding pose
+  waypointsToPlan.push_back(MathTools::addOffset(waypoints.front(), eePoseWorkOffset));
+
+  // Add weling waypoints
   for (size_t i = 0; i < waypoints.size(); ++i) {
-    if (i == 0) {
-      poseOffset = ConversionTools::vectorToEigenQuatPose(eePoseWorkOffset_);
-      waypointsToPlan.push_back(MathTools::addOffset(waypoints[i], poseOffset));
-    } else if (i == waypoints.size() - 1) {
-      poseOffset = ConversionTools::vectorToEigenQuatPose(eePoseWorkOffset_);
-      poseOffset.second *= -1;
-
-      waypointsToPlan.push_back(MathTools::addOffset(waypoints[i], poseOffset));
-    }
-
-    poseOffset = ConversionTools::vectorToEigenQuatPose(eePoseOffset_);
-    waypointsToPlan.push_back(MathTools::addOffset(waypoints[i], poseOffset));
+    waypointsToPlan.push_back(MathTools::addOffset(waypoints[i], eePoseOffset));
   }
+
+  // Add moving away from welding pose
+  waypointsToPlan.push_back(MathTools::addOffset(waypoints.back(), eePoseWorkOffset));
 
   return planner_->planTrajectory(waypointsToPlan);
 }

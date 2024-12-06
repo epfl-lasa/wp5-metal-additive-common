@@ -25,7 +25,7 @@ bool TaskCleaning::initialize() {
   return true;
 }
 
-bool TaskCleaning::computeTrajectory(std::vector<geometry_msgs::Pose> waypoints) {
+bool TaskCleaning::computeTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) {
   return planner_->planTrajectory(waypoints);
 }
 

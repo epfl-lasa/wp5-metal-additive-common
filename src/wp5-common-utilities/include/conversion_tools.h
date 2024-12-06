@@ -127,6 +127,8 @@ Eigen::Vector3d geometryToEigen(const geometry_msgs::Point& point);
  */
 Eigen::Quaterniond geometryToEigen(const geometry_msgs::Quaternion& orientation);
 
+std::pair<Eigen::Quaterniond, Eigen::Vector3d> geometryToEigen(const geometry_msgs::Pose& pose);
+
 /**
  * @brief Converts an Eigen::Vector3d to a geometry_msgs::Point.
  *
