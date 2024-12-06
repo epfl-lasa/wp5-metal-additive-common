@@ -18,7 +18,7 @@ using namespace std;
 PlannerWelding::PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) :
     IPlannerBase(rosVersion, nh, robotName) {}
 
-bool PlannerWelding::planTrajectory(std::vector<geometry_msgs::Pose> waypoints) {
+bool PlannerWelding::planTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) {
   bool success = false;
   int failedStep = -1;
   const int MIN_WAYPOINTS = 4;
@@ -38,7 +38,7 @@ bool PlannerWelding::planTrajectory(std::vector<geometry_msgs::Pose> waypoints) 
     trajectoryToExecute_.clear();
 
     // Compute first transition path in reverse direction
-    extractJointConfig(plan, startConfig, ConfigPosition::FIRST);
+    extractJointConfig_(plan, startConfig, ConfigPosition::FIRST);
     tmpWaypoints.clear();
     tmpWaypoints.push_back(waypoints[0]);
 
@@ -46,7 +46,7 @@ bool PlannerWelding::planTrajectory(std::vector<geometry_msgs::Pose> waypoints) 
     failedStep = success ? -1 : 2;
 
     // Compute first transition path in forward direction
-    extractJointConfig(plan, startConfig, ConfigPosition::LAST);
+    extractJointConfig_(plan, startConfig, ConfigPosition::LAST);
     tmpWaypoints.clear();
     tmpWaypoints.push_back(waypoints[3]);
 
@@ -55,6 +55,7 @@ bool PlannerWelding::planTrajectory(std::vector<geometry_msgs::Pose> waypoints) 
 
     // If all the paths are computed, store them and break the loop
     if (failedStep == -1) {
+      retimeTrajectory_(plan, 0.005, 1); // TODO(lmunier) - Set the speed and frequency as a parameters
       trajectoryToExecute_.insert(trajectoryToExecute_.begin() + 1, plan);
       break;
     } else {
@@ -116,7 +117,7 @@ bool PlannerWelding::computeTransitionPath_(const vector<double>& startConfig,
 
   if (success) {
     if (direction == MotionDir::BACKWARD) {
-      reverseTrajectory(trajectory[0]);
+      reverseTrajectory_(trajectory[0]);
     }
 
     trajectoryToExecute_.push_back(trajectory[0]);

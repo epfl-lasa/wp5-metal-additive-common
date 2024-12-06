@@ -34,7 +34,7 @@ public:
   /**
    * @brief Plans the welding trajectory of the robot.
    */
-  bool planTrajectory(std::vector<geometry_msgs::Pose> waypoints);
+  bool planTrajectory(const std::vector<geometry_msgs::Pose>& waypoints);
 
 private:
   bool computeWeldingPossiblePaths_(const geometry_msgs::Pose& startPose, const geometry_msgs::Pose& targetPose);

@@ -145,9 +145,9 @@ bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
   return success;
 }
 
-bool IPlannerBase::extractJointConfig(const moveit_msgs::RobotTrajectory& trajectory,
-                                      std::vector<double>& jointConfig,
-                                      const ConfigPosition position) {
+bool IPlannerBase::extractJointConfig_(const moveit_msgs::RobotTrajectory& trajectory,
+                                       std::vector<double>& jointConfig,
+                                       const ConfigPosition position) {
   if (trajectory.joint_trajectory.points.empty()) {
     ROS_WARN("[IPlannerBase] - The trajectory is empty.");
     return false;
@@ -160,40 +160,20 @@ bool IPlannerBase::extractJointConfig(const moveit_msgs::RobotTrajectory& trajec
   return true;
 }
 
-void IPlannerBase::reverseTrajectory(moveit_msgs::RobotTrajectory& trajectory) {
-  // Reverse the joint trajectory points
-  std::vector<trajectory_msgs::JointTrajectoryPoint>& points = trajectory.joint_trajectory.points;
-
-  // Copy the time_from_start values
-  std::vector<ros::Duration> time_from_start_values;
-  time_from_start_values.reserve(points.size());
-  for (const auto& point : points) {
-    time_from_start_values.push_back(point.time_from_start);
-  }
-
-  // Reverse the points
-  std::reverse(points.begin(), points.end());
-
-  // Reassign the time_from_start values in ascending order
-  for (size_t i = 0; i < points.size(); ++i) {
-    points[i].time_from_start = time_from_start_values[i];
-  }
-}
-
 double IPlannerBase::computeTotalJerk_(const moveit_msgs::RobotTrajectory& trajectory) {
   const int MIN_POINTS = 3;
   double totalJerk = 0.0;
 
-  const auto& points = trajectory.joint_trajectory.points;
+  const std::vector<trajectory_msgs::JointTrajectoryPoint>& points = trajectory.joint_trajectory.points;
   if (points.size() < MIN_POINTS) {
     ROS_WARN_STREAM("[IPlannerBase] - Not enough points to compute jerk : current size of " << points.size());
     return totalJerk;
   }
 
   for (size_t i = 1; i < points.size() - 1; ++i) {
-    const auto& prev = points[i - 1];
-    const auto& curr = points[i];
-    const auto& next = points[i + 1];
+    const trajectory_msgs::JointTrajectoryPoint& prev = points[i - 1];
+    const trajectory_msgs::JointTrajectoryPoint& curr = points[i];
+    const trajectory_msgs::JointTrajectoryPoint& next = points[i + 1];
 
     Eigen::VectorXd velPrev = Eigen::VectorXd::Map(prev.velocities.data(), prev.velocities.size());
     Eigen::VectorXd velCurr = Eigen::VectorXd::Map(curr.velocities.data(), curr.velocities.size());
@@ -222,6 +202,106 @@ void IPlannerBase::sortTrajectoriesByJerk_(std::vector<moveit_msgs::RobotTraject
             });
 }
 
+void IPlannerBase::reverseTrajectory_(moveit_msgs::RobotTrajectory& trajectory) {
+  // Reverse the joint trajectory points
+  std::vector<trajectory_msgs::JointTrajectoryPoint>& points = trajectory.joint_trajectory.points;
+
+  // Copy the time_from_start values
+  std::vector<ros::Duration> time_from_start_values;
+  time_from_start_values.reserve(points.size());
+  for (const auto& point : points) {
+    time_from_start_values.push_back(point.time_from_start);
+  }
+
+  // Reverse the points
+  std::reverse(points.begin(), points.end());
+
+  // Reassign the time_from_start values in ascending order
+  for (size_t i = 0; i < points.size(); ++i) {
+    points[i].time_from_start = time_from_start_values[i];
+  }
+}
+
+std::vector<trajectory_msgs::JointTrajectoryPoint> IPlannerBase::interpolatePoints_(
+    const trajectory_msgs::JointTrajectoryPoint& prevPoint,
+    const trajectory_msgs::JointTrajectoryPoint& currPoint,
+    double timeStep,
+    double timeInterval) {
+  std::vector<trajectory_msgs::JointTrajectoryPoint> interpolatedPoints;
+
+  for (double t = timeStep; t < timeInterval; t += timeStep) {
+    const double alpha = t / timeInterval;
+    trajectory_msgs::JointTrajectoryPoint interpolatedPoint;
+    interpolatedPoint.positions.resize(prevPoint.positions.size());
+
+    std::transform(prevPoint.positions.begin(),
+                   prevPoint.positions.end(),
+                   currPoint.positions.begin(),
+                   interpolatedPoint.positions.begin(),
+                   [alpha](double prev, double curr) { return prev + alpha * (curr - prev); });
+
+    interpolatedPoint.time_from_start = ros::Duration(t);
+    interpolatedPoints.push_back(std::move(interpolatedPoint));
+  }
+
+  return interpolatedPoints;
+}
+
+bool IPlannerBase::retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory,
+                                     double cartesianSpeed,
+                                     double robotFrequency) {
+  // Ensure the trajectory has points
+  if (trajectory.joint_trajectory.points.empty()) {
+    ROS_WARN("[PlannerWelding] - Trajectory has no points to retime.");
+    return false;
+  }
+
+  // Calculate the desired time step based on the robot's frequency
+  const double timeStep = 1.0 / robotFrequency;
+
+  // Create a new trajectory to store the interpolated points
+  moveit_msgs::RobotTrajectory newTrajectory;
+  newTrajectory.joint_trajectory.joint_names = trajectory.joint_trajectory.joint_names;
+
+  // Add the first point to the new trajectory
+  newTrajectory.joint_trajectory.points.push_back(trajectory.joint_trajectory.points.front());
+
+  // Linearly interpolate between each pair of points
+  for (size_t i = 1; i < trajectory.joint_trajectory.points.size(); ++i) {
+    const auto& prevPoint = trajectory.joint_trajectory.points[i - 1];
+    const auto& currPoint = trajectory.joint_trajectory.points[i];
+
+    // Calculate the Euclidean distance between waypoints
+    tf2::Vector3 prevPosition(prevPoint.positions[0], prevPoint.positions[1], prevPoint.positions[2]);
+    tf2::Vector3 currPosition(currPoint.positions[0], currPoint.positions[1], currPoint.positions[2]);
+    const double distance = prevPosition.distance(currPosition);
+
+    // Calculate the time interval for the desired speed
+    const double timeInterval = distance / cartesianSpeed;
+
+    // Interpolate points at the desired time step
+    auto interpolatedPoints = interpolatePoints_(prevPoint, currPoint, timeStep, timeInterval);
+    for (auto& point : interpolatedPoints) {
+      point.time_from_start += newTrajectory.joint_trajectory.points.back().time_from_start;
+      newTrajectory.joint_trajectory.points.push_back(std::move(point));
+    }
+
+    // Add the current point to the new trajectory
+    auto currPointCopy = currPoint;
+    currPointCopy.time_from_start =
+        newTrajectory.joint_trajectory.points.back().time_from_start + ros::Duration(timeInterval);
+    newTrajectory.joint_trajectory.points.push_back(std::move(currPointCopy));
+  }
+
+  // Replace the original trajectory with the new trajectory
+  trajectory = std::move(newTrajectory);
+
+  ROS_INFO_STREAM("[PlannerWelding] - Trajectory retimed and interpolated successfully to match the robot frequency of "
+                  << robotFrequency << " Hz and achieve a constant Cartesian speed of " << cartesianSpeed << " m/s.");
+
+  return true;
+}
+
 void IPlannerBase::initMoveit_() {
   const string robotGroup = "manipulator";
   ros::Duration timeout(2.0);
@@ -229,7 +309,7 @@ void IPlannerBase::initMoveit_() {
   try {
     moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robotGroup);
   } catch (const runtime_error& e) {
-    ROS_ERROR("[IPlannerBase] - Failed to initialize MoveGroupInterface: %s", e.what());
+    ROS_ERROR_STREAM("[IPlannerBase] - Failed to initialize MoveGroupInterface: " << e.what());
     return;
   }
 

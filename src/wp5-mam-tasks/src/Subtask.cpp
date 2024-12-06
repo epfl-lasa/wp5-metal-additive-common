@@ -54,6 +54,7 @@ void Subtask::parseROI_(const string& str) {
     Eigen::Vector3d posStart(waypointsPos[0], waypointsPos[1], waypointsPos[2]);
     Eigen::Vector3d posEnd(waypointsPos[3], waypointsPos[4], waypointsPos[5]);
     // Eigen::Quaterniond quat(rotateVectorInPlan_({posStart, posEnd, robotPos_}));
+    //TODO(lmunier) - Solve adding the offset to the waypoints, with the orientation
     Eigen::Quaterniond quat(0, 1, 0, 0);
 
     roi.emplaceBackPose("base_link", quat, posStart);
