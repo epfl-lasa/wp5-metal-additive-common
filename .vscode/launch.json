@@ -32,6 +32,13 @@
             "request": "launch",
             "target": "/home/${ROS_USER}/catkin_ws/src/wp5-mam-planner/launch/test_waypoint_parser.launch",
             "preLaunchTask": "build debug"
+        },
+        {
+            "name": "ROS: Launch Perform FK",
+            "type": "ros",
+            "request": "launch",
+            "target": "/home/${ROS_USER}/catkin_ws/src/wp5-robotic-arms/launch/perform_fk.launch",
+            "preLaunchTask": "build debug"
         }
     ]
 }

@@ -87,7 +87,7 @@ std::string getPoseString(const geometry_msgs::Pose& pose);
  * @param vec The Eigen::VectorXd to be converted to a string.
  * @return A string representation of the input vector.
  */
-std::string getEigenVecString(const Eigen::VectorXd& vec);
+std::string getEigenString(const Eigen::VectorXd& vec);
 
 /**
  * @brief Converts an Eigen Quaternion to a string representation.
@@ -98,7 +98,7 @@ std::string getEigenVecString(const Eigen::VectorXd& vec);
  * @param quat The Eigen::Quaterniond object to be converted to a string.
  * @return A std::string representing the quaternion.
  */
-std::string getEigenQuatString(const Eigen::Quaterniond& quat);
+std::string getEigenString(const Eigen::Quaterniond& quat);
 
 /**
  * @brief Publishes a given pose to a specified ROS topic.

@@ -20,6 +20,7 @@
 #include "IRoboticArmBase.h"
 #include "IRosInterfaceBase.h"
 #include "RoboticArmUr.h"
+#include "debug_tools.h"
 
 class RoboticArmFactory {
 public:
@@ -47,15 +48,8 @@ public:
       return it->second(rosVersion);
     } else {
       std::ostringstream errorMsg{};
-      errorMsg << "Invalid robotic arm type: " << name << ". Allowed values are [";
-
-      for (const auto& type : getRoboticArmTypes()) {
-        errorMsg << type << ", ";
-      }
-      errorMsg << "]";
-
-      std::string errorMsgStr = errorMsg.str();
-      errorMsgStr = errorMsgStr.substr(0, errorMsgStr.size() - 2) + ".";
+      errorMsg << "Invalid robotic arm type: " << name << ". Allowed values are ";
+      errorMsg << DebugTools::getVecString<std::string>(getRoboticArmTypes());
 
       throw std::runtime_error(errorMsg.str());
     }
