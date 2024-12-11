@@ -13,6 +13,10 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <std_msgs/Bool.h>
 
+#include <atomic>
+#include <chrono>
+#include <thread>
+
 #include "RoboticArmFactory.h"
 #include "conversion_tools.h"
 #include "debug_tools.h"
@@ -41,17 +45,19 @@ bool IPlannerBase::executeTrajectory() {
   bool success = false;
   int currentStep = 0;
   vector<double> firstJointConfig{};
+  std_msgs::Bool msg;
 
-  if (trajectoryToExecute_.empty()) {
+  if (trajTaskToExecute_.empty()) {
     ROS_ERROR("[IPlannerBase] - No trajectory to execute");
     return success;
   }
 
-  for (const auto& trajectory : trajectoryToExecute_) {
+  for (const auto& trajTask : trajTaskToExecute_) {
     currentStep++;
+    msg.data = trajTask.second;
 
     // Check the first joint configuration to be able to begin trajectory execution
-    firstJointConfig = trajectory.joint_trajectory.points[0].positions;
+    firstJointConfig = trajTask.first.joint_trajectory.points[0].positions;
 
     if (!robot_->isAtJointPosition(firstJointConfig)) {
       success = goToJointConfig(firstJointConfig);
@@ -67,11 +73,12 @@ bool IPlannerBase::executeTrajectory() {
     string userMsg =
         "[IPlannerBase] - Execute trajectory at step " + to_string(currentStep) + ". Press Enter to continue.";
 
-    DebugTools::publishTrajectory(*moveGroup_, trajectory, pubTrajectory_);
+    DebugTools::publishTrajectory(*moveGroup_, trajTask.first, pubTrajectory_);
     DebugTools::waitOnUser(userMsg);
 #endif
 
-    success = (moveGroup_->execute(trajectory) == moveit::core::MoveItErrorCode::SUCCESS);
+    // Calling service here to turn on the laser and keep it on during the trajectory
+    success = (moveGroup_->execute(trajTask.first) == moveit::core::MoveItErrorCode::SUCCESS);
     cleanMoveGroup_();
 
     if (!success) {
@@ -354,3 +361,77 @@ bool IPlannerBase::move_() {
 
   return success;
 }
+
+//TODO(lmunier) to implement the following function
+// void publishContinuously(ros::Publisher& publisher, std::atomic<bool>& running) {
+//   ros::Rate rate(10.0); // 10 Hz
+//   std_msgs::Bool msg;
+//   msg.data = true;
+
+//   while (running.load() && ros::ok()) {
+//     publisher.publish(msg);
+//     rate.sleep();
+//   }
+// }
+
+// bool IPlannerBase::executeTrajectory() {
+//     std::atomic<bool> running(true);
+//     ros::Publisher laser_publisher = nh_.advertise<std_msgs::Bool>("laser_state", 1);
+
+//     // Start the publishing thread
+//     std::thread publishThread(publishContinuously, std::ref(laser_publisher), std::ref(running));
+
+//     if (trajTaskToExecute_.empty()) {
+//         ROS_ERROR("[IPlannerBase] - No trajectory to execute");
+//         running = false;
+//         publishThread.join();
+//         return false;
+//     }
+
+//     for (const auto& trajTask : trajTaskToExecute_) {
+//         currentStep++;
+//         msg.data = trajTask.second;
+
+//         // Check the first joint configuration to be able to begin trajectory execution
+//         firstJointConfig = trajTask.first.joint_trajectory.points[0].positions;
+
+//         if (!robot_->isAtJointPosition(firstJointConfig)) {
+//             bool success = goToJointConfig(firstJointConfig);
+
+//             if (!success) {
+//                 ROS_ERROR("[IPlannerBase] - Failed to move to the first joint configuration");
+//                 running = false;
+//                 publishThread.join();
+//                 return false;
+//             }
+//         }
+
+//         // Execute the trajectory
+// #ifdef DEBUG_MODE
+//         string userMsg =
+//             "[IPlannerBase] - Execute trajectory at step " + to_string(currentStep) + ". Press Enter to continue.";
+
+//         DebugTools::publishTrajectory(*moveGroup_, trajTask.first, pubTrajectory_);
+//         DebugTools::waitOnUser(userMsg);
+// #endif
+
+//         // Execute the trajectory
+//         bool success = (moveGroup_->execute(trajTask.first) == moveit::core::MoveItErrorCode::SUCCESS);
+//         cleanMoveGroup_();
+
+//         if (!success) {
+//             ROS_ERROR_STREAM("[IPlannerBase] - Failed to execute trajectory at step " << currentStep);
+//             running = false;
+//             publishThread.join();
+//             return false;
+//         }
+
+//         ROS_INFO("[IPlannerBase] - Trajectory executed successfully");
+//     }
+
+//     // Stop the publishing thread
+//     running = false;
+//     publishThread.join();
+
+//     return true;
+// }

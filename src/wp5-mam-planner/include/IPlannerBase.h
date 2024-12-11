@@ -74,10 +74,12 @@ protected:
   ros::Publisher pubWaypointRviz_; ///< Publisher for the waypoint in Rviz
   ros::Publisher pubTrajectory_;   ///< Publisher for the path
 
-  bool pathFound_ = false;                                        ///< Flag indicating if a path is found
-  int currentWPointID_ = 0;                                       ///< Current waypoint ID
-  std::vector<moveit_msgs::RobotTrajectory> trajectoryToExecute_; ///< List of trajectories to be executed
-  std::vector<moveit_msgs::RobotTrajectory> sortedWeldingPaths_;  ///< Sorted list of possible welding paths
+  bool pathFound_ = false;                                       ///< Flag indicating if a path is found
+  int currentWPointID_ = 0;                                      ///< Current waypoint ID
+  std::vector<moveit_msgs::RobotTrajectory> sortedWeldingPaths_; ///< Sorted list of possible welding paths
+
+  // List of trajectories to be executed, with task (welding / cleaning) to be activated
+  std::vector<std::pair<moveit_msgs::RobotTrajectory, bool>> trajTaskToExecute_;
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface

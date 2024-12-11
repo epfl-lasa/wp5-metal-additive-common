@@ -18,7 +18,7 @@ using namespace std;
 PlannerWelding::PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) :
     IPlannerBase(rosVersion, nh, robotName) {}
 
-bool PlannerWelding::planTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) {
+bool PlannerWelding::planTrajectory(const vector<geometry_msgs::Pose>& waypoints) {
   bool success = false;
   int failedStep = -1;
   const int MIN_WAYPOINTS = 4;
@@ -35,7 +35,7 @@ bool PlannerWelding::planTrajectory(const std::vector<geometry_msgs::Pose>& wayp
 
   vector<geometry_msgs::Pose> tmpWaypoints{};
   for (auto& plan : sortedWeldingPaths_) {
-    trajectoryToExecute_.clear();
+    trajTaskToExecute_.clear();
 
     // Compute first transition path in reverse direction
     extractJointConfig_(plan, startConfig, ConfigPosition::FIRST);
@@ -56,7 +56,9 @@ bool PlannerWelding::planTrajectory(const std::vector<geometry_msgs::Pose>& wayp
     // If all the paths are computed, store them and break the loop
     if (failedStep == -1) {
       retimeTrajectory_(plan, 0.005, 1); // TODO(lmunier) - Set the speed and frequency as a parameters
-      trajectoryToExecute_.insert(trajectoryToExecute_.begin() + 1, plan);
+
+      vector<pair<moveit_msgs::RobotTrajectory, bool>>::iterator insertPosition = trajTaskToExecute_.begin() + 1;
+      trajTaskToExecute_.insert(insertPosition, make_pair(plan, true));
       break;
     } else {
       ROS_WARN_STREAM("[PlannerWelding] - Failed to compute the welding trajectory at step " << failedStep);
@@ -120,7 +122,7 @@ bool PlannerWelding::computeTransitionPath_(const vector<double>& startConfig,
       reverseTrajectory_(trajectory[0]);
     }
 
-    trajectoryToExecute_.push_back(trajectory[0]);
+    trajTaskToExecute_.emplace_back(trajectory[0], false);
   }
 
   return success;
