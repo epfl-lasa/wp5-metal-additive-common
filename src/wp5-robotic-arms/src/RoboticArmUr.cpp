@@ -67,7 +67,7 @@ const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
   Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, -0.5, -0.5, -0.5);
 
   uint totSolutions = 0;
-  const uint MAX_REJECTIONS = 85; // percentage of rejected solutions
+  const uint MAX_REJECTIONS = 50; // percentage of rejected solutions
   double posVector[3] = {position.x(), position.y(), position.z()};
 
   double rotMatrixArray[9]{};

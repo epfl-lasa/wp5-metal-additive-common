@@ -14,7 +14,7 @@ welding:
   robot_name: "ur10e_robot"
   ros_version: "noetic"
   home_configuration: [0, -1.57, 0, -1.57, 0, 0] # [rad] j1, j2, j3, j4, j5, j6
-  ee_pose_scan: [0, 0, 0, 1, 0.5, 0.5, 0.5] # [rad] xyzw, [m] xyz
+  ee_pose_scan: [-0.704627, -0.0401188, -0.00946144, 0.70838, -0.2, 0.0, 1.33] # [rad] xyzw, [m] xyz
   ee_pose_work_offset: [0, 0, 0, 1, 0, 0, -0.3] # [rad] xyzw, [m] xyz
   ee_pose_offset: [0, 0, 0, 1, 0, 0, -0.02] # [rad] xyzw, [m] xyz
 cleaning:
