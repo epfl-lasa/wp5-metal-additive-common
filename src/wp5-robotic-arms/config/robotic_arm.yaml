@@ -22,7 +22,7 @@ ur10e_robot:
   - "wrist_1_joint"
   - "wrist_2_joint"
   - "wrist_3_joint"
-  original_home_joint: [0.0, -1.5708, 0.0, -1.5708, 0.0, 0.0]
+  original_home_joint: [2.4435, -1.5708, 0.0, -1.5708, 4.7124, 0.0]
   reference_frame: "base_link"
   chain_start: "base_link"
   chain_end: "tool0"
