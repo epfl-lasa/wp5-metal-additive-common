@@ -6,8 +6,8 @@
 # Author: Louis Munier - lmunier@protonmail.com
 # Date: 2024-10-11
 
-# Maximum file size in bytes (5MB)
-max_size=5242880
+# Maximum file size in bytes (10MB)
+max_size=10000000
 
 # Find files larger than the specified size
 large_files=$(git diff --cached --name-only | xargs -I{} find {} -type f -size +${max_size}c 2>/dev/null)

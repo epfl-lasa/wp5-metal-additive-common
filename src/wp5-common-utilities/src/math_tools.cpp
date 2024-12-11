@@ -38,8 +38,8 @@ const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterni
 
 #ifdef DEBUG_MODE
   if (!areEquivalent) {
-    std::string quat1 = DebugTools::getEigenQuatString(q1);
-    std::string quat2 = DebugTools::getEigenQuatString(q2);
+    std::string quat1 = DebugTools::getEigenString(q1);
+    std::string quat2 = DebugTools::getEigenString(q2);
 
     ROS_WARN_STREAM("[MathTools] - Quaternions are not equivalent: " << quat1 << " and " << quat2);
   }
@@ -53,8 +53,8 @@ const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2
 
 #ifdef DEBUG_MODE
   if (!areEquivalent) {
-    std::string pos1 = DebugTools::getEigenVecString(p1);
-    std::string pos2 = DebugTools::getEigenVecString(p2);
+    std::string pos1 = DebugTools::getEigenString(p1);
+    std::string pos2 = DebugTools::getEigenString(p2);
 
     ROS_WARN_STREAM("[MathTools] - Positions are not equivalent: " << pos1 << " and " << pos2);
   }
