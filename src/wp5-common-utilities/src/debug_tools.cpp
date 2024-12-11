@@ -32,11 +32,11 @@ std::string getPoseString(const geometry_msgs::Pose& pose) {
   return poseString;
 }
 
-std::string getEigenVecString(const Eigen::VectorXd& vec) {
+std::string getEigenString(const Eigen::VectorXd& vec) {
   return getVecString<double>(ConversionTools::eigenToVector(vec));
 }
 
-std::string getEigenQuatString(const Eigen::Quaterniond& quat) {
+std::string getEigenString(const Eigen::Quaterniond& quat) {
   return getVecString<double>(ConversionTools::eigenToVector(quat));
 }
 

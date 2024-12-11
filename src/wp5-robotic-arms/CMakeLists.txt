@@ -103,6 +103,25 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EX
 
 export(PACKAGE ${PROJECT_NAME})
 
+
+# -------------------------
+# Compile tool
+# -------------------------
+add_executable(perform_fk
+  tools/perform_fk.cpp
+  src/IRoboticArmBase.cpp
+  src/RoboticArmUr.cpp
+  src/RoboticArmFactory.cpp
+)
+
+target_link_libraries(perform_fk
+  ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
+  ${trac_ik_lib_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
+  ik_geo
+)
+
 # -------------------------
 # Add the test executable
 # -------------------------
@@ -124,6 +143,7 @@ if (CATKIN_ENABLE_TESTING)
     src/RoboticArmUr.cpp
     src/RoboticArmFactory.cpp
   )
+
   target_link_libraries(${test_exe_name}
     ${catkin_LIBRARIES}
     ${GTEST_LIBRARIES}
