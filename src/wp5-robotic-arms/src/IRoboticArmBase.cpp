@@ -98,6 +98,8 @@ const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
 
   if (isValid) {
     jointPos = std::vector<double>(result.data.data(), result.data.data() + result.data.size());
+  } else {
+    ROS_ERROR("[IRoboticArmBase] - Failed to compute inverse kinematics");
   }
 
   return isValid;

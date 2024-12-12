@@ -1,0 +1,2 @@
+ur10e_robot:
+  exp1_pose: [0, -0.173648, 0, 0.984808, 0.1226, 0, 1.619] # quat pose - [rad] xyzw, [m] xyz

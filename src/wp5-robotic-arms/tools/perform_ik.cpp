@@ -1,0 +1,57 @@
+/**
+ * @file perform_ik.cpp
+ * @brief Small piece of code to perform inverse kinematics on a robotic arm.
+ * The goal is to verify the feasibility of a given pose.
+ *
+ * @author [Louis Munier] - lmunier@protonmail.com
+ * @version 0.1
+ * @date 2024-18-09
+ *
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ *
+ */
+#include <ros/ros.h>
+
+#include <string>
+
+#include "RoboticArmFactory.h"
+#include "debug_tools.h"
+#include "yaml_tools.h"
+
+int main(int argc, char** argv) {
+  std::string poseSet = "";
+  std::string robotName = "";
+  std::string rosVersion = "";
+
+  ros::init(argc, argv, "perform_ik");
+  ros::NodeHandle nh;
+
+  // Load the robot name and ROS version from the YAML file
+
+  // Get obstacles from the config file
+  std::string yamlPath = YamlTools::getYamlPath("ik_pose_config.yaml", std::string(WP5_ROBOTIC_ARMS_DIR));
+  YAML::Node config = YAML::LoadFile(yamlPath);
+
+  nh.getParam("poseSet", poseSet);
+  nh.getParam("robotName", robotName);
+  nh.getParam("rosVersion", rosVersion);
+
+  // Create the robotic arm
+  std::unique_ptr<IRoboticArmBase> roboticArm =
+      RoboticArmFactory::createRoboticArm(robotName, IRosInterfaceBase::rosVersionsMap.at(rosVersion));
+
+  // Get the joint positions from the command line
+  std::vector<double> pose = config[robotName][poseSet].as<std::vector<double>>();
+
+  // Perform forward kinematics
+  std::vector<double> ikResult{};
+  Eigen::Quaterniond quaternion(pose[0], pose[1], pose[2], pose[3]);
+  Eigen::Vector3d position(pose[4], pose[5], pose[6]);
+
+  roboticArm->getIKTrac(quaternion, position, ikResult);
+
+  // Print the results
+  std::cout << "Joint Configuration: " << DebugTools::getVecString(ikResult) << std::endl;
+
+  ros::shutdown();
+}

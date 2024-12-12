@@ -103,9 +103,8 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EX
 
 export(PACKAGE ${PROJECT_NAME})
 
-
 # -------------------------
-# Compile tool
+# Compile perform_fk tool
 # -------------------------
 add_executable(perform_fk
   tools/perform_fk.cpp
@@ -115,6 +114,24 @@ add_executable(perform_fk
 )
 
 target_link_libraries(perform_fk
+  ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
+  ${trac_ik_lib_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
+  ik_geo
+)
+
+# -------------------------
+# Compile perform_fk tool
+# -------------------------
+add_executable(perform_ik
+  tools/perform_ik.cpp
+  src/IRoboticArmBase.cpp
+  src/RoboticArmUr.cpp
+  src/RoboticArmFactory.cpp
+)
+
+target_link_libraries(perform_ik
   ${catkin_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
   ${trac_ik_lib_LIBRARIES}
