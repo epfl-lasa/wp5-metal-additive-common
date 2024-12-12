@@ -19,9 +19,6 @@ using namespace std;
 
 Subtask::Subtask(ros::NodeHandle& nh) : nh_(nh) {
   subROI_ = nh_.subscribe("/damage_string", 100, &Subtask::cbkROI_, this);
-
-  // debug waypoint
-  pubWaypoint_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_waypoint", 10);
 }
 
 const optional<ROI> Subtask::popROI() {
@@ -50,12 +47,13 @@ void Subtask::parseROI_(const string& str) {
   if (!isROIStored_(waypointID)) {
     ROI roi(waypointID);
 
-    // Compute quaternion to restrain the orientation in the plan defined by the 3 points
+    // Compute quaternion to restrain the orientation in the plane defined by the 3 points
     Eigen::Vector3d posStart(waypointsPos[0], waypointsPos[1], waypointsPos[2]);
     Eigen::Vector3d posEnd(waypointsPos[3], waypointsPos[4], waypointsPos[5]);
-    Eigen::Quaterniond quat(rotateVectorInPlan_({posStart, posEnd, robotPos_}));
-    //TODO(lmunier) - Solve adding the offset to the waypoints, with the orientation
-    // Eigen::Quaterniond quat(0, 1, 0, 0);
+
+    //TODO(lmunier) - Add normal to the plan from DTU
+    // Eigen::Quaterniond quat(rotateVectorInPlan_({posStart, posEnd, robotPos_}));
+    Eigen::Quaterniond quat(1, 0, 0, 0);
 
     roi.emplaceBackPose("base_link", quat, posStart);
     roi.emplaceBackPose("base_link", quat, posEnd);
@@ -75,25 +73,6 @@ const bool Subtask::isROIStored_(const string& id) const {
     }
   }
   return false;
-}
-
-const Eigen::Quaterniond Subtask::rotateVectorInPlan_(const array<Eigen::Vector3d, 3>& pointsArray,
-                                                      const double theta) {
-  const Eigen::Vector3d refVector = Eigen::Vector3d::UnitX();
-
-  // Compute vector normal to plan define by the 3 points
-  const Eigen::Vector3d planVecStart = pointsArray[0] - pointsArray[1];
-  const Eigen::Vector3d planVecEnd = pointsArray[0] - pointsArray[2];
-  const Eigen::Vector3d normalVector = planVecStart.cross(planVecEnd).normalized();
-
-  // Rotate vector defined by plan, forming by points : pointsArray, by theta
-  const Eigen::Quaterniond quatRotation(cos(theta / 2),
-                                        normalVector.x() * sin(theta / 2),
-                                        normalVector.y() * sin(theta / 2),
-                                        normalVector.z() * sin(theta / 2));
-  const Eigen::Vector3d rotatedVectPlan = quatRotation * planVecEnd;
-
-  return Eigen::Quaterniond::FromTwoVectors(refVector, -rotatedVectPlan);
 }
 
 void Subtask::cbkROI_(const std_msgs::String::ConstPtr& msg) { parseROI_(msg->data); }

@@ -12,6 +12,7 @@
 
 #include "conversion_tools.h"
 #include "debug_tools.h"
+#include "math_tools.h"
 
 using namespace std;
 
@@ -84,8 +85,12 @@ bool PlannerWelding::computeWeldingPossiblePaths_(const geometry_msgs::Pose& sta
   vector<geometry_msgs::Pose> weldingTarget{targetPose};
   vector<vector<double>> ikSolutions{};
 
-  bool ikSuccess = robot_->getIKGeo(ConversionTools::geometryToEigen(startPose.orientation),
-                                    ConversionTools::geometryToEigen(startPose.position),
+  // Apply transform for each pose
+  geometry_msgs::Pose startPoseTransformed = MathTools::transformPose("virtual_link", "ee_tool", startPose);
+  geometry_msgs::Pose targetPoseTransformed = MathTools::transformPose("virtual_link", "ee_tool", targetPose);
+
+  bool ikSuccess = robot_->getIKGeo(ConversionTools::geometryToEigen(startPoseTransformed.orientation),
+                                    ConversionTools::geometryToEigen(targetPoseTransformed.position),
                                     ikSolutions);
 
   if (ikSuccess) {
@@ -115,7 +120,13 @@ bool PlannerWelding::computeTransitionPath_(const vector<double>& startConfig,
                                             const vector<geometry_msgs::Pose>& targetPose,
                                             const MotionDir direction) {
   vector<moveit_msgs::RobotTrajectory> trajectory{};
-  bool success = planCartesianFromJointConfig(startConfig, targetPose, trajectory);
+  vector<geometry_msgs::Pose> targetPoseTransformed{};
+
+  for (const auto& pose : targetPose) {
+    targetPoseTransformed.push_back(MathTools::transformPose("virtual_link", "ee_tool", pose));
+  }
+
+  bool success = planCartesianFromJointConfig(startConfig, targetPoseTransformed, trajectory);
 
   if (success) {
     if (direction == MotionDir::BACKWARD) {

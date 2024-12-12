@@ -124,6 +124,25 @@ geometry_msgs::Pose addOffset(const geometry_msgs::Pose& poseNoOffset, const geo
   return poseOffset;
 }
 
+const Eigen::Vector3d getNormalFromPlan(const std::array<Eigen::Vector3d, 3>& pointsArray) {
+  // Compute vector normal to plane define by the 3 points
+  const Eigen::Vector3d planVecStart = pointsArray[0] - pointsArray[1];
+  const Eigen::Vector3d planVecEnd = pointsArray[0] - pointsArray[2];
+  const Eigen::Vector3d normalVector = planVecStart.cross(planVecEnd).normalized();
+
+  return normalVector;
+}
+
+const Eigen::Quaterniond getQuatFromNormalTheta(const Eigen::Vector3d normalVector, const double theta) {
+  // Rotate vector defined by plane, forming by points : pointsArray, by theta
+  const Eigen::Quaterniond quatRotation(cos(theta / 2),
+                                        normalVector.x() * sin(theta / 2),
+                                        normalVector.y() * sin(theta / 2),
+                                        normalVector.z() * sin(theta / 2));
+
+  return quatRotation;
+}
+
 geometry_msgs::Pose applyRotationToPose(const geometry_msgs::Pose& pose, const geometry_msgs::Quaternion& rotation) {
   tf2::Quaternion poseOrientation;
   tf2::fromMsg(pose.orientation, poseOrientation);

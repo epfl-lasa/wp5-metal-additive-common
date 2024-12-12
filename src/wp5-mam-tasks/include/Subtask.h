@@ -72,10 +72,7 @@ private:
 
   void parseROI_(const std::string& str);
   const bool isROIStored_(const std::string& id) const;
-  const Eigen::Quaterniond rotateVectorInPlan_(const std::array<Eigen::Vector3d, 3>& pointsArray,
-                                               const double theta = theta_);
-  // Debug
-  ros::Publisher pubWaypoint_;
+
   /**
    * @brief Callback to get the region of interests.
    */

@@ -20,6 +20,7 @@
 
 #include <Eigen/Dense>
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <memory>
@@ -161,5 +162,36 @@ std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
  */
 geometry_msgs::Pose addOffset(const geometry_msgs::Pose& poseNoOffset, const geometry_msgs::Pose& offset);
 
+/**
+ * @brief Computes the normal vector to a plane formed by three points.
+ *
+ * @param pointsArray An array of three Eigen::Vector3d points that define the plane.
+ * @return Eigen::Vector3d The resulting normal vector to the plane.
+ */
+const Eigen::Vector3d getNormalFromPlan(const std::array<Eigen::Vector3d, 3>& pointsArray);
+
+/**
+ * @brief Computes a quaternion representing a rotation around a plane defined by a normal vector and an angle theta.
+ *
+ * This function calculates the quaternion that represents a rotation around a plane specified by the given normal vector.
+ * The rotation is performed by the angle theta.
+ *
+ * @param normalVector The normal vector defining the plane of rotation.
+ * @param theta The angle of rotation around the plane, in radians.
+ * @return Eigen::Quaterniond The resulting quaternion representing the rotation.
+ */
+const Eigen::Quaterniond getQuatFromNormalTheta(const Eigen::Vector3d normalVector, const double theta);
+
+/**
+ * @brief Applies a rotation to a given pose.
+ *
+ * This function takes a pose and a quaternion representing a rotation,
+ * and returns a new pose that is the result of applying the rotation
+ * to the original pose.
+ *
+ * @param pose The original pose to which the rotation will be applied.
+ * @param rotation The quaternion representing the rotation to be applied.
+ * @return A new pose that is the result of applying the rotation to the original pose.
+ */
 geometry_msgs::Pose applyRotationToPose(const geometry_msgs::Pose& pose, const geometry_msgs::Quaternion& rotation);
 } // namespace MathTools
