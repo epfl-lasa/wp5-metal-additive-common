@@ -48,7 +48,7 @@ public:
   /**
    * @brief Plans the trajectory of the robot.
    */
-  virtual bool planTrajectory(std::vector<geometry_msgs::Pose> waypoints) = 0;
+  virtual bool planTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) = 0;
 
   /**
    * @brief Executes the trajectory of the robot.
@@ -63,12 +63,6 @@ public:
 
   bool goToPose(const geometry_msgs::Pose& targetPose);
 
-  bool extractJointConfig(const moveit_msgs::RobotTrajectory& trajectory,
-                          std::vector<double>& jointConfig,
-                          const ConfigPosition position);
-
-  void reverseTrajectory(moveit_msgs::RobotTrajectory& trajectory);
-
 protected:
   std::unique_ptr<IRoboticArmBase> robot_ = nullptr;         ///< Robotic arm
   std::unique_ptr<ObstaclesManagement> obstacles_ = nullptr; ///< Obstacles management
@@ -80,16 +74,32 @@ protected:
   ros::Publisher pubWaypointRviz_; ///< Publisher for the waypoint in Rviz
   ros::Publisher pubTrajectory_;   ///< Publisher for the path
 
-  bool pathFound_ = false;                                        ///< Flag indicating if a path is found
-  int currentWPointID_ = 0;                                       ///< Current waypoint ID
-  std::vector<moveit_msgs::RobotTrajectory> trajectoryToExecute_; ///< List of trajectories to be executed
-  std::vector<moveit_msgs::RobotTrajectory> sortedWeldingPaths_;  ///< Sorted list of possible welding paths
+  bool pathFound_ = false;                                       ///< Flag indicating if a path is found
+  int currentWPointID_ = 0;                                      ///< Current waypoint ID
+  std::vector<moveit_msgs::RobotTrajectory> sortedWeldingPaths_; ///< Sorted list of possible welding paths
+
+  // List of trajectories to be executed, with task (welding / cleaning) to be activated
+  std::vector<std::pair<moveit_msgs::RobotTrajectory, bool>> trajTaskToExecute_;
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
 
+  bool extractJointConfig_(const moveit_msgs::RobotTrajectory& trajectory,
+                           std::vector<double>& jointConfig,
+                           const ConfigPosition position);
+
   double computeTotalJerk_(const moveit_msgs::RobotTrajectory& trajectory);
   void sortTrajectoriesByJerk_(std::vector<moveit_msgs::RobotTrajectory>& trajectories);
+
+  void reverseTrajectory_(moveit_msgs::RobotTrajectory& trajectory);
+
+  std::vector<trajectory_msgs::JointTrajectoryPoint> interpolatePoints_(
+      const trajectory_msgs::JointTrajectoryPoint& prev_point,
+      const trajectory_msgs::JointTrajectoryPoint& curr_point,
+      double time_step,
+      double time_interval);
+
+  bool retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, double cartesian_speed, double robot_frequency);
 
 private:
   void initMoveit_();
