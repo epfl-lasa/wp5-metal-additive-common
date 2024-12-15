@@ -1,9 +1,11 @@
 <launch>
+    <arg name="angleDegree" default="false" />
     <arg name="poseSet" default="exp1_pose" />
     <arg name="robot_model" default="ur10e" doc="Has to be one of the following : [ur5, ur10e]" />
     <arg name="robotName" value="$(arg robot_model)_robot" />
     <arg name="rosVersion" default="noetic" />
 
+    <param name="angleDegree" value="$(arg angleDegree)" />
     <param name="poseSet" value="$(arg poseSet)" />
     <param name="robotName" value="$(arg robotName)" />
     <param name="rosVersion" value="$(arg rosVersion)" />
@@ -18,6 +20,8 @@
     </group>
 
     <node name="perform_ik" pkg="wp5_robotic_arms" type="perform_ik" output="screen" >
+        <param name="angleDegree" value="$(arg angleDegree)" />
+        <param name="poseSet" value="$(arg poseSet)" />
         <param name="robotName" value="$(arg robotName)" />
         <param name="rosVersion" value="$(arg rosVersion)" />
     </node>

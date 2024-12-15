@@ -18,6 +18,7 @@
     </group>
 
     <node name="perform_fk" pkg="wp5_robotic_arms" type="perform_fk" output="screen" >
+        <param name="jointSet" value="$(arg jointSet)" />
         <param name="robotName" value="$(arg robotName)" />
         <param name="rosVersion" value="$(arg rosVersion)" />
     </node>

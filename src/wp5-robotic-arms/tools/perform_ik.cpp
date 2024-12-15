@@ -15,10 +15,13 @@
 #include <string>
 
 #include "RoboticArmFactory.h"
+#include "conversion_tools.h"
 #include "debug_tools.h"
+#include "math_tools.h"
 #include "yaml_tools.h"
 
 int main(int argc, char** argv) {
+  bool angleDegree = "";
   std::string poseSet = "";
   std::string robotName = "";
   std::string rosVersion = "";
@@ -32,6 +35,7 @@ int main(int argc, char** argv) {
   std::string yamlPath = YamlTools::getYamlPath("ik_pose_config.yaml", std::string(WP5_ROBOTIC_ARMS_DIR));
   YAML::Node config = YAML::LoadFile(yamlPath);
 
+  nh.getParam("angleDegree", angleDegree);
   nh.getParam("poseSet", poseSet);
   nh.getParam("robotName", robotName);
   nh.getParam("rosVersion", rosVersion);
@@ -45,12 +49,16 @@ int main(int argc, char** argv) {
 
   // Perform forward kinematics
   std::vector<double> ikResult{};
-  Eigen::Quaterniond quaternion(pose[0], pose[1], pose[2], pose[3]);
-  Eigen::Vector3d position(pose[4], pose[5], pose[6]);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> poseQuatVec = ConversionTools::vectorToEigenQuatPose(pose);
 
-  roboticArm->getIKTrac(quaternion, position, ikResult);
+  roboticArm->getIKTrac(poseQuatVec.first, poseQuatVec.second, ikResult);
 
   // Print the results
+  if (angleDegree) {
+    for (auto& result : ikResult) {
+      result = MathTools::radToDeg(result);
+    }
+  }
   std::cout << "Joint Configuration: " << DebugTools::getVecString(ikResult) << std::endl;
 
   ros::shutdown();
