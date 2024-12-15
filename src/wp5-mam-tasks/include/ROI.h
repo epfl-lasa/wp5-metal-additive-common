@@ -39,8 +39,8 @@ public:
 
     // Public getters for Pose members
     const std::string& getFrameRef() const { return frameRef_; }
-    const Eigen::Vector3d& getPosition() const { return position_; }
     const Eigen::Quaterniond& getQuaternion() const { return quaternion_; }
+    const Eigen::Vector3d& getPosition() const { return position_; }
 
   private:
     std::string frameRef_{};        ///< Reference frame of the pose

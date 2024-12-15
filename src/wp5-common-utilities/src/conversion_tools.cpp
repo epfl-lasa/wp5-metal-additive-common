@@ -75,7 +75,7 @@ geometry_msgs::Quaternion vectorToGeometryQuat(const std::vector<double>& orient
 
 geometry_msgs::Pose vectorToGeometryPose(const std::vector<double>& pose) {
   geometry_msgs::Pose newPose{};
-  int orientationSize = (pose.size() == 7) ? 4 : 3;
+  const int ORIENTATION_SIZE = (pose.size() == 7) ? 4 : 3;
 
   if (pose.size() != 6 && pose.size() != 7) {
     ROS_ERROR_STREAM(
@@ -85,8 +85,8 @@ geometry_msgs::Pose vectorToGeometryPose(const std::vector<double>& pose) {
     return newPose;
   }
 
-  newPose.orientation = vectorToGeometryQuat(std::vector<double>(pose.begin(), pose.begin() + orientationSize));
-  newPose.position = vectorToGeometryPoint(std::vector<double>(pose.begin() + orientationSize, pose.end()));
+  newPose.orientation = vectorToGeometryQuat(std::vector<double>(pose.begin(), pose.begin() + ORIENTATION_SIZE));
+  newPose.position = vectorToGeometryPoint(std::vector<double>(pose.begin() + ORIENTATION_SIZE, pose.end()));
 
   return newPose;
 }
@@ -167,7 +167,7 @@ Eigen::Quaterniond vectorToEigenQuat(const std::vector<double>& orientation) {
     ROS_ERROR_STREAM("[ConversionTools] - Invalid orientation size, it should be " << QUAT_SIZE << " in xyzw order.");
   }
 
-  return Eigen::Quaterniond{orientation[0], orientation[1], orientation[2], orientation[3]};
+  return Eigen::Quaterniond{orientation[3], orientation[0], orientation[1], orientation[2]};
 }
 
 std::pair<Eigen::Quaterniond, Eigen::Vector3d> vectorToEigenQuatPose(const std::vector<double>& quatPos) {

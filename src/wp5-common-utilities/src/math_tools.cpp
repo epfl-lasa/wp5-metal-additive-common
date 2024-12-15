@@ -126,9 +126,9 @@ geometry_msgs::Pose addOffset(const geometry_msgs::Pose& poseNoOffset, const geo
 
 const Eigen::Vector3d getNormalFromPlan(const std::array<Eigen::Vector3d, 3>& pointsArray) {
   // Compute vector normal to plane define by the 3 points
-  const Eigen::Vector3d planVecStart = pointsArray[0] - pointsArray[1];
-  const Eigen::Vector3d planVecEnd = pointsArray[0] - pointsArray[2];
-  const Eigen::Vector3d normalVector = planVecStart.cross(planVecEnd).normalized();
+  const Eigen::Vector3d planVecStart = pointsArray[1] - pointsArray[0];
+  const Eigen::Vector3d planVecEnd = pointsArray[2] - pointsArray[0];
+  const Eigen::Vector3d normalVector = planVecEnd.cross(planVecStart).normalized();
 
   return normalVector;
 }

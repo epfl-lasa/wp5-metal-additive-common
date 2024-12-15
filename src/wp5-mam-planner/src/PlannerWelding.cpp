@@ -32,7 +32,7 @@ bool PlannerWelding::planTrajectory(const vector<geometry_msgs::Pose>& waypoints
   }
 
   success = computeWeldingPossiblePaths_(waypoints[1], waypoints[2]);
-  failedStep = success ? -1 : 1;
+  failedStep = failedStep != -1 ? failedStep : (success ? -1 : 1);
 
   vector<geometry_msgs::Pose> tmpWaypoints{};
   for (auto& plan : sortedWeldingPaths_) {
@@ -44,7 +44,7 @@ bool PlannerWelding::planTrajectory(const vector<geometry_msgs::Pose>& waypoints
     tmpWaypoints.push_back(waypoints[0]);
 
     success = computeTransitionPath_(startConfig, tmpWaypoints, MotionDir::BACKWARD);
-    failedStep = success ? -1 : 2;
+    failedStep = failedStep != -1 ? failedStep : (success ? -1 : 2);
 
     // Compute first transition path in forward direction
     extractJointConfig_(plan, startConfig, ConfigPosition::LAST);
@@ -52,11 +52,11 @@ bool PlannerWelding::planTrajectory(const vector<geometry_msgs::Pose>& waypoints
     tmpWaypoints.push_back(waypoints[3]);
 
     success = computeTransitionPath_(startConfig, tmpWaypoints, MotionDir::FORWARD);
-    failedStep = success ? -1 : 3;
+    failedStep = failedStep != -1 ? failedStep : (success ? -1 : 3);
 
     // If all the paths are computed, store them and break the loop
     if (failedStep == -1) {
-      retimeTrajectory_(plan, 0.005, 1); // TODO(lmunier) - Set the speed and frequency as a parameters
+      retimeTrajectory_(plan, 0.5, 1); // TODO(lmunier) - Set the speed and frequency as a parameters
 
       vector<pair<moveit_msgs::RobotTrajectory, bool>>::iterator insertPosition = trajTaskToExecute_.begin() + 1;
       trajTaskToExecute_.insert(insertPosition, make_pair(plan, true));
@@ -86,11 +86,11 @@ bool PlannerWelding::computeWeldingPossiblePaths_(const geometry_msgs::Pose& sta
   vector<vector<double>> ikSolutions{};
 
   // Apply transform for each pose
-  geometry_msgs::Pose startPoseTransformed = MathTools::transformPose("virtual_link", "ee_tool", startPose);
-  geometry_msgs::Pose targetPoseTransformed = MathTools::transformPose("virtual_link", "ee_tool", targetPose);
+  // geometry_msgs::Pose startPoseTransformed = MathTools::transformPose("virtual_link", "ee_tool", startPose);
+  // geometry_msgs::Pose targetPoseTransformed = MathTools::transformPose("virtual_link", "ee_tool", targetPose);
 
-  bool ikSuccess = robot_->getIKGeo(ConversionTools::geometryToEigen(startPoseTransformed.orientation),
-                                    ConversionTools::geometryToEigen(targetPoseTransformed.position),
+  bool ikSuccess = robot_->getIKGeo(ConversionTools::geometryToEigen(startPose.orientation),
+                                    ConversionTools::geometryToEigen(startPose.position),
                                     ikSolutions);
 
   if (ikSuccess) {
@@ -122,11 +122,11 @@ bool PlannerWelding::computeTransitionPath_(const vector<double>& startConfig,
   vector<moveit_msgs::RobotTrajectory> trajectory{};
   vector<geometry_msgs::Pose> targetPoseTransformed{};
 
-  for (const auto& pose : targetPose) {
-    targetPoseTransformed.push_back(MathTools::transformPose("virtual_link", "ee_tool", pose));
-  }
+  // for (const auto& pose : targetPose) {
+  //   targetPoseTransformed.push_back(MathTools::transformPose("virtual_link", "ee_tool", pose));
+  // }
 
-  bool success = planCartesianFromJointConfig(startConfig, targetPoseTransformed, trajectory);
+  bool success = planCartesianFromJointConfig(startConfig, targetPose, trajectory);
 
   if (success) {
     if (direction == MotionDir::BACKWARD) {
