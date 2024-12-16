@@ -12,6 +12,7 @@
 
 #include "math_tools.h"
 
+#include <geometry_msgs/Transform.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
 
@@ -38,8 +39,8 @@ const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterni
 
 #ifdef DEBUG_MODE
   if (!areEquivalent) {
-    std::string quat1 = DebugTools::getEigenString(q1);
-    std::string quat2 = DebugTools::getEigenString(q2);
+    std::string quat1 = DebugTools::getEigenString<Eigen::Quaterniond>(q1);
+    std::string quat2 = DebugTools::getEigenString<Eigen::Quaterniond>(q2);
 
     ROS_WARN_STREAM("[MathTools] - Quaternions are not equivalent: " << quat1 << " and " << quat2);
   }
@@ -53,14 +54,30 @@ const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2
 
 #ifdef DEBUG_MODE
   if (!areEquivalent) {
-    std::string pos1 = DebugTools::getEigenString(p1);
-    std::string pos2 = DebugTools::getEigenString(p2);
+    std::string pos1 = DebugTools::getEigenString<Eigen::Vector3d>(p1);
+    std::string pos2 = DebugTools::getEigenString<Eigen::Vector3d>(p2);
 
     ROS_WARN_STREAM("[MathTools] - Positions are not equivalent: " << pos1 << " and " << pos2);
   }
 #endif
 
   return areEquivalent;
+}
+
+bool getTransform(const std::string& sourceFrame,
+                  const std::string& targetFrame,
+                  geometry_msgs::TransformStamped& transform) {
+  try {
+    // Lookup the transform from source frame to target frame
+    tf2_ros::Buffer& tfBuffer = TfBufferSingleton::getInstance().getBuffer();
+    transform = tfBuffer.lookupTransform(targetFrame, sourceFrame, ros::Time(0), ros::Duration(1.0));
+
+    return true;
+  } catch (tf2::TransformException& ex) {
+    ROS_ERROR_STREAM("[MathTools] - Received an exception trying to get a transform: " << ex.what());
+
+    return false;
+  }
 }
 
 geometry_msgs::Pose transformPose(const std::string& sourceFrame,
@@ -76,21 +93,19 @@ geometry_msgs::Pose transformPose(const std::string& sourceFrame,
   source_pose.header.stamp = ros::Time::now();
   source_pose.pose = pose;
 
-  try {
-    // Lookup the transform from source frame to target frame
-    tf2_ros::Buffer& tfBuffer = TfBufferSingleton::getInstance().getBuffer();
-    geometry_msgs::TransformStamped transformStamped =
-        tfBuffer.lookupTransform(targetFrame, sourceFrame, ros::Time(0), ros::Duration(1.0));
+  // Lookup the transform from source frame to target frame
+  geometry_msgs::TransformStamped transformStamped;
+  if (!getTransform(sourceFrame, targetFrame, transformStamped)) {
+    ROS_ERROR_STREAM("[MathTools] - Failed to get transform from " << sourceFrame << " to " << targetFrame);
 
-    // Transform the pose
-    geometry_msgs::PoseStamped target_pose;
-    tf2::doTransform(source_pose, target_pose, transformStamped);
-
-    return target_pose.pose;
-  } catch (tf2::TransformException& ex) {
-    ROS_ERROR_STREAM("[MathTools] - Received an exception trying to transform a pose: " << ex.what());
     return pose;
   }
+
+  // Transform the pose
+  geometry_msgs::PoseStamped target_pose;
+  tf2::doTransform(source_pose, target_pose, transformStamped);
+
+  return target_pose.pose;
 }
 
 std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
@@ -108,20 +123,12 @@ std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
 }
 
 geometry_msgs::Pose addOffset(const geometry_msgs::Pose& poseNoOffset, const geometry_msgs::Pose& offset) {
-  // Convert the input poses to tf2::Transform
-  tf2::Transform tfPoseNoOffset;
-  tf2::fromMsg(poseNoOffset, tfPoseNoOffset);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> quatPosNoOffset = ConversionTools::geometryToEigen(poseNoOffset);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> offsetPair = ConversionTools::geometryToEigen(offset);
 
-  tf2::Transform tfOffset;
-  tf2::fromMsg(offset, tfOffset);
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> desiredPose = addOffset(quatPosNoOffset, offsetPair);
 
-  // Apply the offset
-  tf2::Transform tfPoseOffset = tfPoseNoOffset * tfOffset;
-
-  // Convert the resulting tf2::Transform back to geometry_msgs::Pose
-  geometry_msgs::Pose poseOffset = tf2::toMsg(tfPoseOffset, poseOffset);
-
-  return poseOffset;
+  return ConversionTools::eigenToGeometry(desiredPose.first, desiredPose.second);
 }
 
 const Eigen::Vector3d getNormalFromPlan(const std::array<Eigen::Vector3d, 3>& pointsArray) {

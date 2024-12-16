@@ -120,6 +120,21 @@ const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterni
 const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE);
 
 /**
+ * @brief Retrieves the transformation between two coordinate frames.
+ *
+ * This function attempts to get the transformation from the source frame to the target frame
+ * and stores it in the provided transform object.
+ *
+ * @param sourceFrame The name of the source coordinate frame.
+ * @param targetFrame The name of the target coordinate frame.
+ * @param transform The TransformStamped object where the resulting transformation will be stored.
+ * @return true if the transformation was successfully retrieved, false otherwise.
+ */
+bool getTransform(const std::string& sourceFrame,
+                  const std::string& targetFrame,
+                  geometry_msgs::TransformStamped& transform);
+
+/**
  * @brief Transforms a pose from the source frame to the target frame using a TF listener.
  *
  * This function utilizes the tf::TransformListener to transform a pose from the specified

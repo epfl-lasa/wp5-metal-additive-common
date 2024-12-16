@@ -99,4 +99,5 @@ add_library(yaml_tools
 target_link_libraries(yaml_tools
   ${catkin_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
+  ${EIGEN3_LIBRARIES}
 )

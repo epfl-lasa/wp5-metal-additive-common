@@ -18,6 +18,7 @@
 
 #include <ros/ros.h>
 
+#include <Eigen/Dense>
 #include <map>
 #include <memory>
 #include <string>
@@ -96,8 +97,9 @@ protected:
   std::unique_ptr<Subtask> subtask_ = nullptr;      ///< Subtask
   std::unique_ptr<IPlannerBase> planner_ = nullptr; ///< Pointer to MAMPlanner instance.
 
-  const std::vector<double> homeConfig_{};       ///< Home joint configuration.
-  const std::vector<double> eePoseScan_{};       ///< End effector sacnning pose offset.
-  const std::vector<double> eePoseWorkOffset_{}; ///< End effector  working pose offset.
-  const std::vector<double> eePoseOffset_{};     ///< End effector pose offset.
+  const std::vector<double> homeConfig_{};  ///< Home joint configuration.
+  const double workingAngle_{};             ///< Working angle for the task.
+  const Eigen::Vector3d eePosOffset_{};     ///< End effector pose offset.
+  const Eigen::Vector3d eePosWorkOffset_{}; ///< End effector  working pose offset.
+  const std::vector<double> eePoseScan_{};  ///< End effector sacnning pose offset.
 };

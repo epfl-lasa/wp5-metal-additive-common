@@ -15,16 +15,12 @@
 
 namespace ConversionTools {
 
-std::vector<double> geometryToVector(const geometry_msgs::Point& point) {
-  std::vector<double> newPoint{point.x, point.y, point.z};
+std::vector<double> geometryToVector(const geometry_msgs::Point& point) { return {point.x, point.y, point.z}; }
 
-  return newPoint;
-}
+std::vector<double> geometryToVector(const geometry_msgs::Vector3& vector) { return {vector.x, vector.y, vector.z}; }
 
 std::vector<double> geometryToVector(const geometry_msgs::Quaternion& orientation) {
-  std::vector<double> newOrientation{orientation.x, orientation.y, orientation.z, orientation.w};
-
-  return newOrientation;
+  return {orientation.x, orientation.y, orientation.z, orientation.w};
 }
 
 std::vector<double> geometryToVector(const geometry_msgs::Pose& pose) {
@@ -131,15 +127,11 @@ geometry_msgs::Quaternion eigenToGeometry(const Eigen::Quaterniond& orientation)
 }
 
 std::vector<double> eigenToVector(const Eigen::Vector3d& position) {
-  std::vector<double> newPosition{position.x(), position.y(), position.z()};
-
-  return newPosition;
+  return {position.x(), position.y(), position.z()};
 }
 
 std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation) {
-  std::vector<double> newOrientation{orientation.x(), orientation.y(), orientation.z(), orientation.w()};
-
-  return newOrientation;
+  return {orientation.x(), orientation.y(), orientation.z(), orientation.w()};
 }
 
 std::vector<double> eigenToVector(const Eigen::Quaterniond& orientation, const Eigen::Vector3d& position) {

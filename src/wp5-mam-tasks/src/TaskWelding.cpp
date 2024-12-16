@@ -30,21 +30,34 @@ bool TaskWelding::computeTrajectory(const std::vector<geometry_msgs::Pose>& wayp
   std::vector<geometry_msgs::Pose> waypointsToPlan{};
   std::pair<Eigen::Quaterniond, Eigen::Vector3d> poseOffset{};
 
+  // Put waypoints in an array for convenience
   array<Eigen::Vector3d, 3> pointsArray;
-
   pointsArray[0] = ConversionTools::geometryToEigen(waypoints[0].position);
   pointsArray[1] = Eigen::Vector3d::Zero();
   pointsArray[2] = ConversionTools::geometryToEigen(waypoints[1].position);
 
+  // Compute needed vectors normal, waypoint and offset direction
   const Eigen::Vector3d normalVector = MathTools::getNormalFromPlan(pointsArray);
   const Eigen::Vector3d wpVector = (pointsArray[2] - pointsArray[0]).normalized();
   const Eigen::Vector3d offsetVector = wpVector.cross(normalVector).normalized();
 
-  const Eigen::Vector3d offsetVecWork = offsetVector * *(eePoseWorkOffset_.end() - 1);
-  const Eigen::Vector3d offsetVec = offsetVector * *(eePoseOffset_.end() - 1);
+  // // Compute the different quaternion to find the offset orientation
+  // const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-normalVector, workingAngle_);
+  // const Eigen::Quaterniond rotQuaternion = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), offsetVector);
 
-  //TODO(lmunier) - Change angle to params
-  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-normalVector, MathTools::degToRad(20));
+  // const Eigen::Quaterniond quatTransform = rotation * rotQuaternion;
+  // const geometry_msgs::Pose offsetVectorPose = ConversionTools::eigenToGeometry(quatTransform, offsetVector);
+
+  // // Add offsets from both tools size and welding needs
+  // const geometry_msgs::Pose offsetPose =
+  //     MathTools::addOffset(offsetVectorPose, ConversionTools::eigenToGeometry(Eigen::Quaterniond::Identity(), eePosOffset_));
+  // const geometry_msgs::Pose offsetPoseWork =
+  //     MathTools::addOffset(offsetVectorPose, ConversionTools::eigenToGeometry(Eigen::Quaterniond::Identity(), eePosWorkOffset_));
+
+  const Eigen::Vector3d offsetVecWork = offsetVector * eePosWorkOffset_[2];
+  const Eigen::Vector3d offsetVec = offsetVector * eePosOffset_[2];
+
+  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-normalVector, workingAngle_);
   const Eigen::Quaterniond rotationQuaternion =
       Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), offsetVector);
 

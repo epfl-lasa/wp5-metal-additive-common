@@ -48,8 +48,8 @@ int main(int argc, char** argv) {
   std::pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFKTrac(jointPos);
 
   // Print the results
-  std::cout << "Quaternion: " << DebugTools::getEigenString(fkResult.first) << std::endl;
-  std::cout << "Position: " << DebugTools::getEigenString(fkResult.second) << std::endl;
+  std::cout << "Quaternion: " << DebugTools::getEigenString<Eigen::Quaterniond>(fkResult.first) << std::endl;
+  std::cout << "Position: " << DebugTools::getEigenString<Eigen::Vector3d>(fkResult.second) << std::endl;
 
   ros::shutdown();
 }

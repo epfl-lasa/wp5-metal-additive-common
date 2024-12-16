@@ -24,20 +24,24 @@ std::string getPoseString(const geometry_msgs::Pose& pose) {
   std::string poseString = "";
 
   // Convert Position to string
-  poseString += "Position - xyz " + getVecString<double>(ConversionTools::geometryToVector(pose.position)) + " ";
+  poseString += "Position - xyz " + getGeoString(pose.position) + " ";
 
   // Convert Orientation to string
-  poseString += "Orientation - xyzw " + getVecString<double>(ConversionTools::geometryToVector(pose.orientation));
+  poseString += "Orientation - xyzw " + getGeoString(pose.orientation);
 
   return poseString;
 }
 
-std::string getEigenString(const Eigen::VectorXd& vec) {
-  return getVecString<double>(ConversionTools::eigenToVector(vec));
-}
+std::string getTransformString(const geometry_msgs::TransformStamped& transform) {
+  std::string transformString = "";
 
-std::string getEigenString(const Eigen::Quaterniond& quat) {
-  return getVecString<double>(ConversionTools::eigenToVector(quat));
+  // Convert Position to string
+  transformString += "Translation - xyz " + getGeoString(transform.transform.translation) + " ";
+
+  // Convert Orientation to string
+  transformString += "Rotation - xyzw " + getGeoString(transform.transform.rotation);
+
+  return transformString;
 }
 
 void publishPose(const geometry_msgs::Pose& pose, const std::string& frameId, ros::Publisher& pub) {

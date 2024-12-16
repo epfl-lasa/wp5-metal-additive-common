@@ -15,6 +15,7 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/Vector3.h>
 #include <ros/ros.h>
 
 #include <Eigen/Dense>
@@ -41,6 +42,17 @@ namespace ConversionTools {
  * @return A std::vector<double> containing the x, y, and z coordinates of the point.
  */
 std::vector<double> geometryToVector(const geometry_msgs::Point& point);
+
+/**
+ * @brief Converts a geometry_msgs::Vector3 to a std::vector<double>.
+ *
+ * This function takes a geometry_msgs::Vector3 object and converts its
+ * x, y, and z components into a std::vector<double> with three elements.
+ *
+ * @param vector The input geometry_msgs::Vector3 object.
+ * @return A std::vector<double> containing the x, y, and z components of the input vector.
+ */
+std::vector<double> geometryToVector(const geometry_msgs::Vector3& vector);
 
 /**
  * @brief Converts a quaternion to a vector of doubles.

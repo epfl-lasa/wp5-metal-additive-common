@@ -15,9 +15,63 @@
 #include <ros/ros.h>
 #include <yaml-cpp/yaml.h>
 
+#include <Eigen/Dense>
 #include <filesystem>
 #include <fstream>
 #include <string>
+
+// Specialization for Eigen::Vector3d
+namespace YAML {
+template <>
+struct convert<Eigen::Vector3d> {
+  static Node encode(const Eigen::Vector3d& rhs) {
+    Node node;
+
+    node.push_back(rhs.x());
+    node.push_back(rhs.y());
+    node.push_back(rhs.z());
+
+    return node;
+  }
+
+  static bool decode(const Node& node, Eigen::Vector3d& rhs) {
+    if (!node.IsSequence() || node.size() != 3) {
+      return false;
+    }
+
+    rhs.x() = node[0].as<double>();
+    rhs.y() = node[1].as<double>();
+    rhs.z() = node[2].as<double>();
+
+    return true;
+  }
+};
+
+// Specialization for Eigen::Quaterniond
+template <>
+struct convert<Eigen::Quaterniond> {
+  static Node encode(const Eigen::Quaterniond& rhs) {
+    Node node;
+
+    node.push_back(rhs.w());
+    node.push_back(rhs.x());
+    node.push_back(rhs.y());
+    node.push_back(rhs.z());
+
+    return node;
+  }
+
+  static bool decode(const Node& node, Eigen::Quaterniond& rhs) {
+    if (!node.IsSequence() || node.size() != 4) {
+      return false;
+    }
+
+    rhs = Eigen::Quaterniond(node[0].as<double>(), node[1].as<double>(), node[2].as<double>(), node[3].as<double>());
+
+    return true;
+  }
+};
+} // namespace YAML
 
 /**
  * @namespace YamlTools
@@ -79,7 +133,12 @@ const T loadYamlValue(const YAML::Node& config, const std::string& key) {
     node = node[key];
   }
 
-  return node.as<T>();
+  try {
+    return node.as<T>();
+  } catch (const YAML::TypedBadConversion<T>& e) {
+    ROS_ERROR_STREAM("[YamlTools] - Failed to load value from YAML node. Error: " << e.what());
+    throw;
+  }
 }
 
 /**
@@ -97,6 +156,7 @@ const T loadYamlValue(const YAML::Node& config, const std::string& key) {
 template <typename T>
 const T loadYamlValue(const std::string& yamlPath, const std::string& rootName, const std::string& key) {
   YAML::Node config = YAML::LoadFile(yamlPath)[rootName];
+
   return loadYamlValue<T>(config, key);
 }
 

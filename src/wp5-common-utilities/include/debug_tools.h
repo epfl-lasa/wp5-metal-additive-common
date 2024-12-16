@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include "conversion_tools.h"
+
 /**
  * @namespace DebugTools
  * @brief A collection of utility functions for debugging and visualization.
@@ -66,6 +68,27 @@ std::string getVecString(const std::vector<T>& vec) {
 }
 
 /**
+ * @brief Converts an Eigen object to a string representation.
+ *
+ * This function template takes an Eigen object, converts it to a vector using
+ * `ConversionTools::eigenToVector`, and then converts that vector to a string
+ * using `getVecString<double>`.
+ *
+ * @tparam T The type of the Eigen object.
+ * @param obj The Eigen object to be converted to a string.
+ * @return A string representation of the Eigen object.
+ */
+template <typename T>
+std::string getEigenString(const T& obj) {
+  return getVecString<double>(ConversionTools::eigenToVector(obj));
+}
+
+template <typename T>
+std::string getGeoString(const T& obj) {
+  return getVecString<double>(ConversionTools::geometryToVector(obj));
+}
+
+/**
  * @brief Get a string representation of a Pose message.
  *
  * This function returns a string representation of a Pose message. The string
@@ -77,28 +100,16 @@ std::string getVecString(const std::vector<T>& vec) {
 std::string getPoseString(const geometry_msgs::Pose& pose);
 
 /**
- * @brief Converts an Eigen::VectorXd to a string representation.
+ * @brief Converts a TransformStamped message to a string representation.
  *
- * This function takes an Eigen::VectorXd object and returns a string
- * that represents the vector. The elements of the vector are
- * concatenated into a single string, typically separated by spaces
- * or commas.
+ * This function takes a geometry_msgs::TransformStamped object and converts it
+ * into a human-readable string format. The resulting string contains the
+ * translation and rotation components of the transform.
  *
- * @param vec The Eigen::VectorXd to be converted to a string.
- * @return A string representation of the input vector.
+ * @param transform The TransformStamped message to be converted.
+ * @return A string representation of the TransformStamped message.
  */
-std::string getEigenString(const Eigen::VectorXd& vec);
-
-/**
- * @brief Converts an Eigen Quaternion to a string representation.
- *
- * This function takes an Eigen::Quaterniond object and returns a string
- * that represents the quaternion in a readable format.
- *
- * @param quat The Eigen::Quaterniond object to be converted to a string.
- * @return A std::string representing the quaternion.
- */
-std::string getEigenString(const Eigen::Quaterniond& quat);
+std::string getTransformString(const geometry_msgs::TransformStamped& transform);
 
 /**
  * @brief Publishes a given pose to a specified ROS topic.
