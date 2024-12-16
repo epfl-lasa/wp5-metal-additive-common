@@ -64,6 +64,16 @@ const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2
   return areEquivalent;
 }
 
+const bool arePoseEquivalent(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2) {
+  Eigen::Quaterniond quat1 = ConversionTools::geometryToEigen(pose1).first;
+  Eigen::Quaterniond quat2 = ConversionTools::geometryToEigen(pose2).first;
+
+  Eigen::Vector3d pos1 = ConversionTools::geometryToEigen(pose1).second;
+  Eigen::Vector3d pos2 = ConversionTools::geometryToEigen(pose2).second;
+
+  return areQuatEquivalent(quat1, quat2) && arePosEquivalent(pos1, pos2);
+}
+
 bool getTransform(const std::string& sourceFrame,
                   const std::string& targetFrame,
                   geometry_msgs::TransformStamped& transform) {

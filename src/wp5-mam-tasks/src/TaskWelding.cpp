@@ -41,29 +41,22 @@ bool TaskWelding::computeTrajectory(const std::vector<geometry_msgs::Pose>& wayp
   const Eigen::Vector3d wpVector = (pointsArray[2] - pointsArray[0]).normalized();
   const Eigen::Vector3d offsetVector = wpVector.cross(normalVector).normalized();
 
-  // // Compute the different quaternion to find the offset orientation
-  // const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-normalVector, workingAngle_);
-  // const Eigen::Quaterniond rotQuaternion = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), offsetVector);
-
-  // const Eigen::Quaterniond quatTransform = rotation * rotQuaternion;
-  // const geometry_msgs::Pose offsetVectorPose = ConversionTools::eigenToGeometry(quatTransform, offsetVector);
-
-  // // Add offsets from both tools size and welding needs
-  // const geometry_msgs::Pose offsetPose =
-  //     MathTools::addOffset(offsetVectorPose, ConversionTools::eigenToGeometry(Eigen::Quaterniond::Identity(), eePosOffset_));
-  // const geometry_msgs::Pose offsetPoseWork =
-  //     MathTools::addOffset(offsetVectorPose, ConversionTools::eigenToGeometry(Eigen::Quaterniond::Identity(), eePosWorkOffset_));
-
-  const Eigen::Vector3d offsetVecWork = offsetVector * eePosWorkOffset_[2];
-  const Eigen::Vector3d offsetVec = offsetVector * eePosOffset_[2];
-
   const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-normalVector, workingAngle_);
-  const Eigen::Quaterniond rotationQuaternion =
-      Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), offsetVector);
+  const Eigen::Quaterniond rotQuaternion = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), offsetVector);
 
-  const Eigen::Quaterniond quatTransform = rotation * rotationQuaternion;
-  const geometry_msgs::Pose offsetPoseWork = ConversionTools::eigenToGeometry(quatTransform, offsetVecWork);
-  const geometry_msgs::Pose offsetPose = ConversionTools::eigenToGeometry(quatTransform, offsetVec);
+  const Eigen::Quaterniond quatTransform = rotation * rotQuaternion;
+
+  // Compute the different quaternion to find the offset orientation
+  const geometry_msgs::Pose offsetVectorPose = ConversionTools::eigenToGeometry(rotQuaternion, Eigen::Vector3d::Zero());
+
+  // Add offsets from both tools size and welding needs
+  geometry_msgs::Pose offsetPose = MathTools::addOffset(
+      offsetVectorPose, ConversionTools::eigenToGeometry(Eigen::Quaterniond::Identity(), eePosOffset_));
+  geometry_msgs::Pose offsetPoseWork = MathTools::addOffset(
+      offsetVectorPose, ConversionTools::eigenToGeometry(Eigen::Quaterniond::Identity(), eePosWorkOffset_));
+
+  offsetPoseWork.orientation = ConversionTools::eigenToGeometry(quatTransform);
+  offsetPose.orientation = ConversionTools::eigenToGeometry(quatTransform);
 
   // Add moving to welding pose
   waypointsToPlan.push_back(MathTools::addOffset(waypoints.front(), offsetPoseWork));

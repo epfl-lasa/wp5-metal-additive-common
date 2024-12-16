@@ -120,6 +120,17 @@ const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterni
 const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance = TOLERANCE);
 
 /**
+ * @brief Checks if two poses are equivalent.
+ *
+ * This function compares two geometry_msgs::Pose objects to determine if they are equivalent.
+ *
+ * @param pose1 The first pose to compare.
+ * @param pose2 The second pose to compare.
+ * @return true if the poses are equivalent, false otherwise.
+ */
+const bool arePoseEquivalent(const geometry_msgs::Pose& pose1, const geometry_msgs::Pose& pose2);
+
+/**
  * @brief Retrieves the transformation between two coordinate frames.
  *
  * This function attempts to get the transformation from the source frame to the target frame
