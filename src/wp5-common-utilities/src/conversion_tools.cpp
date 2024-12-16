@@ -178,4 +178,15 @@ std::pair<Eigen::Quaterniond, Eigen::Vector3d> vectorToEigenQuatPose(const std::
   return quatPosPair;
 }
 
+geometry_msgs::Pose transformToPose(const geometry_msgs::Transform& transform) {
+  geometry_msgs::Pose pose;
+
+  pose.position.x = transform.translation.x;
+  pose.position.y = transform.translation.y;
+  pose.position.z = transform.translation.z;
+  pose.orientation = transform.rotation;
+
+  return pose;
+}
+
 } // namespace ConversionTools

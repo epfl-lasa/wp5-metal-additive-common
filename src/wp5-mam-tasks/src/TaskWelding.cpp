@@ -55,8 +55,11 @@ bool TaskWelding::computeTrajectory(const std::vector<geometry_msgs::Pose>& wayp
   geometry_msgs::Pose offsetPoseWork = MathTools::addOffset(
       offsetVectorPose, ConversionTools::eigenToGeometry(Eigen::Quaterniond::Identity(), eePosWorkOffset_));
 
-  offsetPoseWork.orientation = ConversionTools::eigenToGeometry(quatTransform);
   offsetPose.orientation = ConversionTools::eigenToGeometry(quatTransform);
+  offsetPoseWork.orientation = ConversionTools::eigenToGeometry(quatTransform);
+
+  offsetPose = MathTools::addOffset(offsetPose, ConversionTools::transformToPose(transform_));
+  offsetPoseWork = MathTools::addOffset(offsetPoseWork, ConversionTools::transformToPose(transform_));
 
   // Add moving to welding pose
   waypointsToPlan.push_back(MathTools::addOffset(waypoints.front(), offsetPoseWork));

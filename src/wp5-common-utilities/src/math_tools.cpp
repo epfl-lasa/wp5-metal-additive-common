@@ -160,28 +160,4 @@ const Eigen::Quaterniond getQuatFromNormalTheta(const Eigen::Vector3d normalVect
   return quatRotation;
 }
 
-geometry_msgs::Pose applyRotationToPose(const geometry_msgs::Pose& pose, const geometry_msgs::Quaternion& rotation) {
-  tf2::Quaternion poseOrientation;
-  tf2::fromMsg(pose.orientation, poseOrientation);
-
-  tf2::Quaternion rotationQuat;
-  tf2::fromMsg(rotation, rotationQuat);
-
-  // Apply the rotation to the pose's orientation
-  tf2::Quaternion newOrientation = rotationQuat * poseOrientation;
-
-  // Rotate the position vector
-  tf2::Vector3 position(pose.position.x, pose.position.y, pose.position.z);
-  position = tf2::quatRotate(rotationQuat, position);
-
-  // Create the new pose with the transformed orientation and position
-  geometry_msgs::Pose newPose = pose;
-  newPose.orientation = tf2::toMsg(newOrientation);
-  newPose.position.x = position.x();
-  newPose.position.y = position.y();
-  newPose.position.z = position.z();
-
-  return newPose;
-}
-
 } // namespace MathTools

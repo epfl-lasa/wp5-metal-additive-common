@@ -29,6 +29,7 @@
 #include "IRosInterfaceBase.h"
 #include "RoboticArmUr.h"
 #include "Subtask.h"
+#include "math_tools.h"
 
 /**
  * @brief Base class for tasks.
@@ -102,4 +103,9 @@ protected:
   const Eigen::Vector3d eePosOffset_{};     ///< End effector pose offset.
   const Eigen::Vector3d eePosWorkOffset_{}; ///< End effector  working pose offset.
   const std::vector<double> eePoseScan_{};  ///< End effector sacnning pose offset.
+
+  const geometry_msgs::Transform transform_; ///< Transform between two frames.
+
+private:
+  const geometry_msgs::Transform getTransform_(const std::string& sourceFrame, const std::string& targetFrame);
 };

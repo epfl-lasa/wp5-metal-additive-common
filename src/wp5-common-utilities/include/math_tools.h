@@ -207,17 +207,4 @@ const Eigen::Vector3d getNormalFromPlan(const std::array<Eigen::Vector3d, 3>& po
  * @return Eigen::Quaterniond The resulting quaternion representing the rotation.
  */
 const Eigen::Quaterniond getQuatFromNormalTheta(const Eigen::Vector3d normalVector, const double theta);
-
-/**
- * @brief Applies a rotation to a given pose.
- *
- * This function takes a pose and a quaternion representing a rotation,
- * and returns a new pose that is the result of applying the rotation
- * to the original pose.
- *
- * @param pose The original pose to which the rotation will be applied.
- * @param rotation The quaternion representing the rotation to be applied.
- * @return A new pose that is the result of applying the rotation to the original pose.
- */
-geometry_msgs::Pose applyRotationToPose(const geometry_msgs::Pose& pose, const geometry_msgs::Quaternion& rotation);
 } // namespace MathTools

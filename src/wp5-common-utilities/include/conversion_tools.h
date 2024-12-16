@@ -15,6 +15,7 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/Transform.h>
 #include <geometry_msgs/Vector3.h>
 #include <ros/ros.h>
 
@@ -246,6 +247,19 @@ Eigen::Quaterniond vectorToEigenQuat(const std::vector<double>& orientation);
  * @return std::pair<Eigen::Quaterniond, Eigen::Vector3d> A pair containing the Eigen quaternion and position vector.
  */
 std::pair<Eigen::Quaterniond, Eigen::Vector3d> vectorToEigenQuatPose(const std::vector<double>& quatPos);
+
+/**
+ * @brief Converts a geometry_msgs::Transform to a geometry_msgs::Pose.
+ *
+ * This function takes a Transform message and converts it into a Pose message.
+ * The translation component of the Transform is directly mapped to the position
+ * component of the Pose, and the rotation component of the Transform is directly
+ * mapped to the orientation component of the Pose.
+ *
+ * @param transform The input Transform message to be converted.
+ * @return geometry_msgs::Pose The resulting Pose message after conversion.
+ */
+geometry_msgs::Pose transformToPose(const geometry_msgs::Transform& transform);
 
 /**
  * @brief Converts Euler angles to a quaternion.
