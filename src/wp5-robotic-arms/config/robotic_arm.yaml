@@ -25,4 +25,4 @@ ur10e_robot:
   original_home_joint: [2.4435, -1.5708, 0.0, -1.5708, 4.7124, 0.0]
   reference_frame: "base_link"
   chain_start: "base_link"
-  chain_end: "tool0"
+  chain_end: "ee_tool"

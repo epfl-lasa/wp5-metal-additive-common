@@ -38,7 +38,7 @@ IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string ro
 
   // Add obstacles
   obstacles_ = make_unique<ObstaclesManagement>(ObstaclesManagement(nh_, moveGroup_->getPlanningFrame()));
-  // obstacles_->addStaticObstacles();
+  obstacles_->addStaticObstacles();
 }
 
 bool IPlannerBase::executeTrajectory() {
@@ -332,7 +332,7 @@ void IPlannerBase::setupMoveGroup_() {
   moveGroup_->setPlannerId("RRTConnect");
   moveGroup_->setPlanningTime(2.0);
   moveGroup_->setNumPlanningAttempts(10);
-  moveGroup_->setGoalPositionTolerance(0.005);
+  moveGroup_->setGoalPositionTolerance(0.001);
   moveGroup_->setGoalOrientationTolerance(0.01);
 }
 
