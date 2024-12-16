@@ -62,5 +62,7 @@ const std::array<double, 21> RoboticArmFactory::UR10E_P_MATRIX{
     0.17415, 0.0, 0.0,
     0.0, 0.0, -0.11985,
     0.11655, 0.0, 0.0
+    // TODO(lmunier) - Test again for the offset.
+    // 0.42555, -0.0226, 0.0 // Adding tool offset - setup for welding laser head
 };
 // clang-format on

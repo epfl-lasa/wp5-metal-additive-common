@@ -140,8 +140,6 @@ bool IPlannerBase::goToJointConfig(const vector<double>& jointConfig) {
 bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
   cleanMoveGroup_();
 
-  // geometry_msgs::Pose targetPoseOffset = MathTools::transformPose("virtual_link", "ee_tool", targetPose);
-  // std::cout << "Target pose offset: " << DebugTools::getPoseString(targetPoseOffset) << std::endl;
   moveGroup_->setPoseTarget(targetPose);
   bool success = move_();
 

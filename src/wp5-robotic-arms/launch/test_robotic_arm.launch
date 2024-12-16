@@ -1,8 +1,12 @@
 <launch>
+    <arg name="ee_tool"
+        doc="Type of the tool attached to the end effector : [none, welding_laser, marker, logi_laser]"
+        default="none" />
     <arg name="robot_model" default="ur5" doc="Has to be one of the following : [ur5, ur10e]" />
     <arg name="robotName" value="$(arg robot_model)_robot" />
     <arg name="rosVersion" default="noetic" />
 
+    <param name="ee_tool" value="$(arg ee_tool)" />
     <param name="robotName" value="$(arg robotName)" />
     <param name="rosVersion" value="$(arg rosVersion)" />
 

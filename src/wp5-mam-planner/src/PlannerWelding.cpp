@@ -85,10 +85,6 @@ bool PlannerWelding::computeWeldingPossiblePaths_(const geometry_msgs::Pose& sta
   vector<geometry_msgs::Pose> weldingTarget{targetPose};
   vector<vector<double>> ikSolutions{};
 
-  // Apply transform for each pose
-  // geometry_msgs::Pose startPoseTransformed = MathTools::transformPose("virtual_link", "ee_tool", startPose);
-  // geometry_msgs::Pose targetPoseTransformed = MathTools::transformPose("virtual_link", "ee_tool", targetPose);
-
   bool ikSuccess = robot_->getIKGeo(ConversionTools::geometryToEigen(startPose.orientation),
                                     ConversionTools::geometryToEigen(startPose.position),
                                     ikSolutions);
@@ -120,11 +116,6 @@ bool PlannerWelding::computeTransitionPath_(const vector<double>& startConfig,
                                             const vector<geometry_msgs::Pose>& targetPose,
                                             const MotionDir direction) {
   vector<moveit_msgs::RobotTrajectory> trajectory{};
-  vector<geometry_msgs::Pose> targetPoseTransformed{};
-
-  // for (const auto& pose : targetPose) {
-  //   targetPoseTransformed.push_back(MathTools::transformPose("virtual_link", "ee_tool", pose));
-  // }
 
   bool success = planCartesianFromJointConfig(startConfig, targetPose, trajectory);
 
