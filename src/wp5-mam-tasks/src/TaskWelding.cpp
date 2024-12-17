@@ -26,53 +26,46 @@ bool TaskWelding::initialize() {
   return true;
 }
 
-bool TaskWelding::computeTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) {
+bool TaskWelding::computeTrajectory(const std::vector<ROI::Pose>& waypoints) {
   std::vector<geometry_msgs::Pose> waypointsToPlan{};
-  std::pair<Eigen::Quaterniond, Eigen::Vector3d> poseOffset{};
-
-  // Put waypoints in an array for convenience
-  array<Eigen::Vector3d, 3> pointsArray;
-  pointsArray[0] = ConversionTools::geometryToEigen(waypoints[0].position);
-  pointsArray[1] = Eigen::Vector3d::Zero();
-  pointsArray[2] = ConversionTools::geometryToEigen(waypoints[1].position);
 
   // Compute needed vectors normal, waypoint and offset direction
-  const Eigen::Vector3d normalVector = MathTools::getNormalFromPlan(pointsArray);
-  const Eigen::Vector3d wpVector = (pointsArray[2] - pointsArray[0]).normalized();
-  const Eigen::Vector3d offsetVector = wpVector.cross(normalVector).normalized();
-
-  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-normalVector, workingAngle_);
-  const Eigen::Quaterniond rotQuaternion = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), offsetVector);
-
-  const Eigen::Quaterniond quatTransform = rotation * rotQuaternion;
-
-  // Compute the different quaternion to find the offset orientation
-  const geometry_msgs::Pose offsetVectorPose = ConversionTools::eigenToGeometry(rotQuaternion, Eigen::Vector3d::Zero());
-
-  // Add offsets from both tools size and welding needs
-  geometry_msgs::Pose offsetPose = MathTools::addOffset(
-      offsetVectorPose, ConversionTools::eigenToGeometry(Eigen::Quaterniond::Identity(), eePosOffset_));
-  geometry_msgs::Pose offsetPoseWork = MathTools::addOffset(
-      offsetVectorPose, ConversionTools::eigenToGeometry(Eigen::Quaterniond::Identity(), eePosWorkOffset_));
-
-  offsetPose.orientation = ConversionTools::eigenToGeometry(quatTransform);
-  offsetPoseWork.orientation = ConversionTools::eigenToGeometry(quatTransform);
-
-  offsetPose = MathTools::addOffset(offsetPose, ConversionTools::transformToPose(transform_));
-  offsetPoseWork = MathTools::addOffset(offsetPoseWork, ConversionTools::transformToPose(transform_));
+  const Eigen::Vector3d wpVector = (waypoints[1].getPosition() - waypoints[0].getPosition()).normalized();
 
   // Add moving to welding pose
-  waypointsToPlan.push_back(MathTools::addOffset(waypoints.front(), offsetPoseWork));
+  waypointsToPlan.push_back(getPoseOffset_(waypoints.front(), wpVector, eePosWorkOffset_));
 
   // Add welding waypoints
   for (size_t i = 0; i < waypoints.size(); ++i) {
-    waypointsToPlan.push_back(MathTools::addOffset(waypoints[i], offsetPose));
+    waypointsToPlan.push_back(getPoseOffset_(waypoints[i], wpVector, eePosOffset_));
   }
 
   // Add moving away from welding pose
-  waypointsToPlan.push_back(MathTools::addOffset(waypoints.back(), offsetPoseWork));
+  waypointsToPlan.push_back(getPoseOffset_(waypoints.back(), wpVector, eePosWorkOffset_));
 
   return planner_->planTrajectory(waypointsToPlan);
+}
+
+const geometry_msgs::Pose TaskWelding::getPoseOffset_(const ROI::Pose waypoint,
+                                                      const Eigen::Vector3d wpVector,
+                                                      const Eigen::Vector3d offset) {
+  const Eigen::Vector3d offsetDir = waypoint.getNormal();
+  const Eigen::Vector3d rotVector = offsetDir.cross(wpVector).normalized();
+
+  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(rotVector, workingAngle_);
+  const Eigen::Quaterniond rotQuaternion = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), -offsetDir);
+  const Eigen::Quaterniond quatTransform = rotation * rotQuaternion;
+
+  // Add offsets from both tools size and welding needs
+  pair<Eigen::Quaterniond, Eigen::Vector3d> offsetPoseQuatVec = MathTools::addOffset(
+      pair<Eigen::Quaterniond, Eigen::Vector3d>(Eigen::Quaterniond::Identity(), waypoint.getPosition()),
+      pair<Eigen::Quaterniond, Eigen::Vector3d>(rotQuaternion, offset));
+
+  offsetPoseQuatVec = MathTools::addOffset(
+      offsetPoseQuatVec,
+      pair<Eigen::Quaterniond, Eigen::Vector3d>(rotation, ConversionTools::extractVector(transform_)));
+
+  return ConversionTools::eigenToGeometry(quatTransform, offsetPoseQuatVec.second);
 }
 
 bool TaskWelding::execute() { return planner_->executeTrajectory(); }

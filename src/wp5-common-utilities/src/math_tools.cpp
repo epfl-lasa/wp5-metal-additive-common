@@ -50,14 +50,15 @@ const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterni
 }
 
 const bool arePosEquivalent(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, double tolerance) {
-  bool areEquivalent = (p1 - p2).norm() < tolerance;
+  double error = (p1 - p2).norm();
+  bool areEquivalent = error < tolerance;
 
 #ifdef DEBUG_MODE
   if (!areEquivalent) {
     std::string pos1 = DebugTools::getEigenString<Eigen::Vector3d>(p1);
     std::string pos2 = DebugTools::getEigenString<Eigen::Vector3d>(p2);
 
-    ROS_WARN_STREAM("[MathTools] - Positions are not equivalent: " << pos1 << " and " << pos2);
+    ROS_WARN_STREAM("[MathTools] - Positions are not equivalent: " << pos1 << " and " << pos2 << " error " << error);
   }
 #endif
 

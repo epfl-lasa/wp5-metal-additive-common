@@ -19,6 +19,7 @@
 #include "IRoboticArmBase.h"
 #include "IRosInterfaceBase.h"
 #include "ITaskBase.h"
+#include "ROI.h"
 
 class TaskWelding : public ITaskBase {
 public:
@@ -30,6 +31,11 @@ public:
    */
   bool initialize();
 
-  bool computeTrajectory(const std::vector<geometry_msgs::Pose>& waypoints);
+  bool computeTrajectory(const std::vector<ROI::Pose>& waypoints);
   bool execute();
+
+private:
+  const geometry_msgs::Pose getPoseOffset_(const ROI::Pose waypoint,
+                                           const Eigen::Vector3d wpVector,
+                                           const Eigen::Vector3d offset);
 };

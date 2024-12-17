@@ -19,6 +19,7 @@
 #include "IRoboticArmBase.h"
 #include "IRosInterfaceBase.h"
 #include "ITaskBase.h"
+#include "ROI.h"
 
 class TaskCleaning : public ITaskBase {
 public:
@@ -30,6 +31,6 @@ public:
    */
   bool initialize();
 
-  bool computeTrajectory(const std::vector<geometry_msgs::Pose>& waypoints);
+  bool computeTrajectory(const std::vector<ROI::Pose>& waypoints);
   bool execute();
 };

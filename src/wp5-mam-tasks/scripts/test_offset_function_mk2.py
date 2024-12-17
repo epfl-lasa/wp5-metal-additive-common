@@ -67,7 +67,7 @@ def add_offset(pose, offset):
 
 
 def get_normal_vector(wp_vector, waypoint):
-    temp_vector = [-waypoint.position.x, -waypoint.position.y, -waypoint.position.z]
+    temp_vector = np.array([-waypoint.position.x, -waypoint.position.y, -waypoint.position.z])
     temp_vector /= np.linalg.norm(temp_vector)
 
     normal_vector = np.cross(wp_vector, temp_vector)
@@ -143,7 +143,7 @@ def main():
         waypoints[0].orientation.y,
         waypoints[0].orientation.z,
         waypoints[0].orientation.w,
-    ) = (0, 0, 0, 1)
+    ) = (0.71, 0.0, 0.0, 0.71)
     waypoints[1].position.x, waypoints[1].position.y, waypoints[1].position.z = (
         0.1,
         0.5,
@@ -154,7 +154,7 @@ def main():
         waypoints[1].orientation.y,
         waypoints[1].orientation.z,
         waypoints[1].orientation.w,
-    ) = (0, 0, 0, 1)
+    ) = (0.71, 0.0, 0.0, 0.71)
 
     ee_pose_work_offset = [0, 0, -0.3]
     ee_pose_offset = [0, 0, -0.02]

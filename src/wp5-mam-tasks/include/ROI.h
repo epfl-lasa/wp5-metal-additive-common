@@ -21,31 +21,25 @@
 class ROI {
 public:
   struct Pose {
-    static const uint SIZE = 7;
+    static const uint SIZE = 6;
 
     Pose() = default;
-    Pose(const std::string frame, const Eigen::Quaterniond& quaternion, const Eigen::Vector3d& position) :
-        frameRef_(frame), quaternion_(quaternion), position_(position) {}
+    Pose(const std::string frame, const Eigen::Vector3d& position, const Eigen::Vector3d& normal) :
+        frameRef_(frame), position_(position), normal_(normal) {}
 
     std::vector<double> toVector() const {
-      return {quaternion_.x(),
-              quaternion_.y(),
-              quaternion_.z(),
-              quaternion_.w(),
-              position_.x(),
-              position_.y(),
-              position_.z()};
+      return {position_.x(), position_.y(), position_.z(), normal_.x(), normal_.y(), normal_.z()};
     }
 
     // Public getters for Pose members
     const std::string& getFrameRef() const { return frameRef_; }
-    const Eigen::Quaterniond& getQuaternion() const { return quaternion_; }
     const Eigen::Vector3d& getPosition() const { return position_; }
+    const Eigen::Vector3d& getNormal() const { return normal_; }
 
   private:
-    std::string frameRef_{};        ///< Reference frame of the pose
-    Eigen::Quaterniond quaternion_; ///< Orientation of the pose
-    Eigen::Vector3d position_;      ///< Position of the pose
+    std::string frameRef_{};   ///< Reference frame of the pose
+    Eigen::Vector3d position_; ///< Position of the pose
+    Eigen::Vector3d normal_;   ///< Orientation of the pose
   };
 
   ROI(std::string poseID) : id_(poseID) {};
@@ -61,13 +55,9 @@ public:
 
   const std::vector<Pose> getPoses() const { return poses_; };
 
-  const geometry_msgs::Pose getPoseROS(uint index) const;
-
-  const std::vector<geometry_msgs::Pose> getPosesROS() const;
-
   void emplaceBackPose(const std::string frame, const std::vector<double>& poseVector);
 
-  void emplaceBackPose(const std::string frame, const Eigen::Quaterniond& quat, const Eigen::Vector3d& pos);
+  void emplaceBackPose(const std::string frame, const Eigen::Vector3d& pos, const Eigen::Vector3d& normal);
 
 private:
   std::string id_{};

@@ -17,6 +17,7 @@
 #include <string>
 
 #include "ITaskBase.h"
+#include "ROI.h"
 
 namespace msm = boost::msm;
 namespace msmf = msm::front;
@@ -314,7 +315,7 @@ public:
 
     bool firstWaypoint = true;
     std::optional<ROI> roi = fsm.getSubtask()->popROI();
-    std::vector<geometry_msgs::Pose> waypoints = roi.value().getPosesROS();
+    std::vector<ROI::Pose> waypoints = roi.value().getPoses();
 
     if (!roi.has_value()) {
       fsm.reachError("[FSM] - Error: No ROI received");

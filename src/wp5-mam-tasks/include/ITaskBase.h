@@ -27,6 +27,7 @@
 #include "IPlannerBase.h"
 #include "IRoboticArmBase.h"
 #include "IRosInterfaceBase.h"
+#include "ROI.h"
 #include "RoboticArmUr.h"
 #include "Subtask.h"
 #include "math_tools.h"
@@ -64,13 +65,13 @@ public:
    * @brief Computes the trajectory based on the given waypoints.
    *
    * This is a pure virtual function that must be implemented by derived classes.
-   * It takes a vector of geometry_msgs::Pose objects representing the waypoints
+   * It takes a vector of ROI::Pose objects representing the waypoints
    * and computes the corresponding trajectory.
    *
-   * @param waypoints A vector of geometry_msgs::Pose objects representing the waypoints.
+   * @param waypoints A vector of ROI::Pose objects representing the waypoints.
    * @return true if the trajectory computation is successful, false otherwise.
    */
-  virtual bool computeTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) = 0;
+  virtual bool computeTrajectory(const std::vector<ROI::Pose>& waypoints) = 0;
 
   /**
    * @brief Executes the task.

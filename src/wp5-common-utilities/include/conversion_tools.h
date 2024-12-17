@@ -249,6 +249,19 @@ Eigen::Quaterniond vectorToEigenQuat(const std::vector<double>& orientation);
 std::pair<Eigen::Quaterniond, Eigen::Vector3d> vectorToEigenQuatPose(const std::vector<double>& quatPos);
 
 /**
+ * @brief Extracts a 3D vector from a given geometry_msgs::Transform.
+ *
+ * This function takes a geometry_msgs::Transform object and extracts the
+ * translation component as an Eigen::Vector3d.
+ *
+ * @param transform The input geometry_msgs::Transform object containing the
+ *                  translation and rotation data.
+ * @return Eigen::Vector3d The extracted 3D vector representing the translation
+ *                         component of the transform.
+ */
+Eigen::Vector3d extractVector(const geometry_msgs::Transform& transform);
+
+/**
  * @brief Converts a geometry_msgs::Transform to a geometry_msgs::Pose.
  *
  * This function takes a Transform message and converts it into a Pose message.

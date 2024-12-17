@@ -178,6 +178,10 @@ std::pair<Eigen::Quaterniond, Eigen::Vector3d> vectorToEigenQuatPose(const std::
   return quatPosPair;
 }
 
+Eigen::Vector3d extractVector(const geometry_msgs::Transform& transform) {
+  return Eigen::Vector3d{transform.translation.x, transform.translation.y, transform.translation.z};
+}
+
 geometry_msgs::Pose transformToPose(const geometry_msgs::Transform& transform) {
   geometry_msgs::Pose pose;
 

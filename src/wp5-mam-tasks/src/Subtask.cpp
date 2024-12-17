@@ -50,13 +50,11 @@ void Subtask::parseROI_(const string& str) {
     // Compute quaternion to restrain the orientation in the plane defined by the 3 points
     Eigen::Vector3d posStart(waypointsPos[0], waypointsPos[1], waypointsPos[2]);
     Eigen::Vector3d posEnd(waypointsPos[3], waypointsPos[4], waypointsPos[5]);
-
     //TODO(lmunier) - Add normal to the plan from DTU
-    // Eigen::Quaterniond quat(rotateVectorInPlan_({posStart, posEnd, robotPos_}));
-    Eigen::Quaterniond quat(1, 0, 0, 0);
+    Eigen::Vector3d normal(0, -1, 0);
 
-    roi.emplaceBackPose("base_link", quat, posStart);
-    roi.emplaceBackPose("base_link", quat, posEnd);
+    roi.emplaceBackPose("base_link", posStart, normal);
+    roi.emplaceBackPose("base_link", posEnd, normal);
 
     dequeROI_.push_back(roi);
 

@@ -25,8 +25,11 @@ bool TaskCleaning::initialize() {
   return true;
 }
 
-bool TaskCleaning::computeTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) {
-  return planner_->planTrajectory(waypoints);
+bool TaskCleaning::computeTrajectory(const std::vector<ROI::Pose>& waypoints) {
+  std::vector<geometry_msgs::Pose> waypointsToPlan{};
+  ROS_ERROR("[TaskCleaning] - Not implemented yet");
+
+  return planner_->planTrajectory(waypointsToPlan);
 }
 
 bool TaskCleaning::execute() { return planner_->executeTrajectory(); }

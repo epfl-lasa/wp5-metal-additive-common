@@ -26,13 +26,13 @@ void ROI::print() const {
 
   uint idx = 0;
   for (const auto& pose : poses_) {
-    Eigen::Quaterniond quat = pose.getQuaternion();
+    Eigen::Vector3d normal = pose.getNormal();
     Eigen::Vector3d pos = pose.getPosition();
 
-    ROS_INFO_STREAM("[ROI] - Pose " << idx++);
+    ROS_INFO_STREAM("[ROI] - Pose ID " << idx++);
     ROS_INFO_STREAM("[ROI] - Reference Frame: " << pose.getFrameRef());
-    ROS_INFO_STREAM("[ROI] - Position: " << pos.x() << pos.y() << pos.z());
-    ROS_INFO_STREAM("[ROI] - Quaternion: " << quat.w() << quat.x() << quat.y() << quat.z());
+    ROS_INFO_STREAM("[ROI] - Position xyz: " << pos.x() << pos.y() << pos.z());
+    ROS_INFO_STREAM("[ROI] - Normal xyz: " << normal.x() << normal.y() << normal.z());
   }
 }
 
@@ -45,25 +45,6 @@ const ROI::Pose ROI::getPose(uint index) const {
   }
 }
 
-const geometry_msgs::Pose ROI::getPoseROS(uint index) const {
-  if (index >= poses_.size()) {
-    ROS_ERROR_STREAM("[ROI] - Pose index " << index << " out of range.");
-    return geometry_msgs::Pose();
-  }
-
-  return ConversionTools::eigenToGeometry(poses_[index].getQuaternion(), poses_[index].getPosition());
-}
-
-const std::vector<geometry_msgs::Pose> ROI::getPosesROS() const {
-  std::vector<geometry_msgs::Pose> posesROS;
-
-  for (const auto& pose : poses_) {
-    posesROS.push_back(ConversionTools::eigenToGeometry(pose.getQuaternion(), pose.getPosition()));
-  }
-
-  return posesROS;
-}
-
 void ROI::emplaceBackPose(const std::string frame, const vector<double>& poseVector) {
   if (poseVector.size() != Pose::SIZE) {
     ROS_ERROR_STREAM("[ROI] - Pose vector size " << poseVector.size() << " not valid, should be " << Pose::SIZE << ".");
@@ -71,10 +52,10 @@ void ROI::emplaceBackPose(const std::string frame, const vector<double>& poseVec
   }
 
   poses_.emplace_back(frame,
-                      Eigen::Quaterniond(poseVector[0], poseVector[1], poseVector[2], poseVector[3]),
-                      Eigen::Vector3d(poseVector[4], poseVector[5], poseVector[6]));
+                      Eigen::Vector3d(poseVector[0], poseVector[1], poseVector[2]),
+                      Eigen::Vector3d(poseVector[3], poseVector[4], poseVector[5]));
 }
 
-void ROI::emplaceBackPose(const std::string frame, const Eigen::Quaterniond& quat, const Eigen::Vector3d& pos) {
-  poses_.emplace_back(frame, quat, pos);
+void ROI::emplaceBackPose(const std::string frame, const Eigen::Vector3d& pos, const Eigen::Vector3d& normal) {
+  poses_.emplace_back(frame, pos, normal);
 }
