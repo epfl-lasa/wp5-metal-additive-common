@@ -45,6 +45,16 @@ const ROI::Pose ROI::getPose(uint index) const {
   }
 }
 
+const std::vector<Eigen::Vector3d> ROI::getPositions() const {
+  std::vector<Eigen::Vector3d> positions;
+
+  for (const auto& pose : poses_) {
+    positions.push_back(pose.getPosition());
+  }
+
+  return positions;
+}
+
 void ROI::emplaceBackPose(const std::string frame, const vector<double>& poseVector) {
   if (poseVector.size() != Pose::SIZE) {
     ROS_ERROR_STREAM("[ROI] - Pose vector size " << poseVector.size() << " not valid, should be " << Pose::SIZE << ".");

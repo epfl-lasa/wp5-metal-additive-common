@@ -43,6 +43,10 @@ bool TaskWelding::computeTrajectory(const std::vector<ROI::Pose>& waypoints) {
   // Add moving away from welding pose
   waypointsToPlan.push_back(getPoseOffset_(waypoints.back(), wpVector, eePosWorkOffset_));
 
+#ifdef DEBUG_MODE
+  DebugTools::publishPath("base_link", waypointsToPlan, pathPub_);
+#endif
+
   return planner_->planTrajectory(waypointsToPlan);
 }
 

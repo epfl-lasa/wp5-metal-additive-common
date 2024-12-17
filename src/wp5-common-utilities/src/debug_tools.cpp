@@ -16,6 +16,9 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayTrajectory.h>
+#include <nav_msgs/Path.h>
+#include <ros/ros.h>
+#include <visualization_msgs/Marker.h>
 
 #include "conversion_tools.h"
 
@@ -44,24 +47,70 @@ std::string getTransformString(const geometry_msgs::TransformStamped& transform)
   return transformString;
 }
 
-void publishPose(const geometry_msgs::Pose& pose, const std::string& frameId, ros::Publisher& pub) {
+void publishWaypoints(const std::string& frameId,
+                      const std::vector<Eigen::Vector3d>& waypoints,
+                      const ros::Publisher& pub,
+                      const std::array<float, 4> color) {
+  float TIME_WAIT = 0.2;
+  size_t NB_PUBLISH = 3;
+  float RADIUS = 0.05;
+
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = frameId;
+  marker.header.stamp = ros::Time::now();
+
+  marker.ns = "waypoints";
+  marker.id = 0;
+  marker.type = visualization_msgs::Marker::SPHERE_LIST;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  // Set the size of the points
+  marker.scale.x = RADIUS;
+  marker.scale.y = RADIUS;
+  marker.scale.z = RADIUS;
+
+  // Set the color of the points
+  marker.color.a = color[0];
+  marker.color.r = color[1];
+  marker.color.g = color[2];
+  marker.color.b = color[3];
+
+  for (auto& waypoint : waypoints) {
+    marker.points.push_back(ConversionTools::eigenToGeometry(waypoint));
+  }
+
+  for (size_t i = 0; i < NB_PUBLISH; ++i) {
+    pub.publish(marker);
+    ros::Duration(TIME_WAIT).sleep();
+  }
+}
+
+void publishPath(const std::string& frameId,
+                 const std::vector<geometry_msgs::Pose>& waypoints,
+                 const ros::Publisher& pub) {
   float TIME_WAIT = 0.2;
   size_t NB_PUBLISH = 3;
 
-  geometry_msgs::PoseStamped poseStamped;
-  poseStamped.header.frame_id = frameId;
-  poseStamped.header.stamp = ros::Time::now();
-  poseStamped.pose = pose;
+  nav_msgs::Path path;
+  path.header.frame_id = frameId;
+  path.header.stamp = ros::Time::now();
+  path.poses.resize(waypoints.size());
+
+  for (size_t i = 0; i < waypoints.size(); ++i) {
+    path.poses[i].header.frame_id = frameId;
+    path.poses[i].header.stamp = ros::Time::now();
+    path.poses[i].pose = waypoints[i];
+  }
 
   for (size_t i = 0; i < NB_PUBLISH; ++i) {
-    pub.publish(poseStamped);
+    pub.publish(path);
     ros::Duration(TIME_WAIT).sleep();
   }
 }
 
 void publishTrajectory(const moveit::planning_interface::MoveGroupInterface& moveGroup,
                        const moveit_msgs::RobotTrajectory& trajectory,
-                       ros::Publisher& pub) {
+                       const ros::Publisher& pub) {
   moveit_msgs::DisplayTrajectory displayTrajectory;
   moveit::core::robotStateToRobotStateMsg(*moveGroup.getCurrentState(), displayTrajectory.trajectory_start);
   displayTrajectory.trajectory.push_back(trajectory);

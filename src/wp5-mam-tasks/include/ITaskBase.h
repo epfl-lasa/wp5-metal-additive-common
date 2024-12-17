@@ -16,6 +16,7 @@
  * @brief This file contains the declaration of the ITaskBase class and its associated enums and dependencies.
  */
 
+#include <nav_msgs/Path.h>
 #include <ros/ros.h>
 
 #include <Eigen/Dense>
@@ -106,6 +107,10 @@ protected:
   const std::vector<double> eePoseScan_{};  ///< End effector sacnning pose offset.
 
   const geometry_msgs::Transform transform_; ///< Transform between two frames.
+
+#ifdef DEBUG_MODE
+  ros::Publisher pathPub_{nh_.advertise<nav_msgs::Path>("/debug_path", 10)};
+#endif
 
 private:
   const geometry_msgs::Transform getTransform_(const std::string& sourceFrame, const std::string& targetFrame);

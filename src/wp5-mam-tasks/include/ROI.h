@@ -55,6 +55,8 @@ public:
 
   const std::vector<Pose> getPoses() const { return poses_; };
 
+  const std::vector<Eigen::Vector3d> getPositions() const;
+
   void emplaceBackPose(const std::string frame, const std::vector<double>& poseVector);
 
   void emplaceBackPose(const std::string frame, const Eigen::Vector3d& pos, const Eigen::Vector3d& normal);

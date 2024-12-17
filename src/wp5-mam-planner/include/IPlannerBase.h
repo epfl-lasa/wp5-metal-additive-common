@@ -70,9 +70,11 @@ protected:
   ros::NodeHandle nh_;        ///< ROS node handle
   ros::AsyncSpinner spinner_; ///< ROS spinner to handle callbacks asynchronously
 
-  ros::Publisher pubLaserState_;   ///< Publisher for the welding state
-  ros::Publisher pubWaypointRviz_; ///< Publisher for the waypoint in Rviz
-  ros::Publisher pubTrajectory_;   ///< Publisher for the path
+  ros::Publisher pubLaserState_; ///< Publisher for the welding state
+
+#ifdef DEBUG_MODE
+  ros::Publisher pubTrajectory_; ///< Publisher for the trajectory
+#endif
 
   bool pathFound_ = false;                                       ///< Flag indicating if a path is found
   int currentWPointID_ = 0;                                      ///< Current waypoint ID

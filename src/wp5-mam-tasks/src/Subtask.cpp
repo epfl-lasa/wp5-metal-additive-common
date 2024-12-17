@@ -50,6 +50,7 @@ void Subtask::parseROI_(const string& str) {
     // Compute quaternion to restrain the orientation in the plane defined by the 3 points
     Eigen::Vector3d posStart(waypointsPos[0], waypointsPos[1], waypointsPos[2]);
     Eigen::Vector3d posEnd(waypointsPos[3], waypointsPos[4], waypointsPos[5]);
+
     //TODO(lmunier) - Add normal to the plan from DTU
     Eigen::Vector3d normal(0, -1, 0);
 
@@ -62,6 +63,23 @@ void Subtask::parseROI_(const string& str) {
   } else {
     ROS_INFO_STREAM("[Subtask] - Waypoint received previously, already registered, key : " << waypointID);
   }
+
+#ifdef DEBUG_MODE
+  std::vector<Eigen::Vector3d> waypoints;
+  std::array<float, 4> color = {1.0, 0.0, 0.0, 1.0};
+
+  for (const auto& roi : dequeROI_) {
+    const std::vector<Eigen::Vector3d> positions = roi.getPositions();
+
+    if (!positions.empty()) {
+      waypoints.insert(waypoints.end(), positions.begin(), positions.end());
+    } else {
+      ROS_WARN("[Subtask] - ROI has no positions.");
+    }
+  }
+
+  DebugTools::publishWaypoints("base_link", waypoints, waypointsPub_, color);
+#endif
 }
 
 const bool Subtask::isROIStored_(const string& id) const {

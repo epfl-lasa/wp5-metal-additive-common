@@ -17,6 +17,7 @@
 #include <moveit_msgs/RobotTrajectory.h>
 #include <ros/ros.h>
 
+#include <array>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -112,16 +113,31 @@ std::string getPoseString(const geometry_msgs::Pose& pose);
 std::string getTransformString(const geometry_msgs::TransformStamped& transform);
 
 /**
- * @brief Publishes a given pose to a specified ROS topic.
+ * @brief Publishes a set of waypoints to a ROS topic.
  *
- * This function takes a geometry_msgs::Pose object, a frame ID string, and a ROS publisher,
- * and publishes the pose to the topic associated with the publisher.
- *
- * @param pose The pose to be published.
- * @param frameId The frame ID associated with the pose.
- * @param pub The ROS publisher to publish the pose to.
+ * @param frameId The frame ID to associate with the waypoints.
+ * @param waypoints A vector of 3D vectors representing the waypoints.
+ * @param pub The ROS publisher to use for publishing the waypoints.
+ * @param color An array of four floats representing the color (RGBA) to use for the waypoints.
  */
-void publishPose(const geometry_msgs::Pose& pose, const std::string& frameId, ros::Publisher& pub);
+void publishWaypoints(const std::string& frameId,
+                      const std::vector<Eigen::Vector3d>& waypoints,
+                      const ros::Publisher& pub,
+                      const std::array<float, 4> color);
+
+/**
+ * @brief Publishes a path of waypoints to a given ROS topic.
+ *
+ * This function takes a frame ID, a vector of waypoints, and a ROS publisher,
+ * and publishes the path to the specified topic.
+ *
+ * @param frameId The ID of the reference frame for the waypoints.
+ * @param waypoints A vector of geometry_msgs::Pose representing the waypoints of the path to be published.
+ * @param pub The ROS publisher to publish the waypoints to.
+ */
+void publishPath(const std::string& frameId,
+                 const std::vector<geometry_msgs::Pose>& waypoints,
+                 const ros::Publisher& pub);
 
 /**
  * @brief Publishes a given trajectory to a specified ROS topic.
@@ -135,7 +151,7 @@ void publishPose(const geometry_msgs::Pose& pose, const std::string& frameId, ro
  */
 void publishTrajectory(const moveit::planning_interface::MoveGroupInterface& moveGroup,
                        const moveit_msgs::RobotTrajectory& trajectory,
-                       ros::Publisher& pub);
+                       const ros::Publisher& pub);
 
 /**
  * @brief Prints the time stamps of each point in the given robot trajectory.

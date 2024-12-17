@@ -12,11 +12,10 @@
 
 #pragma once
 
-#include <geometry_msgs/PointStamped.h>
-#include <geometry_msgs/PoseStamped.h>
 #include <gtest/gtest.h>
 #include <ros/ros.h>
 #include <std_msgs/String.h>
+#include <visualization_msgs/Marker.h>
 
 #include <Eigen/Dense>
 #include <array>
@@ -77,4 +76,8 @@ private:
    * @brief Callback to get the region of interests.
    */
   void cbkROI_(const std_msgs::String::ConstPtr& msg);
+
+#ifdef DEBUG_MODE
+  ros::Publisher waypointsPub_{nh_.advertise<visualization_msgs::Marker>("/debug_waypoints", 10)};
+#endif
 };

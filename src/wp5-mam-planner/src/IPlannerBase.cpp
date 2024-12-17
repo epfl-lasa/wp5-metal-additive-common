@@ -33,7 +33,6 @@ IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string ro
 
 #ifdef DEBUG_MODE
   pubTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("debug_trajectory", 1000);
-  pubWaypointRviz_ = nh_.advertise<geometry_msgs::PoseStamped>("debug_waypoint", 10);
 #endif
 
   // Add obstacles
