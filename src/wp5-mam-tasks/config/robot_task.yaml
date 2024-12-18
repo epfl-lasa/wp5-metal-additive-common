@@ -15,7 +15,7 @@ welding:
   ros_version: "noetic"
   home_configuration: [0, -1.57, 0, -1.57, 0, 0] # [rad] j1, j2, j3, j4, j5, j6
   working_angle: 0.3491 # [rad]
-  ee_pos_work_offset: [0, 0.2, -0.3] # [m] xyz
+  ee_pos_work_offset: [0, 0, -0.1] # [m] xyz
   ee_pos_offset: [0, 0, -0.02] # [m] xyz
   ee_pose_scan: [-0.704627, -0.0401188, -0.00946144, 0.70838, -0.2, 0.0, 1.33] # [rad] xyzw, [m] xyz
 cleaning:

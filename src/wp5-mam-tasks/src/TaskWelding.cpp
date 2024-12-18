@@ -58,7 +58,6 @@ const geometry_msgs::Pose TaskWelding::getPoseOffset_(const ROI::Pose waypoint,
 
   const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(rotVector, workingAngle_);
   const Eigen::Quaterniond rotQuaternion = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), -offsetDir);
-  const Eigen::Quaterniond quatTransform = rotation * rotQuaternion;
 
   // Add offsets from both tools size and welding needs
   pair<Eigen::Quaterniond, Eigen::Vector3d> offsetPoseQuatVec = MathTools::addOffset(
@@ -69,7 +68,7 @@ const geometry_msgs::Pose TaskWelding::getPoseOffset_(const ROI::Pose waypoint,
       offsetPoseQuatVec,
       pair<Eigen::Quaterniond, Eigen::Vector3d>(rotation, ConversionTools::extractVector(transform_)));
 
-  return ConversionTools::eigenToGeometry(quatTransform, offsetPoseQuatVec.second);
+  return ConversionTools::eigenToGeometry(offsetPoseQuatVec.first, offsetPoseQuatVec.second);
 }
 
 bool TaskWelding::execute() { return planner_->executeTrajectory(); }

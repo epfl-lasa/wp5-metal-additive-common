@@ -147,7 +147,7 @@ TEST_F(IRoboticArmBaseTest, TestSwapJoints) {
 TEST_F(IRoboticArmBaseTest, TestFilterIKGeoSolutions) {
   for (auto& [quaternion, position] : waypoints) {
     vector<vector<double>> ikSolutions;
-    roboticArm->getIKGeo(quaternion, position, ikSolutions, false);
+    roboticArm->getIKGeo(quaternion, position, ikSolutions);
 
     size_t rawSize = ikSolutions.size();
 

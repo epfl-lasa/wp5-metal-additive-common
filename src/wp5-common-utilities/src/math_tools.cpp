@@ -125,7 +125,7 @@ std::pair<Eigen::Quaterniond, Eigen::Vector3d> addOffset(
     const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& quatPosNoOffset,
     const std::pair<Eigen::Quaterniond, Eigen::Vector3d>& offset) {
   // Apply the orientation offset, then normalize
-  Eigen::Quaterniond desiredQuat = (quatPosNoOffset.first * offset.first).normalized();
+  Eigen::Quaterniond desiredQuat = (offset.first * quatPosNoOffset.first).normalized();
 
   // Apply the position offset
   Eigen::Matrix3d rotationMatrix = desiredQuat.toRotationMatrix();
