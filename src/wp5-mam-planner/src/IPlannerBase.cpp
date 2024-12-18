@@ -37,7 +37,7 @@ IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string ro
 
   // Add obstacles
   obstacles_ = make_unique<ObstaclesManagement>(ObstaclesManagement(nh_, moveGroup_->getPlanningFrame()));
-  // obstacles_->addStaticObstacles();
+  obstacles_->addStaticObstacles();
 }
 
 bool IPlannerBase::executeTrajectory() {
