@@ -118,13 +118,11 @@ public:
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
    * @param jointPos Vector of joint positions of the robotic arm.
-   * @param checkResults Enable checking if the results are valid.
    * @return Pair of the return code and the next joint positions.
    */
   virtual const bool getIKGeo(const Eigen::Quaterniond& quaternion,
                               const Eigen::Vector3d& position,
-                              std::vector<std::vector<double>>& jointPos,
-                              bool checkResults = true) {
+                              std::vector<std::vector<double>>& jointPos) {
     ROS_ERROR("[IRoboticArmBase] - This function is not implemented for this robotic arm.");
 
     jointPos.clear();

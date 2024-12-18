@@ -62,8 +62,7 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr::getFKGeo(const vec
 
 const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
                                   const Eigen::Vector3d& position,
-                                  vector<vector<double>>& jointPos,
-                                  bool checkResults) {
+                                  vector<vector<double>>& jointPos) {
   // Offset to fix convention between trac-ik (the basic one to use) and ik-geo solvers
   Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, -0.5, -0.5, -0.5);
 
@@ -86,16 +85,14 @@ const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
     jointPos.push_back(solutionVector);
   }
 
-  if (checkResults) {
-    filterIKGeoSolutions_(jointPos, quaternion, position);
+  filterIKGeoSolutions_(jointPos, quaternion, position);
 
-    // Check wether the number of rejected solutions is not too high
-    totSolutions = ikSolutions.size();
-    if (jointPos.size() < MAX_REJECTIONS * totSolutions / 100) {
-      ROS_WARN_STREAM("[IRoboticArmUR] - Too many solutions were rejected " << jointPos.size() << " remaining, over "
-                                                                            << totSolutions << " total solutions.");
-      return false;
-    }
+  // Check wether the number of rejected solutions is not too high
+  totSolutions = ikSolutions.size();
+  if (jointPos.size() < MAX_REJECTIONS * totSolutions / 100) {
+    ROS_WARN_STREAM("[IRoboticArmUR] - Too many solutions were rejected " << jointPos.size() << " remaining, over "
+                                                                          << totSolutions << " total solutions.");
+    return false;
   }
 
   return true;

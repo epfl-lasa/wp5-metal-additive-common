@@ -59,13 +59,11 @@ public:
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
    * @param jointPos Vector of joint positions of the robotic arm.
-   * @param checkResults Enable checking if the results are valid.
    * @return Pair of the return code and the next joint positions.
    */
   const bool getIKGeo(const Eigen::Quaterniond& quaternion,
                       const Eigen::Vector3d& position,
-                      std::vector<std::vector<double>>& jointPos,
-                      bool checkResults = true) override;
+                      std::vector<std::vector<double>>& jointPos) override;
 
   /**
    * @brief Get the current state of the robotic arm.
