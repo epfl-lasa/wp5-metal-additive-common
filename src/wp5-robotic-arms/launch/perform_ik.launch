@@ -1,7 +1,7 @@
 <launch>
     <arg name="angleDegree" default="false" />
     <arg name="poseSet" default="exp1_pose" />
-    <arg name="robot_model" default="ur10e" doc="Has to be one of the following : [ur5, ur10e]" />
+    <arg name="robot_model" default="ur5" doc="Has to be one of the following : [ur5, ur10e]" />
     <arg name="robotName" value="$(arg robot_model)_robot" />
     <arg name="rosVersion" default="noetic" />
 

@@ -44,6 +44,7 @@ class IRoboticArmBase {
 public:
   // Declare the test class as a friend to allow access to private members
   friend class IRoboticArmBaseTest_TestSwapJoints_Test;
+  friend class IRoboticArmBaseTest_TestFilterIKGeoSolutions_Test;
 
   /**
    * @brief Constructor for IRoboticArmBase.
@@ -117,11 +118,13 @@ public:
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
    * @param jointPos Vector of joint positions of the robotic arm.
+   * @param checkResults Enable checking if the results are valid.
    * @return Pair of the return code and the next joint positions.
    */
   virtual const bool getIKGeo(const Eigen::Quaterniond& quaternion,
                               const Eigen::Vector3d& position,
-                              std::vector<std::vector<double>>& jointPos) {
+                              std::vector<std::vector<double>>& jointPos,
+                              bool checkResults = true) {
     ROS_ERROR("[IRoboticArmBase] - This function is not implemented for this robotic arm.");
 
     jointPos.clear();
@@ -152,6 +155,17 @@ protected:
   const ROSVersion rosVersion_ = ROSVersion::VERSION_UNDEFINED;
   std::unique_ptr<IRosInterfaceBase> rosInterface_ = nullptr;
 
+  virtual void swapJoints_(
+      std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>& currentRobotState) {
+    ROS_ERROR("[IRoboticArmBase] - This function is not implemented for this robotic arm.");
+  }
+
+  virtual void filterIKGeoSolutions_(std::vector<std::vector<double>>& jointPos,
+                                     const Eigen::Quaterniond& quaternion,
+                                     const Eigen::Vector3d& position) {
+    ROS_ERROR("[IRoboticArmBase] - This function is not implemented for this robotic arm.");
+  }
+
 private:
   // Attributes
   const std::string robotName_ = "";            ///< Name of the robotic arm
@@ -176,8 +190,4 @@ private:
 
   // Methods
   void initializeTracIkSolver_();
-  virtual void swapJoints_(
-      std::tuple<std::vector<double>, std::vector<double>, std::vector<double>>& currentRobotState) {
-    ROS_ERROR("[IRoboticArmBase] - This function is not implemented for this robotic arm.");
-  }
 };

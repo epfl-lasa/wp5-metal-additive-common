@@ -36,14 +36,17 @@ IRoboticArmBase::IRoboticArmBase(string robotName, ROSVersion rosVersion, const 
     originalHomeJoint_(YamlTools::loadYamlValue<vector<double>>(config, robotName + "/original_home_joint")) {
   initializeTracIkSolver_();
 
-  if (getNbJoints() != chain_.getNrOfJoints()) {
-    throw runtime_error(
-        "[IRoboticArmBase] - Number of joints in the kinematic chain does not match the number of joint names");
-  }
-
 #ifdef DEBUG_MODE
   printInfo();
 #endif
+
+  if (getNbJoints() != chain_.getNrOfJoints()) {
+    ostringstream error;
+    error << "[IRoboticArmBase] - Number of joints in the kinematic chain : " << chain_.getNrOfJoints()
+          << " does not match the number of joint names : " << getNbJoints();
+
+    throw runtime_error(error.str());
+  }
 
   // Initialize ROS interface
   if (rosVersion_ == ROSVersion::ROS1_NOETIC) {

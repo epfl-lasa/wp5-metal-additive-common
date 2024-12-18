@@ -46,20 +46,37 @@ int main(int argc, char** argv) {
 
   // Get the joint positions from the command line
   std::vector<double> pose = config[robotName][poseSet].as<std::vector<double>>();
-
-  // Perform forward kinematics
-  std::vector<double> ikResult{};
   std::pair<Eigen::Quaterniond, Eigen::Vector3d> poseQuatVec = ConversionTools::vectorToEigenQuatPose(pose);
 
-  roboticArm->getIKTrac(poseQuatVec.first, poseQuatVec.second, ikResult);
+  // TracIK
+  std::vector<double> tracIKResult{};
+  roboticArm->getIKTrac(poseQuatVec.first, poseQuatVec.second, tracIKResult);
 
   // Print the results
   if (angleDegree) {
-    for (auto& result : ikResult) {
+    for (auto& result : tracIKResult) {
       result = MathTools::radToDeg(result);
     }
   }
-  std::cout << "Joint Configuration: " << DebugTools::getVecString(ikResult) << std::endl;
+  std::cout << "[TracIK] -----------" << std::endl;
+  std::cout << "Joint Configuration: " << DebugTools::getVecString(tracIKResult) << std::endl;
+
+  // IK Geo
+  std::vector<std::vector<double>> geoIKResult{};
+  roboticArm->getIKGeo(poseQuatVec.first, poseQuatVec.second, geoIKResult);
+
+  // Print the results
+  if (angleDegree) {
+    for (auto& result : geoIKResult) {
+      for (auto& joint : result) {
+        joint = MathTools::radToDeg(joint);
+      }
+    }
+  }
+  std::cout << "[IK Geo] -----------" << std::endl;
+  for (auto& result : geoIKResult) {
+    std::cout << "Joint Configuration: " << DebugTools::getVecString(result) << std::endl;
+  }
 
   ros::shutdown();
 }

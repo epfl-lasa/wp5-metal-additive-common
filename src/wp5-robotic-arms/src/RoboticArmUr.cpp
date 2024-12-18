@@ -62,7 +62,8 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr::getFKGeo(const vec
 
 const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
                                   const Eigen::Vector3d& position,
-                                  vector<vector<double>>& jointPos) {
+                                  vector<vector<double>>& jointPos,
+                                  bool checkResults) {
   // Offset to fix convention between trac-ik (the basic one to use) and ik-geo solvers
   Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, -0.5, -0.5, -0.5);
 
@@ -79,26 +80,22 @@ const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
   vector<ik_geo::Solution> ikSolutions;
   robotGeoSolver_->ik(rotMatrixArray, posVector, ikSolutions);
 
-  // Check if the IK solver found valid solutions
-  jointPos.clear();
-  for (const auto& solution : ikSolutions) {
+  for (auto& solution : ikSolutions) {
+    // Convert the solution to a vector
     vector<double> solutionVector(solution.q.begin(), solution.q.end());
-    auto [quaternionSolution, positionSolution] = getFKGeo(solutionVector);
-
-    bool isQuatValid = MathTools::areQuatEquivalent(quaternion, quaternionSolution);
-    bool isPosValid = MathTools::arePosEquivalent(position, positionSolution);
-
-    if (isQuatValid && isPosValid) {
-      jointPos.push_back(solutionVector);
-    }
+    jointPos.push_back(solutionVector);
   }
 
-  // Check wether the number of rejected solutions is not too high
-  totSolutions = ikSolutions.size();
-  if (jointPos.size() < MAX_REJECTIONS * totSolutions / 100) {
-    ROS_WARN_STREAM("[IRoboticArmUR] - Too many solutions were rejected " << jointPos.size() << " remaining, over "
-                                                                          << totSolutions << " total solutions.");
-    return false;
+  if (checkResults) {
+    filterIKGeoSolutions_(jointPos, quaternion, position);
+
+    // Check wether the number of rejected solutions is not too high
+    totSolutions = ikSolutions.size();
+    if (jointPos.size() < MAX_REJECTIONS * totSolutions / 100) {
+      ROS_WARN_STREAM("[IRoboticArmUR] - Too many solutions were rejected " << jointPos.size() << " remaining, over "
+                                                                            << totSolutions << " total solutions.");
+      return false;
+    }
   }
 
   return true;
@@ -112,11 +109,26 @@ tuple<vector<double>, vector<double>, vector<double>> RoboticArmUr::getState() {
 }
 
 void RoboticArmUr::swapJoints_(tuple<vector<double>, vector<double>, vector<double>>& currentRobotState) {
-  // Swap the data 0 to 2 for UR5
+  // Swap the data 0 to 2 for UR robots
   apply(
       [](auto&... vecs) {
         // Lambda body: Expand the tuple into a parameter pack and swap elements
         (..., swap(vecs[0], vecs[2]));
       },
       currentRobotState);
+}
+
+void RoboticArmUr::filterIKGeoSolutions_(vector<vector<double>>& jointPos,
+                                         const Eigen::Quaterniond& quaternion,
+                                         const Eigen::Vector3d& position) {
+  for (auto it = jointPos.rbegin(); it != jointPos.rend(); ++it) {
+    auto [quaternionSolution, positionSolution] = getFKGeo(*it);
+
+    bool isQuatValid = MathTools::areQuatEquivalent(quaternion, quaternionSolution);
+    bool isPosValid = MathTools::arePosEquivalent(position, positionSolution);
+
+    if (!isQuatValid || !isPosValid) {
+      jointPos.erase(std::next(it).base());
+    }
+  }
 }

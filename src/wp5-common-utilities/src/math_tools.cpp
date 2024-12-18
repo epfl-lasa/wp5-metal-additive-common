@@ -35,14 +35,16 @@ const bool isNumber(const std::string& str) {
 
 const bool areQuatEquivalent(const Eigen::Quaterniond& q1, const Eigen::Quaterniond& q2, double tolerance) {
   double dotProduct = q1.dot(q2);
-  bool areEquivalent = std::abs(dotProduct) > 1.0 - tolerance;
+  double error = 1.0 - std::abs(dotProduct);
+  bool areEquivalent = error < tolerance;
 
 #ifdef DEBUG_MODE
   if (!areEquivalent) {
     std::string quat1 = DebugTools::getEigenString<Eigen::Quaterniond>(q1);
     std::string quat2 = DebugTools::getEigenString<Eigen::Quaterniond>(q2);
 
-    ROS_WARN_STREAM("[MathTools] - Quaternions are not equivalent: " << quat1 << " and " << quat2);
+    ROS_WARN_STREAM("[MathTools] - Quaternions are not equivalent: " << quat1 << " and " << quat2 << " error "
+                                                                     << error);
   }
 #endif
 

@@ -44,8 +44,17 @@ int main(int argc, char** argv) {
   // Get the joint positions from the command line
   std::vector<double> jointPos = config[robotName][jointSet].as<std::vector<double>>();
 
-  // Perform forward kinematics
+  // Trac IK
+  std::cout << "[TracIK] -----------" << std::endl;
   std::pair<Eigen::Quaterniond, Eigen::Vector3d> fkResult = roboticArm->getFKTrac(jointPos);
+
+  // Print the results
+  std::cout << "Quaternion: " << DebugTools::getEigenString<Eigen::Quaterniond>(fkResult.first) << std::endl;
+  std::cout << "Position: " << DebugTools::getEigenString<Eigen::Vector3d>(fkResult.second) << std::endl;
+
+  // Geo IK
+  std::cout << "[GeoIK] -----------" << std::endl;
+  fkResult = roboticArm->getFKGeo(jointPos);
 
   // Print the results
   std::cout << "Quaternion: " << DebugTools::getEigenString<Eigen::Quaterniond>(fkResult.first) << std::endl;

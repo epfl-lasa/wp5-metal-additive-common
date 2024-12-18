@@ -46,7 +46,7 @@
             "request": "launch",
             "target": "/home/${ROS_USER}/catkin_ws/src/wp5-robotic-arms/launch/perform_ik.launch",
             "arguments": [
-                "robot_model:=ur10e",
+                "robot_model:=ur5",
                 "poseSet:=test",
                 "angleDegree:=true"
             ],

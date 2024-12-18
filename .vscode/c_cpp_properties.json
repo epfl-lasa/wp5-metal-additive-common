@@ -10,6 +10,7 @@
         "/opt/ros/noetic/include/**",
         "/home/ros/catkin_ws/src/ur-package/ur_robot_driver/include/**",
         "/home/ros/catkin_ws/src/ur-package/ur_calibration/include/**",
+        "/home/ros/catkin_ws/src/ur-package/ur_description/include/**",
         "/home/ros/catkin_ws/src/wp5-common-utilities/include/**",
         "/home/ros/catkin_ws/src/wp5-mam-planner/include/**",
         "/home/ros/catkin_ws/src/wp5-mam-tasks/include/**",

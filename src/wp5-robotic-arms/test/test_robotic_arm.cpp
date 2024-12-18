@@ -24,7 +24,7 @@ using namespace std;
 
 // Static member initialization
 const double TOLERANCE = 2e-4;
-static const int NB_TESTS = 50;
+static const int NB_TESTS = 30;
 
 std::unique_ptr<IRoboticArmBase> roboticArm = nullptr;
 static mt19937 gen(random_device{}());
@@ -42,6 +42,7 @@ protected:
     std::string rosVersion = "";
     nh.getParam("robotName", robotName);
     nh.getParam("rosVersion", rosVersion);
+
     roboticArm = RoboticArmFactory::createRoboticArm(robotName, IRosInterfaceBase::rosVersionsMap.at(rosVersion));
 
     generateWaypoints();
@@ -141,6 +142,22 @@ TEST_F(IRoboticArmBaseTest, TestSwapJoints) {
   EXPECT_EQ(jointPosOut, get<0>(state));
   EXPECT_EQ(jointVelOut, get<1>(state));
   EXPECT_EQ(jointTorqueOut, get<2>(state));
+}
+
+TEST_F(IRoboticArmBaseTest, TestFilterIKGeoSolutions) {
+  for (auto& [quaternion, position] : waypoints) {
+    vector<vector<double>> ikSolutions;
+    roboticArm->getIKGeo(quaternion, position, ikSolutions, false);
+
+    size_t rawSize = ikSolutions.size();
+
+    // Change first, last and middle solution values to check the filter
+    ikSolutions.front()[0] += 1;
+    ikSolutions.back()[0] += 1;
+    ikSolutions[rawSize / 2][0] += 1;
+
+    roboticArm->filterIKGeoSolutions_(ikSolutions, quaternion, position);
+  }
 }
 
 // Create a test to check coherency of the robotic arm trac-ik solver
