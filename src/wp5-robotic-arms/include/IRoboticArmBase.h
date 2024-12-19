@@ -139,9 +139,10 @@ public:
    * @brief Check if the robotic arm is already in a given joint configuration.
    *
    * @param jointPos Joint positions to check.
+   * @param tolerance Tolerance on each joints for the comparison.
    * @return True if the robotic arm is in the given joint configuration, false otherwise.
    */
-  const bool isAtJointPosition(const std::vector<double>& jointPos);
+  const bool isAtJointPosition(const std::vector<double>& jointPos, double tolerance = 1e-3);
 
   /**
    * @brief Print the information for this robotic arm.

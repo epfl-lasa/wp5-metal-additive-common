@@ -102,7 +102,7 @@ const bool IRoboticArmBase::getIKTrac(const Eigen::Quaterniond& quaternion,
   if (isValid) {
     jointPos = std::vector<double>(result.data.data(), result.data.data() + result.data.size());
   } else {
-    ROS_ERROR("[IRoboticArmBase] - Failed to compute inverse kinematics");
+    ROS_ERROR("[IRoboticArmBase] - Failed to compute inverse kinematics using TRAC-IK");
   }
 
   return isValid;
@@ -114,15 +114,45 @@ tuple<vector<double>, vector<double>, vector<double>> IRoboticArmBase::getState(
   return currentRobotState;
 }
 
-const bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos) {
+const bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos, const double tolerance) {
+  uint jointID = 0;
+  bool isAtPosition = true;
+  vector<uint> jointIDsNotAtPosition{};
   vector<double> currentJointPos = get<0>(getState());
 
+  auto it1 = currentJointPos.begin();
+  auto it2 = jointPos.begin();
+
+  for (; it1 != currentJointPos.end() && it2 != jointPos.end(); ++it1, ++it2, jointID++) {
+    if (std::abs(*it1 - *it2) > tolerance) {
+      isAtPosition = false;
+      jointIDsNotAtPosition.push_back(jointID);
+    }
+  }
+
 #ifdef DEBUG_MODE
-  ROS_WARN("[IRoboticArmBase] - Current joint Goal: %s", DebugTools::getVecString<double>(jointPos).c_str());
-  ROS_WARN("[IRoboticArmBase] - Current joint position: %s", DebugTools::getVecString<double>(currentJointPos).c_str());
+  if (!isAtPosition) {
+    ROS_WARN("[IRoboticArmBase] - Robot not at desired joint position");
+    ROS_WARN("[IRoboticArmBase] - Joint Goal : %s", DebugTools::getVecString<double>(jointPos).c_str());
+    ROS_WARN("[IRoboticArmBase] - Current Joints Pos : %s", DebugTools::getVecString<double>(currentJointPos).c_str());
+
+    // Print out joints names that are not in position
+    ostringstream tmpString;
+    tmpString << "[IRoboticArmBase] - Joints not at position : [";
+
+    auto it = jointIDsNotAtPosition.begin();
+    tmpString << *it;
+    ++it;
+
+    for (; it != jointIDsNotAtPosition.end(); ++it) {
+      tmpString << ", " << jointNames_[*it];
+    }
+
+    tmpString << "]";
+  }
 #endif
 
-  return equal(jointPos.begin(), jointPos.end(), currentJointPos.begin(), currentJointPos.end());
+  return isAtPosition;
 }
 
 void IRoboticArmBase::printInfo() const {
