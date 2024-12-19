@@ -133,22 +133,15 @@ const bool IRoboticArmBase::isAtJointPosition(const vector<double>& jointPos, co
 #ifdef DEBUG_MODE
   if (!isAtPosition) {
     ROS_WARN("[IRoboticArmBase] - Robot not at desired joint position");
-    ROS_WARN("[IRoboticArmBase] - Joint Goal : %s", DebugTools::getVecString<double>(jointPos).c_str());
-    ROS_WARN("[IRoboticArmBase] - Current Joints Pos : %s", DebugTools::getVecString<double>(currentJointPos).c_str());
+    ROS_WARN_STREAM("[IRoboticArmBase] - Goal: " << DebugTools::getVecString<double>(jointPos));
+    ROS_WARN_STREAM("[IRoboticArmBase] - Current Pos : " << DebugTools::getVecString<double>(currentJointPos));
 
-    // Print out joints names that are not in position
-    ostringstream tmpString;
-    tmpString << "[IRoboticArmBase] - Joints not at position : [";
-
-    auto it = jointIDsNotAtPosition.begin();
-    tmpString << *it;
-    ++it;
-
-    for (; it != jointIDsNotAtPosition.end(); ++it) {
-      tmpString << ", " << jointNames_[*it];
+    vector<string> tmpJointNames{};
+    for (auto it = jointIDsNotAtPosition.begin(); it != jointIDsNotAtPosition.end(); ++it) {
+      tmpJointNames.push_back(jointNames_[*it]);
     }
 
-    tmpString << "]";
+    ROS_WARN_STREAM("[IRoboticArmBase] - Not positioned : " << DebugTools::getVecString<string>(tmpJointNames));
   }
 #endif
 
