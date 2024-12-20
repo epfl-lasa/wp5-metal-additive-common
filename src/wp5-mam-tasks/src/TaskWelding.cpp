@@ -56,7 +56,7 @@ const geometry_msgs::Pose TaskWelding::getPoseOffset_(const ROI::Pose waypoint,
   const Eigen::Vector3d offsetDir = waypoint.getNormal();
   const Eigen::Vector3d rotVector = offsetDir.cross(wpVector).normalized();
 
-  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(rotVector, workingAngle_);
+  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-wpVector, workingAngle_);
   const Eigen::Quaterniond rotQuaternion = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), -offsetDir);
 
   // Add offsets from both tools size and welding needs

@@ -114,13 +114,27 @@ docker compose --profile nvidia up -d --build
 docker exec -it wp5-metal-additive-ros-1 bash
 ```
 
-### VSCode support
+## Build code
+
+To build the ROS packages you can use :
+
+```bash
+catkin build
+```
+
+It is **HIGHLY** recommended to use the debug cmake flag when testing processes since it adds features like trajectory pre-vizualisation with user feedback before running them. To do so, run the following command :
+
+```bash
+catkin build -DCMAKE_BUILD_TYPE=Debug
+```
+
+## VSCode support
 
 If using vscode with remote control extension, you can attach a vscode window to the chosen container using the bottom left green button.
 
-### Troubleshooting
+## Troubleshooting
 
-#### X Server issues
+### X Server issues
 
 If no window showed up after setting up a docker image that should output one there may be an issue with the X server access. To allow docker using the X server, run the following command :
 
@@ -128,7 +142,7 @@ If no window showed up after setting up a docker image that should output one th
 xhost +local:docker
 ```
 
-### Optional : Coppeliasim Simulation
+## Optional : Coppeliasim Simulation
 
 For those who needs, have access to the private repository and can use the university license of coppeliasim, the following commands can be used to add the coppeliasim docker as a submodule :
 
@@ -163,4 +177,4 @@ This repository use the work of the following repositories:
 ## Maintainers
 
 - Louis Munier - <lmunier@protonmail.com>
-- Last Update - 2024-11-22
+- Last Update - 2024-12-20

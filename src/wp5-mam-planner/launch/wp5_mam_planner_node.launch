@@ -7,7 +7,7 @@
     <arg name="camera" doc="Realsens camera to run : [1, 2, all, none]"
         default="none" />
 
-    <arg name="robot_type" doc="Which robot to use : [ur5, ur10e]" default="ur5" />
+    <arg name="robot_type" doc="Which robot to use : [ur5, ur10e]" default="ur10e" />
     <param name="robot_type" value="$(arg robot_type)" />
 
     <arg name="calibration_filename" default="ur10e_default" />
