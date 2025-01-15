@@ -6,7 +6,7 @@
 # Date: 2024-10-11
 
 # Define a list of submodules to check
-submodules=("tools/docker_ros_coppeliasim" "src/wp5-extern")
+submodules=("catkin_ws/src/wp5-extern")
 
 # Apply the stashed changes related to each submodule
 for submodule in "${submodules[@]}"; do

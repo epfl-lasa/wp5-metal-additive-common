@@ -1,0 +1,14 @@
+build
+target
+.vscode
+
+# Cmake stuff
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+.gitmodules
+Rust
+
+example/Rust
+example/test

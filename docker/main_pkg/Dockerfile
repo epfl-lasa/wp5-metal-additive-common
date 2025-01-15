@@ -145,7 +145,7 @@ ENV CARGO_HOME="/home/${USER}/.cargo"
 # ------------------------------------------------------------------------------
 # COPY the src/ directory of your host's ROS workspace into the container's
 # ------------------------------------------------------------------------------
-COPY --chown=${USER}:${USER} src/ /home/${USER}/catkin_ws/src/
+COPY --chown=${USER}:${USER} catkin_ws/src/ /home/${USER}/catkin_ws/src/
 # ------------------------------------------------------------------------------
 
 RUN rosdep update

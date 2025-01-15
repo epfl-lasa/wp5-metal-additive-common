@@ -1,0 +1,14 @@
+[package]
+name = "ik_geo"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "ik_geo"
+crate-type = ["dylib"]
+
+[dependencies]
+ik-geo = "*"
+
+[build-dependencies]
+cxx-build = "1.0"
