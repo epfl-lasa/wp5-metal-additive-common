@@ -19,7 +19,7 @@ if [ -n "$large_files" ]; then
 fi
 
 # Define a list of submodules to avoid pushing
-submodules=("tools/docker_ros_coppeliasim" "src/wp5-extern")
+submodules=("src/wp5-extern")
 
 if git diff --cached --name-only | grep -q '.gitmodules'; then
   for submodule in "${submodules[@]}"; do
