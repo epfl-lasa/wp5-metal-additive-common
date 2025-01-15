@@ -11,13 +11,21 @@
 set(CMAKE_CXX_STANDARD 17)
 
 # Set default build type to Release if not specified
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+if(DEFINED ENV{CMAKE_BUILD_TYPE})
+    set(CMAKE_BUILD_TYPE $ENV{CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build." FORCE)
+else()
+    # Set default build type to Release if not specified
+    if(NOT CMAKE_BUILD_TYPE)
+        set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+    endif()
 endif()
 
 # Define a macro for the build type
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG_MODE)
+    message(STATUS "Build type is Debug: -DDEBUG_MODE is defined")
+else()
+    message(STATUS "Build type is ${CMAKE_BUILD_TYPE}: -DDEBUG_MODE is not defined")
 endif()
 
 # Set compile options for different build types

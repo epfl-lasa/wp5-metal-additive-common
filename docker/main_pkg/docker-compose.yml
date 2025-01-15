@@ -1,0 +1,17 @@
+services:
+  # ROS with GPU support from NVIDIA
+  ros:
+    extends:
+      file: docker-compose-common.yml
+      service: common
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
