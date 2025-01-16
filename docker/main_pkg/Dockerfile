@@ -23,7 +23,9 @@
 ################################################################################
 
 FROM registry.gitlab.com/certh-iti-robotics-lab/robetarme/robetarme/ros-noetic:base
+
 ARG USER=robetarme_user
+ARG CMAKE_BUILD_TYPE=Debug
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # Do not modify above this line
@@ -33,8 +35,6 @@ ARG USER=robetarme_user
 # ------------------------------------------------------------------------------
 # Install your dependencies here
 # ------------------------------------------------------------------------------
-ENV CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-
 # Add a few essential tools
 RUN apt update --fix-missing && apt upgrade -y && apt clean
 RUN apt install -y \
@@ -124,8 +124,10 @@ USER ${USER}
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 RUN echo "source /home/${USER}/.cargo/env" >> ~/.bashrc
 
-ENV PATH="/home/${USER}/.cargo/bin:${PATH}"
 ENV CARGO_HOME="/home/${USER}/.cargo"
+ENV PATH="/home/${USER}/.cargo/bin:${PATH}"
+ENV CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+
 # ------------------------------------------------------------------------------
 
 # ACTIONS_NEEDED

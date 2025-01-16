@@ -38,5 +38,4 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - ../../src:/home/${USER}/catkin_ws/src
-      - ../../data:/home/${USER}/catkin_ws/data
+      - ../../catkin_ws/src:/home/${USER}/catkin_ws/src
