@@ -20,7 +20,7 @@ Main FSM:
 - **Homing** The robot goes back to its initial position when the task is finished, it means it will just exit the FSM and be ready for another run when needed.
 - **Exit** Here the task is finished, the FSM exited and all the unnecessary Cpp objects destroyed.
 
-![Two main FSM](docs/240830_mam_deliverable_architecture.svg)
+![Two main FSM](240830_mam_deliverable_architecture.svg)
 
 ## Clone
 
