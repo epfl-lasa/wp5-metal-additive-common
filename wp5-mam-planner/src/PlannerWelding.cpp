@@ -17,10 +17,7 @@
 using namespace std;
 
 PlannerWelding::PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) :
-    IPlannerBase(rosVersion, nh, robotName) {
-  geometry_msgs::TransformStamped transformStamped;
-  MathTools::getTransform("virtual_link", "ee_tool", transformStamped);
-}
+    IPlannerBase(rosVersion, nh, robotName) {}
 
 bool PlannerWelding::planTrajectory(const vector<geometry_msgs::Pose>& waypoints) {
   bool success = false;

@@ -1,6 +1,0 @@
-[submodule "src/ros-modbus-device-driver"]
-	path = src/ros-modbus-device-driver
-	url = https://github.com/epfl-lasa/ros-modbus-device-driver.git
-[submodule "src/wp5-robotic-arms/libs/ik-geo-cpp"]
-	path = src/wp5-robotic-arms/libs/ik-geo-cpp
-	url = git@github.com:epfl-lasa/ik-geo-cpp.git

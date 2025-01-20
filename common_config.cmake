@@ -23,9 +23,6 @@ endif()
 # Define a macro for the build type
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG_MODE)
-    message(STATUS "Build type is Debug: -DDEBUG_MODE is defined")
-else()
-    message(STATUS "Build type is ${CMAKE_BUILD_TYPE}: -DDEBUG_MODE is not defined")
 endif()
 
 # Set compile options for different build types
