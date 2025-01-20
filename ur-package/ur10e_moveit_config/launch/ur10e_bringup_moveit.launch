@@ -6,11 +6,7 @@
 
     <!-- Define if there is any tool to add at the end effector -->
     <arg name="ee_tool" default="none"
-        doc="Add the end effector tool to consider on the robot to have it in collision / visual. [none, logi_laser]" />
-
-    <!-- Define which is the environment is it running on to run the corresponding launchfiles -->
-    <arg name="environment"
-        doc="Which environment is it running on : [ridgeback, navigation, desktop_pc]" />
+        doc="Add the end effector tool to consider on the robot to have it in collision / visual. [none, welding_laser]" />
 
     <!-- Conditional argument for robot_IP selection based on the 'simu' flag -->
     <arg unless="$(eval simu=='ON')" name="robot_ip" default="192.168.2.100" />

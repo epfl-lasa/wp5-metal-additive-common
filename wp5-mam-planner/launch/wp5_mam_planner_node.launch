@@ -4,15 +4,13 @@
     <arg name="environment"
         doc="Which environment is it running on : [ridgeback, robot_pc, desktop_pc]"
         default="desktop_pc" />
-    <arg name="camera" doc="Realsens camera to run : [1, 2, all, none]"
-        default="none" />
 
     <arg name="robot_type" doc="Which robot to use : [ur5, ur10e]" default="ur10e" />
     <param name="robot_type" value="$(arg robot_type)" />
 
     <arg name="calibration_filename" default="ur10e_default" />
     <arg name="ee_tool"
-        doc="Type of the tool attached to the end effector : [none, welding_laser, marker, logi_laser]"
+        doc="Type of the tool attached to the end effector : [none, welding_laser]"
         default="none" />
 
     <!-- Setup Robot ip -->
@@ -35,15 +33,7 @@
             <arg name="simu" value="$(arg simu)" />
             <arg name="ee_tool" value="$(arg ee_tool)" />
             <arg name="robot_ip" value="$(arg robot_ip)" />
-            <arg name="environment" value="$(arg environment)" />
             <arg name="calibration_filename" default="$(arg calibration_filename)" />
         </include>
     </group>
-
-    <!-- <group ns="$(arg robot_type)">
-        <node
-            pkg="wp5_mam_planner" type="wp5_mam_planner_node" name="wp5_mam_planner_node"
-            output="screen">
-        </node>
-    </group> -->
 </launch>

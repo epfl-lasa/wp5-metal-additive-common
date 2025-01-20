@@ -1,18 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-    <xacro:include filename="$(find experiments)/urdf/ee_logi_laser.urdf.xacro" />
-    <xacro:include filename="$(find experiments)/urdf/ee_marker.urdf.xacro" />
     <xacro:include filename="$(find laser_description)/urdf/ee_welding_laser.urdf.xacro" />
-
-    <xacro:if value="${ee_tool == 'logi_laser'}">
-        <xacro:ee_logi_laser prefix="${prefix}" />
-    </xacro:if>
 
     <xacro:if value="${ee_tool == 'welding_laser'}">
         <xacro:ee_welding_laser prefix="${prefix}" />
-    </xacro:if>
-
-    <xacro:if value="${ee_tool == 'marker'}">
-        <xacro:ee_marker prefix="${prefix}" />
     </xacro:if>
 </robot>
