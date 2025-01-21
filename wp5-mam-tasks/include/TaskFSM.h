@@ -1,3 +1,14 @@
+/**
+ * @file TaskFSM.h
+ * @brief FSM based on Boost::MSM to manage the task execution.
+ *
+ * @author [Louis Munier] - lmunier@protonmail.com
+ * @version 0.2
+ * @date 2025-01-21
+ *
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ *
+ */
 #pragma once
 
 // MSM back-end

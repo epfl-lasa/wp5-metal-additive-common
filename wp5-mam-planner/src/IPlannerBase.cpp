@@ -25,7 +25,7 @@
 
 using namespace std;
 
-IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) : /*spinner_(4), */ nh_(nh) {
+IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) : nh_(nh) {
   robot_ = RoboticArmFactory::createRoboticArm(robotName, rosVersion);
   initMoveit_();
 
@@ -320,7 +320,6 @@ void IPlannerBase::initMoveit_() {
   }
 
   setupMoveGroup_();
-  // spinner_.start();
 
   // Wait for the scene to get ready
   ros::Duration(1.0).sleep();
