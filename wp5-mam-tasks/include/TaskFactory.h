@@ -1,6 +1,15 @@
-// clang off
-#include "ITaskBase.h"
-// clang on
+/**
+ * @file TaskFactory.h
+ * @brief Factory class to create instances of task.
+ *
+ * @author [Louis Munier] - lmunier@protonmail.com
+ * @version 0.3
+ * @date 2025-01-21
+ *
+ * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ *
+ */
+#pragma once
 
 #include <ros/ros.h>
 
@@ -8,10 +17,14 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
+#include <vector>
 
+#include "ITaskBase.h"
 #include "TaskCleaning.h"
 #include "TaskWelding.h"
+#include "debug_tools.h"
 
 /**
  * @brief The TaskFactory class is responsible for creating instances of tasks based on their names.
@@ -21,21 +34,8 @@
  */
 class TaskFactory {
 public:
-  using FactoryFunction = std::function<std::unique_ptr<ITaskBase>(ros::NodeHandle& nh, std::string configFilename)>;
-
-  /**
-   * @brief Constructs a TaskFactory object.
-   *
-   * The constructor initializes the factoryFunctionRegistry and registers the default task types.
-   */
-  TaskFactory() {
-    registerTask("welding", [](ros::NodeHandle& nh, std::string configFilename) {
-      return std::make_unique<TaskWelding>(nh, configFilename);
-    });
-    registerTask("cleaning", [](ros::NodeHandle& nh, std::string configFilename) {
-      return std::make_unique<TaskCleaning>(nh, configFilename);
-    });
-  }
+  // Prevent instantiation
+  TaskFactory() = delete;
 
   /**
    * @brief Registers a task type with its corresponding factory function.
@@ -43,7 +43,10 @@ public:
    * @param name Name of the task type.
    * @param function Factory function that creates instances of the task type.
    */
-  void registerTask(std::string name, FactoryFunction function) { factoryFunctionRegistry[name] = function; }
+  static void registerTask(const std::string& name,
+                           std::function<std::shared_ptr<ITaskBase>(ros::NodeHandle&, std::string)> creator) {
+    getRegistry()[name] = creator;
+  }
 
   /**
    * @brief Creates an instance of a task based on its name.
@@ -54,19 +57,17 @@ public:
    * @return A unique pointer to the created task instance.
    * @throws std::runtime_error if the specified task name is invalid.
    */
-  std::unique_ptr<ITaskBase> createTask(std::string name, ros::NodeHandle& nh, std::string configFilename) {
-    auto it = factoryFunctionRegistry.find(name);
+  static std::shared_ptr<ITaskBase> createTask(const std::string& name,
+                                               ros::NodeHandle& nh,
+                                               std::string configFilename) {
+    auto it = getRegistry().find(name);
 
-    if (it != factoryFunctionRegistry.end()) {
+    if (it != getRegistry().end()) {
       return it->second(nh, configFilename);
     } else {
-      std::ostringstream errorMsg{}, oss{};
-
-      std::vector<std::string> allowedValues = getTaskTypes();
-      std::copy(allowedValues.begin(), allowedValues.end() - 1, std::ostream_iterator<std::string>(oss, ", "));
-
-      oss << allowedValues.back();
-      errorMsg << "Invalid taskType: " << name << ". Allowed values are " << oss.str() << ".";
+      std::ostringstream errorMsg{};
+      errorMsg << "Invalid task type: " << name << ". Allowed values are ";
+      errorMsg << DebugTools::getVecString<std::string>(getTaskTypes());
 
       throw std::runtime_error(errorMsg.str());
     }
@@ -77,10 +78,10 @@ public:
    *
    * @return A vector containing the names of the registered task types.
    */
-  std::vector<std::string> getTaskTypes() {
+  static std::vector<std::string> getTaskTypes() {
     std::vector<std::string> keys;
 
-    for (const auto& pair : factoryFunctionRegistry) {
+    for (const auto& pair : getRegistry()) {
       keys.push_back(pair.first);
     }
 
@@ -88,5 +89,25 @@ public:
   }
 
 private:
-  std::map<std::string, FactoryFunction> factoryFunctionRegistry;
+  // Get the registry of robotic arms
+  static std::unordered_map<std::string, std::function<std::shared_ptr<ITaskBase>(ros::NodeHandle&, std::string)>>&
+  getRegistry() {
+    static std::unordered_map<std::string, std::function<std::shared_ptr<ITaskBase>(ros::NodeHandle&, std::string)>>
+        registry;
+    return registry;
+  }
+
+  // Static initialization block
+  static bool initialize() {
+    registerTask("welding", [](ros::NodeHandle& nh, std::string configFilename) {
+      return std::make_shared<TaskWelding>(nh, configFilename);
+    });
+    registerTask("cleaning", [](ros::NodeHandle& nh, std::string configFilename) {
+      return std::make_shared<TaskCleaning>(nh, configFilename);
+    });
+    return true;
+  }
+
+  // Static member to trigger initialization only once
+  static inline bool initialized = initialize();
 };

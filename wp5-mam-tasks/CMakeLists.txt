@@ -33,9 +33,10 @@ include_directories(
 )
 
 # Add the main node
-set(node_name wp5_mam_main_task_node)
+set(node_name wp5_task_node)
 add_executable(${node_name}
-  src/main_task.cpp
+  src/task_node.cpp
+  src/TaskManager.cpp
   src/ITaskBase.cpp
   src/TaskWelding.cpp
   src/TaskCleaning.cpp

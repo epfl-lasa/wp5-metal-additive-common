@@ -1,8 +1,0 @@
-# Ignore all files and directories
-*
-
-# Allow tracking of .gitignore itself
-!.gitignore
-
-# Allow tracking of existing files and directories
-!*/

@@ -67,8 +67,8 @@ protected:
   std::unique_ptr<IRoboticArmBase> robot_ = nullptr;         ///< Robotic arm
   std::unique_ptr<ObstaclesManagement> obstacles_ = nullptr; ///< Obstacles management
 
-  ros::NodeHandle nh_;        ///< ROS node handle
-  ros::AsyncSpinner spinner_; ///< ROS spinner to handle callbacks asynchronously
+  ros::NodeHandle nh_; ///< ROS node handle
+  // ros::AsyncSpinner spinner_; ///< ROS spinner to handle callbacks asynchronously
 
   ros::Publisher pubLaserState_; ///< Publisher for the welding state
 
