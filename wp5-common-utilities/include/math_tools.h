@@ -94,6 +94,34 @@ constexpr double degToRad(const T& deg) {
 }
 
 /**
+ * @brief Clamp a value between a minimum and maximum.
+ *
+ * @param value The value to clamp.
+ * @param min The minimum value.
+ * @param max The maximum value.
+ * @return The clamped value.
+ */
+template <typename T>
+constexpr T clamp(const T& value, const T& min, const T& max) {
+  return std::max(min, std::min(value, max));
+}
+
+/**
+ * @brief Linearly interpolate the value between two points.
+ *
+ * @param value The value to interpolate.
+ * @param inMin The minimum of the input value.
+ * @param inMax The maximum of the input value.
+ * @param outMin The minimum of the output value.
+ * @param outMax The maximum of the output value.
+ * @return The interpolated value.
+ */
+template <typename T>
+constexpr T map(const T& value, const T& inMin, const T& inMax, const T& outMin, const T& outMax) {
+  return outMin + (value - inMin) * (outMax - outMin) / (inMax - inMin);
+}
+
+/**
  * @brief Checks if two quaternions are equivalent within a given tolerance.
  *
  * This function compares two quaternions by converting them to rotation matrices and
