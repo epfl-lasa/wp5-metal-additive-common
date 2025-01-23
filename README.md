@@ -1,8 +1,33 @@
-# Robetarme WP5 Deliverable
+# Robetarme T5.3 - IRR - Control
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Submodule](#submodule)
+- [Requirements](#requirements)
+- [Docker](#docker)
+  - [Build the Docker containers](#build-the-docker-containers)
+- [Build code](#build-code)
+- [Getting Started](#getting-started)
+  - [Real scenario](#real-scenario)
+  - [Simulation scenario](#simulation-scenario)
+  - [Planner](#planner)
+  - [Task](#task)
+  - [Laser Service](#laser-service)
+  - [UR Simulation](#ur-simulation)
+    - [cb-series Polyscope](#cb-series-polyscope)
+    - [e-series Polyscope](#e-series-polyscope)
+  - [Toy Data](#toy-data)
+- [VSCode support](#vscode-support)
+- [Troubleshooting](#troubleshooting)
+  - [X Server issues](#x-server-issues)
+- [License](#license)
+- [Credits](#credits)
+- [Maintainers](#maintainers)
 
 ## Overview
 
-The repository comprises multiple packages written in C++17. Currently, it is designed to work with ROS Noetic and MoveIt through docker container.
+The repository comprises multiple packages written in C++17. Currently, it is designed to work with ROS Noetic and MoveIt through docker containers.
 
 There are two main FSM built for that project, as follow :
 
