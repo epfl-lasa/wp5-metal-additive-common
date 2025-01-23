@@ -8,18 +8,18 @@ There are two main FSM built for that project, as follow :
 
 Error Handling FSM:
 
-- **AllOk** This state is here to claim that the robot is safe to use and there are no errors.
-- **ErrorMode**  Here an error occurs and needs to be acknowledged. It can be a safety error or simply an error in the execution of the task. After the error is acknowledged, it goes back to AllOk mode and the main FSM is resumed from where it was.
+- **AllOk -** This state is here to claim that the robot is safe to use and there are no errors.
+- **ErrorMode -**  Here an error occurs and needs to be acknowledged. It can be a safety error or simply an error in the execution of the task. After the error is acknowledged, it goes back to AllOk mode and the main FSM is resumed from where it was.
 
 Main FSM:
 
-- **Initializing** This is where every objects are initialized. It creates an object for the MoveIt planning scene, it initializes the known static obstacles and so on.
-- **Scanning** This step does perform the scanning of the area to detect all the parts needing a repair. It uses the work of DTU and an intel realsense camera.
-- **Planning** Here is the planning for the subtask. It will extract a path from the different waypoints and save it for later use.
-- **Ready** As soon as the path is computed, the Robot enters in a Ready state where a Start signal is waiting to move to Executing state.
-- **Executing** The path is executed with welding or cleaning execution when needed. If the robot is asked to exit, then it goes to Homing state otherwise it goes back to Planning or Scanning, based on the task ongoing.
-- **Homing** The robot goes back to its initial position when the task is finished, it means it will just exit the FSM.
-- **Exit** Here the task is finished, the FSM exited and all the unnecessary Cpp objects destroyed.
+- **Initializing -** This is where every objects are initialized. It creates an object for the MoveIt planning scene, it initializes the known static obstacles and so on.
+- **Scanning -** This step does perform the scanning of the area to detect all the parts needing a repair. It uses the work of DTU and an intel realsense camera.
+- **Planning -** Here is the planning for the subtask. It will extract a path from the different waypoints and save it for later use.
+- **Ready -** As soon as the path is computed, the Robot enters in a Ready state where a Start signal is waiting to move to Executing state.
+- **Executing -** The path is executed with welding or cleaning execution when needed. If the robot is asked to exit, then it goes to Homing state otherwise it goes back to Planning or Scanning, based on the task ongoing.
+- **Homing -** The robot goes back to its initial position when the task is finished, it means it will just exit the FSM.
+- **Exit -** Here the task is finished, the FSM exited and all the unnecessary Cpp objects destroyed.
 
 ![Two main FSM](doc/250123_mam_deliverable_architecture.svg)
 
@@ -119,15 +119,7 @@ Here are the two main scenarios to be used. For more details on each parts, jump
 
 ### Real scenario
 
-This scenario is using a real robot instead of the UR simulation tool. To do so,
-
-### Simulation scenario
-
-### Planner
-
-The planner is handled by Moveit! so the following run will set up a Moveit! instance with the robot in parameter, chosen in the following : [ur5, ur10e], by default it is set to ur10e.
-
-To set up the code and wait for function call, run the following scripts in different terminals directly into the docker container:
+This scenario is using a real robot instead of the UR simulation tool. To do so, inside the docker container, run the following:
 
 ```bash
 run_docker_planner.sh
@@ -144,14 +136,28 @@ rosservice call /ur5/wp5_task_node/execution/enable "{}" # for the ur5 robot usa
 
 You can check the different possible calls to run, stop or kill the service, for example. They are directly visible when performing a rosservice list or looking at the implementation instructions from RobétArmé [gitlab](https://gitlab.com/certh-iti-robotics-lab/robetarme/robetarme-guides/-/tree/main/integration-templates/packages).
 
+### Simulation scenario
+
+You firstly have to run the UR simulation tools, there is docker for that. You can set it up running one of the following [UR simulation](#ur-simulation), depending on the robot.
+
+### Planner
+
+The planner is handled by Moveit! so the following run will set up a Moveit! instance with the robot in parameter, chosen in the following : [ur5, ur10e], by default it is set to ur10e.
+
+To set up the code and wait for function call, run the following scripts in different terminals directly into the docker container:
+
+```bash
+run_docker_planner.sh
+```
+
 ### Task
 
 The task, wp5-mam-tasks ROS package in the code, is mainly implemented using the double FSM, based on Boost::MSM library. It will manage the calls to instantiate the following objects:
 
-**Task** Based on the task, by default it is a welding task.
-**Planner** Based on the instantiated task, by default it is a welding planner.
-**Robotic Arm** Based on the input parameter from the roslaunch, by default it is a UR10e robot.
-**ObstacleManagement** An object managing the Moveit! scene and all the obstacles to avoid during planning.
+**Task -** Based on the task, by default it is a welding task.
+**Planner -** Based on the instantiated task, by default it is a welding planner.
+**Robotic Arm -** Based on the input parameter from the roslaunch, by default it is a UR10e robot.
+**ObstacleManagement -** An object managing the Moveit! scene and all the obstacles to avoid during planning.
 
 All of this will only run if the correct *taskType* parameter is set, currently it can be one of the following: [welding, cleaning], it is welding by default.
 
@@ -171,12 +177,78 @@ run_welding_laser_service.sh
 
 ### UR Simulation
 
-If there is any need to run the UR simulation to have a fake robot in the setup, run one of the following:
+If there is any need to run the UR simulation to have a fake robot in the setup, run one of the following, outside a docker, it will set one up:
 
 ```bash
 run_ur_cb_sim.sh # for a cb-series UR robot (robot without e arg)
 run_ur_e_sim.sh # for a e-series UR robot
 ```
+
+#### cb-series Polyscope
+
+When the tool is up and running, load the urcap file and run the simulator as soon as the planner is running. It will set up a connection between ROS and the polyscope, ur simulator.
+
+To load and run the file, click on *Run Program*:
+
+![home](doc/ur_cb_sim/ur_cb_home.png)
+
+Click on file -> Load Program:
+
+![load_file](doc/ur_cb_sim/ur_cb_load_file.png)
+
+Load the urcap file to establish the contact between the polyscope and ROS:
+
+![urcap](doc/ur_cb_sim/ur_cb_urcap.png)
+
+Click on the play button to enable the connection and have a simulation ready. It has to be stop / play again when the ROS node is restarted.
+
+![play](doc/ur_cb_sim/ur_cb_play.png)
+
+#### e-series Polyscope
+
+There is a high probability that the urcaps add-on is not installed when polyscope is up and running, first install it and restart the docker. When the tool is up and running again, load the urcap file and run the simulator as soon as the planner is running. It will set up a connection between ROS and the polyscope, ur simulator.
+
+To go to the settings, click on the hamburger menu on the top right then settings:
+
+![settings](doc/ur_e_sim/ur_e_settings.png)
+
+Verify if urcaps is loaded, under settings -> urcaps. If not, click on the *+* button on the bottom left:
+
+![urcaps](doc/ur_e_sim/ur_e_urcap.png)
+
+Load the urcap file:
+
+![load_urcap](doc/ur_e_sim/ur_e_load_file.png)
+
+Restart the docker, as asked by polyscope:
+
+![restart](doc/ur_e_sim/ur_e_restart.png)
+
+When docker restarted, load the program to control the robot using an external source, ROS in our case:
+
+![load_program](doc/ur_e_sim/ur_e_load_program.png)
+
+![load_file](doc/ur_e_sim/ur_e_external_ros_file.png)
+
+You can verify that everything goes well, under program tab. If the ip address of the robot is 127.0.0.1, *localhost*, then the control is good to go:
+
+![program](doc/ur_e_sim/ur_e_program.png)
+
+Now activate the robot, clicking on *power off* on the bottom left.
+
+![power_on](doc/ur_e_sim/ur_e_power_on.png)
+
+Then press the *ON* button.
+
+![robot_on](doc/ur_e_sim/ur_e_on.png)
+
+Finally press *START* button, then you can exit this page, pressing *Exit* button on the bottom left.
+
+![robot_start](doc/ur_e_sim/ur_e_start.png)
+
+At this step, everything is ready on the UR simulation side. As soon as the planner is started and ready to connect to the robot you can play the program, pressing play button on the bottom right and select *robot program*.
+
+![play_program](doc/ur_e_sim/ur_e_robot_program.png)
 
 ### Toy Data
 
