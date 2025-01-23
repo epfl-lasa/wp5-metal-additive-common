@@ -140,6 +140,8 @@ You can check the different possible calls to run, stop or kill the service, for
 
 You firstly have to run the UR simulation tools, there is docker for that. You can set it up running one of the following [UR simulation](#ur-simulation), depending on the robot.
 
+Then follow with the [real scenario](#real-scenario).
+
 ### Planner
 
 The planner is handled by Moveit! so the following run will set up a Moveit! instance with the robot in parameter, chosen in the following : [ur5, ur10e], by default it is set to ur10e.
