@@ -200,9 +200,20 @@ public:
     }
   };
 
+  /** @brief The two initial states for both Finite State Machine */
   typedef mp11::mp_list<AllOk, Initializing> initial_state;
 
-  // Each row correspond to : Start, Event, Next, Action, Guard
+  /** @brief Each row correspond to : Start, Event, Next, Action, Guard
+   *
+   * The transition table defines the possible transitions between states in the FSM.
+   * Each row in the table corresponds to a transition and contains the following elements:
+   * - Start: The source state of the transition.
+   * - Event: The event that triggers the transition.
+   * - Next: The target state of the transition.
+   * - Action: The action functor to be executed : a function called during the transition
+   * - Guard: The guard condition to be evaluated : a safety function called before the
+   * transition to ensure the transition can be done only if the guard returns true.
+   */
   using transition_table = mp11::mp_list<
       // Initializing -----------------------------------------
       msmf::Row<Initializing, Initialized, Scanning, msmf::none, msmf::none>,

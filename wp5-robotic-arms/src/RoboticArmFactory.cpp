@@ -16,7 +16,9 @@
 /**
    * @brief Robotic Arm H matrices.
    *
-   * The H matrix defines the orientation of the joint axis, in the reference frame (identity frame),
+   * Part of the Product of Exponential definition of the robot. The H matrix (axis of
+   * rotation between frames, in home referential) defines
+   * the orientation of the joint axis, in the reference frame (identity frame),
    * in its home position.
    * => define the rotation axis for each joint, in the base frame.
    */
@@ -33,8 +35,9 @@ const std::array<double, 18> RoboticArmFactory::UR_H_MATRIX{
   /**
    * @brief Robotic Arm P matrices.
    *
-   * The P matrix defines the position of the joint axis, in the reference frame (identity frame),
-   * in its home position.
+   * Part of the Product of Exponential definition of the robot. The P matrix (translation between
+   * frames, in home referential) defines the position of the joint axis, in the reference frame
+   * (identity frame), in its home position.
    * => define the position of each joint, with respect to the previous one, in the base frame.
    */
 
