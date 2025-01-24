@@ -6,7 +6,7 @@
  * @version 0.2
  * @date 2024-12-05
  *
- * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
 
 #pragma once
@@ -67,8 +67,8 @@ protected:
   std::unique_ptr<IRoboticArmBase> robot_ = nullptr;         ///< Robotic arm
   std::unique_ptr<ObstaclesManagement> obstacles_ = nullptr; ///< Obstacles management
 
-  ros::NodeHandle nh_;           ///< ROS node handle
-  ros::Publisher pubLaserState_; ///< Publisher for the welding state
+  ros::NodeHandle nh_;             ///< ROS node handle
+  ros::ServiceClient laserClient_; ///< Client for the welding laser service
 
 #ifdef DEBUG_MODE
   ros::Publisher pubTrajectory_; ///< Publisher for the trajectory
@@ -105,6 +105,7 @@ private:
   void initMoveit_();
   void setupMoveGroup_();
   void cleanMoveGroup_();
+  bool manageLaser_(bool enable);
 
   bool move_();
 };

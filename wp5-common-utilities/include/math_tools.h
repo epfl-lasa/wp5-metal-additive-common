@@ -6,7 +6,7 @@
  * @version 0.4
  * @date 2024-11-20
  *
- * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  *
  */
 

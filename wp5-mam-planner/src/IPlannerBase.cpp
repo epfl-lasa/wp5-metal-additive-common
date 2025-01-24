@@ -4,22 +4,18 @@
  *
  * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.2
- * @date 2024-12-05
+ * @date 2025-01-24
  *
- * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
 #include "IPlannerBase.h"
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <std_msgs/Bool.h>
-
-#include <atomic>
-#include <chrono>
-#include <thread>
 
 #include "RoboticArmFactory.h"
 #include "conversion_tools.h"
 #include "debug_tools.h"
+#include "laser_service/ManageLaser.h"
 #include "math_tools.h"
 #include "yaml_tools.h"
 
@@ -29,7 +25,7 @@ IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string ro
   robot_ = RoboticArmFactory::createRoboticArm(robotName, rosVersion);
   initMoveit_();
 
-  pubLaserState_ = nh_.advertise<std_msgs::Bool>("laser_state", 1);
+  laserClient_ = nh.serviceClient<laser_service::ManageLaser>("/wp5_laser_service_node/manage");
 
 #ifdef DEBUG_MODE
   pubTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("debug_trajectory", 1000);
@@ -44,7 +40,6 @@ bool IPlannerBase::executeTrajectory() {
   bool success = false;
   int currentStep = 0;
   vector<double> firstJointConfig{};
-  std_msgs::Bool msg;
 
   if (trajTaskToExecute_.empty()) {
     ROS_ERROR("[IPlannerBase] - No trajectory to execute");
@@ -53,7 +48,17 @@ bool IPlannerBase::executeTrajectory() {
 
   for (const auto& trajTask : trajTaskToExecute_) {
     currentStep++;
-    msg.data = trajTask.second;
+
+#ifdef DEBUG_MODE
+    ROS_INFO_STREAM("[IPlannerBase] - Welding state at step " << currentStep << " : " << trajTask.second);
+
+    // Call laser service disabling before waiting on user feedback
+    if (!trajTask.second) {
+      if (!manageLaser_(trajTask.second)) {
+        return false;
+      }
+    }
+#endif
 
     // Check the first joint configuration to be able to begin trajectory execution
     firstJointConfig = trajTask.first.joint_trajectory.points[0].positions;
@@ -67,16 +72,26 @@ bool IPlannerBase::executeTrajectory() {
       }
     }
 
-    // Execute the trajectory
 #ifdef DEBUG_MODE
     string userMsg =
         "[IPlannerBase] - Execute trajectory at step " + to_string(currentStep) + ". Press Enter to continue.";
 
     DebugTools::publishTrajectory(*moveGroup_, trajTask.first, pubTrajectory_);
     DebugTools::waitOnUser(userMsg);
+
+    // Call laser service enabling after waiting on user feedback
+    if (trajTask.second) {
+      if (!manageLaser_(trajTask.second)) {
+        return false;
+      }
+    }
+#else
+    if (!manageLaser_(trajTask.second)) {
+      return false;
+    }
 #endif
 
-    // Calling service here to turn on the laser and keep it on during the trajectory
+    // Execute the trajectory
     success = (moveGroup_->execute(trajTask.first) == moveit::core::MoveItErrorCode::SUCCESS);
     cleanMoveGroup_();
 
@@ -338,6 +353,25 @@ void IPlannerBase::cleanMoveGroup_() {
   moveGroup_->stop();
   moveGroup_->clearPoseTargets();
   moveGroup_->setStartStateToCurrentState();
+}
+
+bool IPlannerBase::manageLaser_(bool enable) {
+  laser_service::ManageLaser msgLaser;
+  msgLaser.request.enable = enable;
+
+  ros::Duration timeout(20.0); // Add safety timeout
+
+  ros::Time startTime = ros::Time::now();
+  while (!laserClient_.call(msgLaser)) {
+    if (ros::Time::now() - startTime > timeout) {
+      ROS_ERROR("[IPlannerBase] - Timeout while waiting for laser service");
+      return false;
+    }
+
+    ros::Duration(0.1).sleep();
+  }
+
+  return msgLaser.response.success;
 }
 
 bool IPlannerBase::move_() {

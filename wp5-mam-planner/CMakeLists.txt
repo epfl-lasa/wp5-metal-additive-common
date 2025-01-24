@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning
   moveit_ros_planning_interface
   moveit_ros_move_group
+  laser_service
   wp5_common_utilities
   wp5_ros_interface
   wp5_robotic_arms
@@ -29,6 +30,7 @@ catkin_package(
     moveit_ros_planning
     moveit_ros_planning_interface
     moveit_ros_move_group
+    laser_service
     wp5_common_utilities
     wp5_ros_interface
     wp5_robotic_arms

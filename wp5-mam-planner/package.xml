@@ -16,6 +16,7 @@
   <depend>moveit_ros_planning_interface</depend>
   <depend>moveit_ros_move_group</depend>
   <depend>std_msgs</depend>
+  <depend>laser_service</depend>
   <depend>wp5_common_utilities</depend>
   <depend>wp5_robotic_arms</depend>
   <depend>wp5_ros_interface</depend>

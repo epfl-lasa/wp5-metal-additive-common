@@ -7,7 +7,7 @@
  *
  * @version 0.2
  * @date 2024-10-22
- * @copyright Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+ * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
 
 #include "Subtask.h"
