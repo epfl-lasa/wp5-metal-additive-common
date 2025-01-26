@@ -4,7 +4,7 @@
  *
  * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.2
- * @date 2024-12-05
+ * @date 2025-01-26
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
@@ -102,6 +102,7 @@ protected:
 
   const std::vector<double> homeConfig_{};  ///< Home joint configuration.
   const double workingAngle_{};             ///< Working angle for the task.
+  const double workingSpeed_{};             ///< Working speed for the task.
   const Eigen::Vector3d eePosOffset_{};     ///< End effector pose offset.
   const Eigen::Vector3d eePosWorkOffset_{}; ///< End effector  working pose offset.
   const std::vector<double> eePoseScan_{};  ///< End effector sacnning pose offset.

@@ -16,8 +16,8 @@
 
 using namespace std;
 
-PlannerWelding::PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) :
-    IPlannerBase(rosVersion, nh, robotName) {}
+PlannerWelding::PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName, double workingSpeed) :
+    IPlannerBase(rosVersion, nh, robotName, workingSpeed) {}
 
 bool PlannerWelding::planTrajectory(const vector<geometry_msgs::Pose>& waypoints) {
   bool success = false;
@@ -56,7 +56,7 @@ bool PlannerWelding::planTrajectory(const vector<geometry_msgs::Pose>& waypoints
 
     // If all the paths are computed, store them and break the loop
     if (failedStep == -1) {
-      retimeTrajectory_(plan, 0.5, 1); // TODO(lmunier) - Set the speed and frequency as a parameters
+      retimeTrajectory_(plan, workingSpeed_, 1);
 
       vector<pair<moveit_msgs::RobotTrajectory, bool>>::iterator insertPosition = trajTaskToExecute_.begin() + 1;
       trajTaskToExecute_.insert(insertPosition, make_pair(plan, true));

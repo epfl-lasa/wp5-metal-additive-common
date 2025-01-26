@@ -38,7 +38,7 @@ public:
   /**
    * @brief Constructor.
    */
-  IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName);
+  IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName, double workingSpeed);
 
   /**
    * @brief Destructor.
@@ -76,6 +76,7 @@ protected:
 
   bool pathFound_ = false;                                       ///< Flag indicating if a path is found
   int currentWPointID_ = 0;                                      ///< Current waypoint ID
+  double workingSpeed_ = 0.0;                                    ///< Working speed
   std::vector<moveit_msgs::RobotTrajectory> sortedWeldingPaths_; ///< Sorted list of possible welding paths
 
   // List of trajectories to be executed, with task (welding / cleaning) to be activated
@@ -94,12 +95,12 @@ protected:
   void reverseTrajectory_(moveit_msgs::RobotTrajectory& trajectory);
 
   std::vector<trajectory_msgs::JointTrajectoryPoint> interpolatePoints_(
-      const trajectory_msgs::JointTrajectoryPoint& prev_point,
-      const trajectory_msgs::JointTrajectoryPoint& curr_point,
-      double time_step,
-      double time_interval);
+      const trajectory_msgs::JointTrajectoryPoint& prevPoint,
+      const trajectory_msgs::JointTrajectoryPoint& currPoint,
+      double timeStep,
+      double timeInterval);
 
-  bool retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, double cartesian_speed, double robot_frequency);
+  bool retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, double cartesianSpeed, double robotFrequency);
 
 private:
   void initMoveit_();

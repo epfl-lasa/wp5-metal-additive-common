@@ -48,6 +48,10 @@ public:
 
   /**
    * @brief Constructor for IRoboticArmBase.
+   *
+   * @param robotName Name of the robotic arm.
+   * @param rosVersion ROS version.
+   * @param config YAML node configuration for the robotic arm.
    */
   IRoboticArmBase(std::string robotName, ROSVersion rosVersion, const YAML::Node& config);
 
@@ -64,6 +68,7 @@ public:
 
   /**
    * @brief Original home joint positions of the robotic arm.
+   * @return Original home joint positions of the robotic arm.
    */
   const std::vector<double> getOriginalHomeJoint() const { return originalHomeJoint_; }
 
@@ -80,8 +85,14 @@ public:
   const size_t getNbJoints() const { return jointNames_.size(); }
 
   /**
+   * @brief Get the control frequency of the robotic arm.
+   * @return Control frequency of the robotic arm.
+   */
+  const uint getCtrlFreq() const { return contFreq_; }
+
+  /**
    * @brief Get the URDF path of the robotic arm.
-   *
+   * @return URDF path of the robotic arm.
    */
   const std::string getPathUrdf() const { return pathUrdf_; }
 

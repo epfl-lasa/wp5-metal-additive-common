@@ -21,7 +21,8 @@
 
 using namespace std;
 
-IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) : nh_(nh) {
+IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName, double workingSpeed) :
+    nh_(nh), workingSpeed_(workingSpeed) {
   robot_ = RoboticArmFactory::createRoboticArm(robotName, rosVersion);
   initMoveit_();
 

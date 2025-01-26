@@ -12,8 +12,8 @@
 
 using namespace std;
 
-PlannerCleaning::PlannerCleaning(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName) :
-    IPlannerBase(rosVersion, nh, robotName) {}
+PlannerCleaning::PlannerCleaning(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName, double workingSpeed) :
+    IPlannerBase(rosVersion, nh, robotName, workingSpeed) {}
 
 bool PlannerCleaning::planTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) {
   ROS_ERROR("[PlannerCleaning] - Not implemented yet");

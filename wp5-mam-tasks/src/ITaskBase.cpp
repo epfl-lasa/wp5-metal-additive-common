@@ -4,7 +4,7 @@
  *
  * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.2
- * @date 2024-12-05
+ * @date 2025-01-26
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
@@ -24,6 +24,7 @@ ITaskBase::ITaskBase(ros::NodeHandle& nh, const YAML::Node& config) :
     rosVersion_(IRosInterfaceBase::rosVersionsMap.at(YamlTools::loadYamlValue<string>(config, "ros_version"))),
     homeConfig_(YamlTools::loadYamlValue<vector<double>>(config, "home_configuration")),
     workingAngle_(YamlTools::loadYamlValue<double>(config, "working_angle")),
+    workingSpeed_(YamlTools::loadYamlValue<double>(config, "working_speed")),
     eePosOffset_(YamlTools::loadYamlValue<Eigen::Vector3d>(config, "ee_pos_offset")),
     eePosWorkOffset_(YamlTools::loadYamlValue<Eigen::Vector3d>(config, "ee_pos_work_offset")),
     eePoseScan_(YamlTools::loadYamlValue<vector<double>>(config, "ee_pose_scan")),

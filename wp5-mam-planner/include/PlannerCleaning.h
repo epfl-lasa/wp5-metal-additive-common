@@ -24,7 +24,7 @@ public:
   /**
    * @brief Constructor.
    */
-  PlannerCleaning(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName);
+  PlannerCleaning(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName, double workingSpeed);
 
   /**
    * @brief Destructor.

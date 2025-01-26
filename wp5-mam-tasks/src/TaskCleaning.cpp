@@ -20,7 +20,7 @@ TaskCleaning::TaskCleaning(ros::NodeHandle& nh, string configFilename) :
     ITaskBase(nh, YAML::LoadFile(YamlTools::getYamlPath(configFilename, string(WP5_TASKS_DIR)))["cleaning"]) {}
 
 bool TaskCleaning::initialize() {
-  planner_ = make_unique<PlannerCleaning>(rosVersion_, nh_, robotName_);
+  planner_ = make_unique<PlannerCleaning>(rosVersion_, nh_, robotName_, workingSpeed_);
 
   return true;
 }

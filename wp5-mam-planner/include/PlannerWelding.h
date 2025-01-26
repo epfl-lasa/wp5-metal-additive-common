@@ -24,7 +24,7 @@ public:
   /**
    * @brief Constructor.
    */
-  PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName);
+  PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName, double workingSpeed);
 
   /**
    * @brief Destructor.
