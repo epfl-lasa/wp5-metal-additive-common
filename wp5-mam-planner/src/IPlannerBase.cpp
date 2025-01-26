@@ -51,19 +51,24 @@ bool IPlannerBase::executeTrajectory() {
 
 #ifdef DEBUG_MODE
     ROS_INFO_STREAM("[IPlannerBase] - Welding state at step " << currentStep << " : " << trajTask.second);
+#endif
 
-    // Call laser service disabling before waiting on user feedback
+    // Call laser service disabling before waiting on user feedback or robot positionning for the next step
     if (!trajTask.second) {
       if (!manageLaser_(trajTask.second)) {
         return false;
       }
     }
-#endif
 
     // Check the first joint configuration to be able to begin trajectory execution
     firstJointConfig = trajTask.first.joint_trajectory.points[0].positions;
 
     if (!robot_->isAtJointPosition(firstJointConfig)) {
+      // Disable laser welding first
+      if (!manageLaser_(false)) {
+        return false;
+      }
+
       success = goToJointConfig(firstJointConfig);
 
       if (!success) {
@@ -78,18 +83,14 @@ bool IPlannerBase::executeTrajectory() {
 
     DebugTools::publishTrajectory(*moveGroup_, trajTask.first, pubTrajectory_);
     DebugTools::waitOnUser(userMsg);
+#endif
 
-    // Call laser service enabling after waiting on user feedback
+    // Call laser service enabling after waiting on user feedback or robot positionning for the next step
     if (trajTask.second) {
       if (!manageLaser_(trajTask.second)) {
         return false;
       }
     }
-#else
-    if (!manageLaser_(trajTask.second)) {
-      return false;
-    }
-#endif
 
     // Execute the trajectory
     success = (moveGroup_->execute(trajTask.first) == moveit::core::MoveItErrorCode::SUCCESS);
