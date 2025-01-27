@@ -84,7 +84,7 @@ Due to the nature of the project, docker is used to add portability and compatib
 
 The docker containers are using docker compose tools. It is located inside *docker/main_pkg* folder. There is a *docker-compose-common.yml* file containing the common part to be extended inside the other docker-compose files.
 
-Then there is two different configuration files, with or without nvidia graphics integration. By default, in *docker-compose.yml* file, the nvidia graphics card is taken into account.
+Then there is two different configuration files, with or without nvidia graphics integration. By default, in *docker-compose.yml* file, the nvidia graphics card is not taken into account.
 
 To build the default configuration, do:
 
