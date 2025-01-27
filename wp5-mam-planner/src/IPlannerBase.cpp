@@ -171,6 +171,7 @@ bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
 bool IPlannerBase::extractJointConfig_(const moveit_msgs::RobotTrajectory& trajectory,
                                        std::vector<double>& jointConfig,
                                        const ConfigPosition position) {
+  jointConfig.clear();
   if (trajectory.joint_trajectory.points.empty()) {
     ROS_WARN("[IPlannerBase] - The trajectory is empty.");
     return false;

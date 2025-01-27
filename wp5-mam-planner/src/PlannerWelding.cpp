@@ -21,41 +21,37 @@ PlannerWelding::PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, strin
 
 bool PlannerWelding::planTrajectory(const vector<geometry_msgs::Pose>& waypoints) {
   bool success = false;
+  int currentStep = 0;
   int failedStep = -1;
   const int MIN_WAYPOINTS = 4;
-
-  vector<double> startConfig{};
+  const int STEP_FAILURE = -1;
+  const int FIRST_STEP = 1;
 
   if (waypoints.size() != MIN_WAYPOINTS) {
     ROS_ERROR_STREAM("[PlannerWelding] - The number of waypoints must be " << MIN_WAYPOINTS);
     return success;
   }
 
+  currentStep++;
   success = computeWeldingPossiblePaths_(waypoints[1], waypoints[2]);
-  failedStep = failedStep != -1 ? failedStep : (success ? -1 : 1);
+  failedStep = failedStep != STEP_FAILURE ? failedStep : (success ? STEP_FAILURE : currentStep);
 
-  vector<geometry_msgs::Pose> tmpWaypoints{};
   for (auto& plan : sortedWeldingPaths_) {
+    currentStep = FIRST_STEP;
     trajTaskToExecute_.clear();
 
     // Compute first transition path in reverse direction
-    extractJointConfig_(plan, startConfig, ConfigPosition::FIRST);
-    tmpWaypoints.clear();
-    tmpWaypoints.push_back(waypoints[0]);
+    currentStep++;
+    success = computeTransitionPath_(plan, waypoints.front(), MotionDir::BACKWARD, ConfigPosition::FIRST);
+    failedStep = failedStep != STEP_FAILURE ? failedStep : (success ? STEP_FAILURE : currentStep);
 
-    success = computeTransitionPath_(startConfig, tmpWaypoints, MotionDir::BACKWARD);
-    failedStep = failedStep != -1 ? failedStep : (success ? -1 : 2);
-
-    // Compute first transition path in forward direction
-    extractJointConfig_(plan, startConfig, ConfigPosition::LAST);
-    tmpWaypoints.clear();
-    tmpWaypoints.push_back(waypoints[3]);
-
-    success = computeTransitionPath_(startConfig, tmpWaypoints, MotionDir::FORWARD);
-    failedStep = failedStep != -1 ? failedStep : (success ? -1 : 3);
+    // Compute last transition path in forward direction
+    currentStep++;
+    success = computeTransitionPath_(plan, waypoints.back(), MotionDir::FORWARD, ConfigPosition::LAST);
+    failedStep = failedStep != STEP_FAILURE ? failedStep : (success ? STEP_FAILURE : currentStep);
 
     // If all the paths are computed, store them and break the loop
-    if (failedStep == -1) {
+    if (failedStep == STEP_FAILURE) {
       retimeTrajectory_(plan, workingSpeed_, 1);
 
       vector<pair<moveit_msgs::RobotTrajectory, bool>>::iterator insertPosition = trajTaskToExecute_.begin() + 1;
@@ -112,19 +108,29 @@ bool PlannerWelding::computeWeldingPossiblePaths_(const geometry_msgs::Pose& sta
   return success;
 }
 
-bool PlannerWelding::computeTransitionPath_(const vector<double>& startConfig,
-                                            const vector<geometry_msgs::Pose>& targetPose,
-                                            const MotionDir direction) {
-  vector<moveit_msgs::RobotTrajectory> trajectory{};
+bool PlannerWelding::computeTransitionPath_(const moveit_msgs::RobotTrajectory& trajectory,
+                                            const geometry_msgs::Pose& targetWaypoint,
+                                            const MotionDir direction,
+                                            const ConfigPosition position) {
+  vector<double> startConfig{};
+  vector<moveit_msgs::RobotTrajectory> transitionPath{};
 
-  bool success = planCartesianFromJointConfig(startConfig, targetPose, trajectory);
+  vector<geometry_msgs::Pose> targetPose{};
+  targetPose.push_back(targetWaypoint);
 
+  // Extract the joint configuration from the trajectory
+  extractJointConfig_(trajectory, startConfig, position);
+
+  // Compute the transition path
+  bool success = planCartesianFromJointConfig(startConfig, targetPose, transitionPath);
+
+  // If the path is successfully computed, store it
   if (success) {
     if (direction == MotionDir::BACKWARD) {
-      reverseTrajectory_(trajectory[0]);
+      reverseTrajectory_(transitionPath.front());
     }
 
-    trajTaskToExecute_.emplace_back(trajectory[0], false);
+    trajTaskToExecute_.emplace_back(transitionPath.front(), false);
   }
 
   return success;

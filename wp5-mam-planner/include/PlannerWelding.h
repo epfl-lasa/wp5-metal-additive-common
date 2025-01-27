@@ -39,7 +39,8 @@ public:
 private:
   bool computeWeldingPossiblePaths_(const geometry_msgs::Pose& startPose, const geometry_msgs::Pose& targetPose);
 
-  bool computeTransitionPath_(const std::vector<double>& startConfig,
-                              const std::vector<geometry_msgs::Pose>& targetPose,
-                              const MotionDir direction);
+  bool computeTransitionPath_(const moveit_msgs::RobotTrajectory& trajectory,
+                              const geometry_msgs::Pose& targetWaypoint,
+                              const MotionDir direction,
+                              const ConfigPosition position);
 };
