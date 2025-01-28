@@ -1,3 +1,15 @@
+/**
+ * @file IRosInterfaceBase.h
+ * @brief Create a ROS interface with respect to the ROS version to communicate with the robotic arm
+ *
+ * @author [Louis Munier] - lmunier@protonmail.com
+ * @author [Tristan Bonato] - tristan_bonato@hotmail.com
+ * @version 0.1
+ * @date 2024-03-07
+ *
+ * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
+ */
+
 #pragma once
 
 #include <map>
@@ -25,6 +37,11 @@ public:
    * @brief Constructor for IRosInterfaceBase.
    */
   IRosInterfaceBase(ROSVersion rosVersion) : rosVersion_(rosVersion) {};
+
+  /**
+   * @brief Destructor.
+   */
+  virtual ~IRosInterfaceBase() = default;
 
   /**
    * @brief Get the ROS version.

@@ -68,8 +68,8 @@ add_library(math_tools
 target_link_libraries(math_tools
   ${catkin_LIBRARIES}
   ${EIGEN3_LIBRARIES}
-  debug_tools
   conversion_tools
+  debug_tools
 )
 
 # --- YAML tools library

@@ -43,7 +43,7 @@ public:
   /**
    * @brief Destructor.
    */
-  ~IPlannerBase() = default;
+  virtual ~IPlannerBase() = default;
 
   /**
    * @brief Plans the trajectory of the robot.

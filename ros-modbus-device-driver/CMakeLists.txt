@@ -60,7 +60,8 @@ install(FILES requirements.txt
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-catkin_install_python(PROGRAMS
+# Install Python scripts and make them executable
+install(PROGRAMS
   scripts/modbus_device_driver.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

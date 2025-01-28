@@ -4,10 +4,11 @@
 
 # @author [Louis Munier] - lmunier@protonmail.com
 # @version 0.1
-# @date 2025-01-09
+# @date 2025-01-28
 
 # @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
 
+# Set the C++ standard to C++17
 set(CMAKE_CXX_STANDARD 17)
 
 # Set default build type to Release if not specified

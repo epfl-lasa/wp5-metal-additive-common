@@ -1,6 +1,8 @@
 #include "TaskManager.hpp"
 
+#include <chrono>
 #include <string>
+#include <thread>
 
 #include "TaskFSM.h"
 #include "TaskFactory.h"
@@ -182,7 +184,7 @@ void TaskManager::clockCallback(const ros::TimerEvent& te) {
  */
 void TaskManager::commitNodeSuicide() {
   if (task_planner_notify_end_ == true) {
-    while (is_task_planner_notified_ == false) sleep(0.1);
+    while (is_task_planner_notified_ == false) std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   ROS_INFO("Triggering node SHUTDOWN");
@@ -194,7 +196,7 @@ void TaskManager::commitNodeSuicide() {
  */
 void TaskManager::commitProcessSuicide() {
   if (task_planner_notify_end_ == true) {
-    while (is_task_planner_notified_ == false) sleep(0.1);
+    while (is_task_planner_notified_ == false) std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   ROS_INFO("Triggering node KILL");

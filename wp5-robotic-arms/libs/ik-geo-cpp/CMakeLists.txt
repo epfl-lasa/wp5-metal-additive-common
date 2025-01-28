@@ -37,4 +37,3 @@ else ()
         debug "${CMAKE_CURRENT_LIST_DIR}/rust-wrapper/target/debug/libik_geo.so"
         optimized "${CMAKE_CURRENT_LIST_DIR}/rust-wrapper/target/release/libik_geo.so")
 endif()
-

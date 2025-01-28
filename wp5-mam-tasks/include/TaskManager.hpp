@@ -1,3 +1,5 @@
+#pragma once
+
 #include <ros/callback_queue.h>
 #include <ros/ros.h>
 #include <sys/types.h>
