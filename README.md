@@ -63,7 +63,9 @@ git submodule init
 git submodule update
 ```
 
-Then to manage a submodule, you have to think about a github repo inside an other one. The submodule is a github repo at a certain state. To update it you have to go inside the corresponding folder and update it as a normal github repository. And when you want to update the link to the latest state, you can push the changes from your root github repository as usual.
+Then to manage a submodule, you have to think about a github repo inside an other one, frozen at a certain commit. To update it you have to go inside the corresponding folder, where the submodule is linked to, and update it as a normal github repository. And when you want to update the link to the latest commit, you can update the changes from your root github repository as usual.
+
+By update, I mean : *git add, commit, push*.
 
 ## Requirements
 
@@ -270,4 +272,4 @@ This repository use the work of the following repositories:
 ## Maintainers
 
 - Louis Munier - <lmunier@protonmail.com>
-- Last Update - 2025-01-26
+- Last Update - 2025-01-28
