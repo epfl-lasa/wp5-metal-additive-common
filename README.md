@@ -163,7 +163,7 @@ You can check the different possible calls to run, stop or kill the service, for
 
 ### Simulation scenario
 
-You firstly have to run the UR simulation tools, there is docker for that. You can set it up running one of the following [UR simulation](#ur-simulation), depending on the robot.
+Before running the different ROS nodes, you have to run the UR simulation tools, there is docker for that. You can set it up running one of the following [UR simulation](#ur-simulation), depending on the robot.
 
 Then follow with the [real scenario](#real-scenario).
 
