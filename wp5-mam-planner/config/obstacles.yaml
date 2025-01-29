@@ -30,10 +30,11 @@ obstacles:
     type: box
     size: [2.0, 2.0, 0.2] # xyz [m]
     pose: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -0.1] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
-  - name: wall_rebars
-    type: box
-    size: [2.0, 0.2, 2.0] # xyz [m]
-    pose: [0.0, 0.0, 0.0, 1.0, 0.0, 0.575, 1.0] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+  # TODO(lmunier): Check this obstacle, it is currently uncompatible with the current home position
+  # - name: virtual_wall_gas_tank
+  #   type: box
+  #   size: [0.2, 1.0, 2.0] # xyz [m]
+  #   pose: [0.0, 0.0, 0.0, 1.0, 0.61, -0.5, 1.0] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
   - name: welding_controller
     type: box
     size: [0.85, 0.44, 0.96] # xyz [m]
