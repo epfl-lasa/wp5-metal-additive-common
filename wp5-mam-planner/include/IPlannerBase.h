@@ -102,11 +102,14 @@ protected:
 
   bool retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, double cartesianSpeed, double robotFrequency);
 
+  // TODO(lmunier): Check if the orientation constraints are necessary
+  void setOrientationConstraints_();
+
 private:
   void initMoveit_();
   void setupMoveGroup_();
   void cleanMoveGroup_();
-  bool manageLaser_(bool enable);
 
   bool move_();
+  bool manageLaser_(bool enable);
 };

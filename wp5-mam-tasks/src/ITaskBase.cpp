@@ -28,11 +28,14 @@ ITaskBase::ITaskBase(ros::NodeHandle& nh, const YAML::Node& config) :
     eePosOffset_(YamlTools::loadYamlValue<Eigen::Vector3d>(config, "ee_pos_offset")),
     eePosWorkOffset_(YamlTools::loadYamlValue<Eigen::Vector3d>(config, "ee_pos_work_offset")),
     eePoseScan_(YamlTools::loadYamlValue<vector<double>>(config, "ee_pose_scan")),
+    jointConfigScan_(YamlTools::loadYamlValue<vector<double>>(config, "joint_config_scan")),
     transform_(getTransform_("ee_tool", "virtual_link")) {}
 
 bool ITaskBase::scanArea() {
-  geometry_msgs::Pose scanPose = ConversionTools::vectorToGeometryPose(eePoseScan_);
-  bool success = planner_->goToPose(scanPose);
+  //TODO(lmunier) - Check which situation is preferable between having jointConfig or pose to perform scanning then adapt code
+  // geometry_msgs::Pose scanPose = ConversionTools::vectorToGeometryPose(eePoseScan_);
+  // bool success = planner_->goToPose(scanPose);
+  bool success = planner_->goToJointConfig(jointConfigScan_);
 
   //TODO(lmunier) - Add scanning logic
   // Open camera lid

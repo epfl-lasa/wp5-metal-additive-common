@@ -111,8 +111,13 @@ bool IPlannerBase::executeTrajectory() {
 bool IPlannerBase::planCartesianFromJointConfig(const std::vector<double>& startJointConfig,
                                                 const std::vector<geometry_msgs::Pose>& waypoints,
                                                 std::vector<moveit_msgs::RobotTrajectory>& pathPlanned) {
-  cleanMoveGroup_();
   bool success = false;
+
+  // Reset the move group interface
+  cleanMoveGroup_();
+
+  // TODO(lmunier): Check if the orientation constraints are necessary
+  // setOrientationConstraints_();
 
   const double eef_step = 0.01;
   const std::string robotGroup = "manipulator";
@@ -328,7 +333,7 @@ bool IPlannerBase::retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory,
 
 void IPlannerBase::initMoveit_() {
   const string robotGroup = "manipulator";
-  ros::Duration timeout(2.0);
+  ros::Duration timeout(10.0);
 
   try {
     moveGroup_ = make_unique<moveit::planning_interface::MoveGroupInterface>(robotGroup);
@@ -346,8 +351,8 @@ void IPlannerBase::initMoveit_() {
 void IPlannerBase::setupMoveGroup_() {
   moveGroup_->setPoseReferenceFrame(robot_->getReferenceFrame());
   moveGroup_->setPlannerId("RRTConnect");
-  moveGroup_->setPlanningTime(2.0);
-  moveGroup_->setNumPlanningAttempts(10);
+  moveGroup_->setPlanningTime(5.0);
+  moveGroup_->setNumPlanningAttempts(20);
   moveGroup_->setGoalPositionTolerance(0.001);
   moveGroup_->setGoalOrientationTolerance(0.01);
 }
@@ -356,6 +361,52 @@ void IPlannerBase::cleanMoveGroup_() {
   moveGroup_->stop();
   moveGroup_->clearPoseTargets();
   moveGroup_->setStartStateToCurrentState();
+}
+
+// TODO(lmunier): Check if the orientation constraints are necessary
+void IPlannerBase::setOrientationConstraints_() {
+  moveit_msgs::OrientationConstraint ocm;
+
+  ocm.link_name = "tool0";                           // The link to which the constraint is applied
+  ocm.header.frame_id = robot_->getReferenceFrame(); // The reference frame for the orientation
+
+  ocm.orientation.x = -0.707;
+  ocm.orientation.y = 0.0;
+  ocm.orientation.z = 0.0;
+  ocm.orientation.w = 0.707;
+
+  ocm.absolute_x_axis_tolerance = 2.8798; // Allowed deviation in radians for x-axis
+  ocm.absolute_y_axis_tolerance = 2.8798; // Allowed deviation in radians for y-axis
+  ocm.absolute_z_axis_tolerance = 2.8798; // Allowed deviation in radians for z-axis
+  ocm.weight = 1.0;                       // Importance of this constraint
+
+  moveit_msgs::Constraints constraints;
+  constraints.orientation_constraints.push_back(ocm);
+
+  moveGroup_->setPathConstraints(constraints);
+}
+
+bool IPlannerBase::move_() {
+  moveit::planning_interface::MoveGroupInterface::Plan currentPlan;
+
+  // TODO(lmunier): Check if the orientation constraints are necessary
+  // setOrientationConstraints_();
+  bool success = (moveGroup_->plan(currentPlan) == moveit::core::MoveItErrorCode::SUCCESS);
+
+  if (success) {
+#ifdef DEBUG_MODE
+    string userMsg = "[IPlannerBase] - Path succes : " + to_string(success) + " Press Enter to continue.";
+    const moveit_msgs::RobotTrajectory& robotTrajectory = currentPlan.trajectory_;
+
+    DebugTools::publishTrajectory(*moveGroup_, robotTrajectory, pubTrajectory_);
+    DebugTools::waitOnUser(userMsg);
+#endif
+
+    success = (moveGroup_->execute(currentPlan) == moveit::core::MoveItErrorCode::SUCCESS);
+    cleanMoveGroup_();
+  }
+
+  return success;
 }
 
 bool IPlannerBase::manageLaser_(bool enable) {
@@ -375,26 +426,6 @@ bool IPlannerBase::manageLaser_(bool enable) {
   }
 
   return msgLaser.response.success;
-}
-
-bool IPlannerBase::move_() {
-  moveit::planning_interface::MoveGroupInterface::Plan currentPlan;
-  bool success = (moveGroup_->plan(currentPlan) == moveit::core::MoveItErrorCode::SUCCESS);
-
-  if (success) {
-#ifdef DEBUG_MODE
-    string userMsg = "[IPlannerBase] - Path succes : " + to_string(success) + " Press Enter to continue.";
-    const moveit_msgs::RobotTrajectory& robotTrajectory = currentPlan.trajectory_;
-
-    DebugTools::publishTrajectory(*moveGroup_, robotTrajectory, pubTrajectory_);
-    DebugTools::waitOnUser(userMsg);
-#endif
-
-    success = (moveGroup_->execute(currentPlan) == moveit::core::MoveItErrorCode::SUCCESS);
-    cleanMoveGroup_();
-  }
-
-  return success;
 }
 
 //TODO(lmunier) to implement the following function
