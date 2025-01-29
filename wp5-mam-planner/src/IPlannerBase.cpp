@@ -12,6 +12,8 @@
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
+#include <filesystem>
+
 #include "RoboticArmFactory.h"
 #include "conversion_tools.h"
 #include "debug_tools.h"
@@ -20,6 +22,16 @@
 #include "yaml_tools.h"
 
 using namespace std;
+
+namespace fs = std::filesystem;
+
+/**
+ * TODO(lmunier) : Clean store / read / plan configuration
+ * - implement safety on the store / read behavior folder, filename and so on ...
+ * - take care about the namespaces
+ * - FIX : last trajectory not played
+ * - FIX : welding state not working (probably linked to precedent point)
+ */
 
 IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName, double workingSpeed) :
     nh_(nh), workingSpeed_(workingSpeed) {
@@ -32,9 +44,45 @@ IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string ro
   pubTrajectory_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("debug_trajectory", 1000);
 #endif
 
+  // Get trajectories strategy
+  string tmpTrajFilename = "";
+  nh_.getParam("/trajectories_strategy", trajectoriesStrat_);
+  nh_.getParam("/trajectories_filename", tmpTrajFilename);
+
+  trajectoriesDirectory_ = string(WP5_MAM_PLANNER_DIR) + "/trajectories/";
+  trajectoriesFilename_ = trajectoriesDirectory_ + tmpTrajFilename;
+  ROS_INFO_STREAM("Trajectory to store: " << trajectoriesStrat_ << " in " << trajectoriesFilename_);
+
   // Add obstacles
   obstacles_ = make_unique<ObstaclesManagement>(ObstaclesManagement(nh_, moveGroup_->getPlanningFrame()));
   obstacles_->addStaticObstacles();
+}
+
+bool IPlannerBase::planTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) {
+  bool success = false;
+  string weldingState = "";
+
+  if (trajectoriesStrat_ != "read") {
+    success = planTrajectoryTask_(waypoints);
+
+    if (trajectoriesStrat_ == "store" && success) {
+      int i = 0;
+      for (const auto& trajTask : trajTaskToExecute_) {
+        i++;
+
+        weldingState = trajTask.second ? "_welding" : "";
+        success = saveTrajectory_(trajTask.first, trajectoriesFilename_ + to_string(i) + weldingState + ".txt");
+
+        if (!success) {
+          ROS_ERROR_STREAM("[IPlannerBase] - Failed to save trajectory " << i);
+        }
+      }
+    }
+  } else {
+    success = loadAllTrajectories_(trajectoriesDirectory_);
+  }
+
+  return success;
 }
 
 bool IPlannerBase::executeTrajectory() {
@@ -173,6 +221,77 @@ bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
   return success;
 }
 
+bool IPlannerBase::saveTrajectory_(const moveit_msgs::RobotTrajectory& trajectory, const std::string& filename) {
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    ROS_ERROR_STREAM("[IPlannerBase] - Failed to open file: " << filename);
+    return false;
+  }
+
+  for (const auto& point : trajectory.joint_trajectory.points) {
+    for (const auto& position : point.positions) {
+      file << position << " ";
+    }
+    file << std::endl;
+  }
+
+  file.close();
+  ROS_INFO_STREAM("[IPlannerBase] - Trajectory saved to: " << filename);
+  return true;
+}
+
+bool IPlannerBase::loadTrajectory_(moveit_msgs::RobotTrajectory& trajectory, const std::string& filename) {
+  std::ifstream file(filename);
+  if (!file.is_open()) {
+    ROS_ERROR_STREAM("[IPlannerBase] - Failed to open file: " << filename);
+    return false;
+  }
+
+  trajectory.joint_trajectory.header.frame_id = robot_->getReferenceFrame();
+  trajectory.joint_trajectory.joint_names = moveGroup_->getVariableNames();
+
+  std::string line;
+  while (std::getline(file, line)) {
+    std::istringstream iss(line);
+    trajectory_msgs::JointTrajectoryPoint point;
+    double position;
+
+    while (iss >> position) {
+      point.positions.push_back(position);
+    }
+
+    trajectory.joint_trajectory.points.push_back(point);
+  }
+
+  file.close();
+  ROS_INFO_STREAM("[IPlannerBase] - Trajectory loaded from: " << filename);
+  return true;
+}
+
+bool IPlannerBase::loadAllTrajectories_(const std::string& directory) {
+  bool success = false;
+  bool weldingState = false;
+
+  for (const auto& entry : fs::directory_iterator(directory)) {
+    if (entry.is_regular_file() && entry.path().extension() == ".txt") {
+      moveit_msgs::RobotTrajectory trajectory;
+      success = loadTrajectory_(trajectory, entry.path().string());
+
+      // If the trajectory contains "welding", put the welding state to true
+      weldingState = entry.path().string().find("welding") != string::npos;
+      weldingState = false; // TODO(lmunier) : Remove this line when the welding state is correctly set
+
+      if (success) {
+        trajTaskToExecute_.emplace_back(trajectory, weldingState);
+      } else {
+        return success;
+      }
+    }
+  }
+
+  return success;
+}
+
 bool IPlannerBase::extractJointConfig_(const moveit_msgs::RobotTrajectory& trajectory,
                                        std::vector<double>& jointConfig,
                                        const ConfigPosition position) {
@@ -281,12 +400,12 @@ bool IPlannerBase::retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory,
                                      double robotFrequency) {
   // Ensure the trajectory has points
   if (trajectory.joint_trajectory.points.empty()) {
-    ROS_WARN("[PlannerWelding] - Trajectory has no points to retime.");
+    ROS_WARN("[IPlannerBase] - Trajectory has no points to retime.");
     return false;
   }
 
   // Calculate the desired time step based on the robot's frequency
-  const double timeStep = 1.0 / robotFrequency;
+  const double timeStep = 1.0 / robotFrequency; // TODO(lmunier) : Check if needed or if Moveit! already does it
 
   // Create a new trajectory to store the interpolated points
   moveit_msgs::RobotTrajectory newTrajectory;
@@ -325,7 +444,7 @@ bool IPlannerBase::retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory,
   // Replace the original trajectory with the new trajectory
   trajectory = std::move(newTrajectory);
 
-  ROS_INFO_STREAM("[PlannerWelding] - Trajectory retimed and interpolated successfully to match the robot frequency of "
+  ROS_INFO_STREAM("[IPlannerBase] - Trajectory retimed and interpolated successfully to match the robot frequency of "
                   << robotFrequency << " Hz and achieve a constant Cartesian speed of " << cartesianSpeed << " m/s.");
 
   return true;

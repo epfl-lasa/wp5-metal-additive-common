@@ -48,7 +48,7 @@ public:
   /**
    * @brief Plans the trajectory of the robot.
    */
-  virtual bool planTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) = 0;
+  bool planTrajectory(const std::vector<geometry_msgs::Pose>& waypoints);
 
   /**
    * @brief Executes the trajectory of the robot.
@@ -70,6 +70,10 @@ protected:
   ros::NodeHandle nh_;             ///< ROS node handle
   ros::ServiceClient laserClient_; ///< Client for the welding laser service
 
+  std::string trajectoriesStrat_ = "";     ///< Strategy for the trajectories [store, read, plan]
+  std::string trajectoriesDirectory_ = ""; ///< Directory for the trajectories
+  std::string trajectoriesFilename_ = "";  ///< Filename for the trajectories
+
 #ifdef DEBUG_MODE
   ros::Publisher pubTrajectory_; ///< Publisher for the trajectory
 #endif
@@ -84,6 +88,12 @@ protected:
 
   moveit::core::RobotStatePtr robotState_ = nullptr;
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
+
+  bool saveTrajectory_(const moveit_msgs::RobotTrajectory& trajectory, const std::string& filename);
+  bool loadTrajectory_(moveit_msgs::RobotTrajectory& trajectory, const std::string& filename);
+  bool loadAllTrajectories_(const std::string& directory);
+
+  virtual bool planTrajectoryTask_(const std::vector<geometry_msgs::Pose>& waypoints) = 0;
 
   bool extractJointConfig_(const moveit_msgs::RobotTrajectory& trajectory,
                            std::vector<double>& jointConfig,

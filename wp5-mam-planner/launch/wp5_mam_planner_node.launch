@@ -9,9 +9,21 @@
     <param name="robot_type" value="$(arg robot_type)" />
 
     <arg name="calibration_filename" default="ur10e_default" />
+
     <arg name="ee_tool"
         doc="Type of the tool attached to the end effector : [none, welding_laser]"
         default="none" />
+
+    <!-- Add strategy to store / read / plan the trajectory -->
+    <arg name="trajectories_strategy"
+        doc="Parameter to decide if the trajectories have to be : [read, store, plan]"
+        default="read"/>
+    <param name="trajectories_strategy" value="$(arg trajectories_strategy)" />
+
+    <arg name="trajectories_filename"
+        doc="If trajectories have to be either read or stored, give the corresponding filename."
+        default="default"/>
+    <param name="trajectories_filename" value="$(arg trajectories_filename)" />
 
     <!-- Setup Robot ip -->
     <arg unless="$(eval simu=='ON')" name="robot_ip" value="192.168.2.100" />

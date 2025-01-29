@@ -19,7 +19,7 @@ using namespace std;
 PlannerWelding::PlannerWelding(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName, double workingSpeed) :
     IPlannerBase(rosVersion, nh, robotName, workingSpeed) {}
 
-bool PlannerWelding::planTrajectory(const vector<geometry_msgs::Pose>& waypoints) {
+bool PlannerWelding::planTrajectoryTask_(const vector<geometry_msgs::Pose>& waypoints) {
   bool success = false;
   int currentStep = 0;
   int failedStep = -1;
