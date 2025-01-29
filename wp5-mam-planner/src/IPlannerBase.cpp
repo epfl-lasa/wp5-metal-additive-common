@@ -13,6 +13,7 @@
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
 #include <filesystem>
+#include <fstream>
 
 #include "RoboticArmFactory.h"
 #include "conversion_tools.h"
@@ -22,15 +23,12 @@
 #include "yaml_tools.h"
 
 using namespace std;
-
 namespace fs = std::filesystem;
 
 /**
  * TODO(lmunier) : Clean store / read / plan configuration
  * - implement safety on the store / read behavior folder, filename and so on ...
  * - take care about the namespaces
- * - FIX : last trajectory not played
- * - FIX : welding state not working (probably linked to precedent point)
  */
 
 IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string robotName, double workingSpeed) :
@@ -58,7 +56,7 @@ IPlannerBase::IPlannerBase(ROSVersion rosVersion, ros::NodeHandle& nh, string ro
   obstacles_->addStaticObstacles();
 }
 
-bool IPlannerBase::planTrajectory(const std::vector<geometry_msgs::Pose>& waypoints) {
+bool IPlannerBase::planTrajectory(const vector<geometry_msgs::Pose>& waypoints) {
   bool success = false;
   string weldingState = "";
 
@@ -71,7 +69,7 @@ bool IPlannerBase::planTrajectory(const std::vector<geometry_msgs::Pose>& waypoi
         i++;
 
         weldingState = trajTask.second ? "_welding" : "";
-        success = saveTrajectory_(trajTask.first, trajectoriesFilename_ + to_string(i) + weldingState + ".txt");
+        success = saveTrajectory_(trajTask.first, trajectoriesFilename_ + to_string(i) + weldingState + ".yaml");
 
         if (!success) {
           ROS_ERROR_STREAM("[IPlannerBase] - Failed to save trajectory " << i);
@@ -95,6 +93,7 @@ bool IPlannerBase::executeTrajectory() {
     return success;
   }
 
+  cleanMoveGroup_();
   for (const auto& trajTask : trajTaskToExecute_) {
     currentStep++;
 
@@ -110,7 +109,7 @@ bool IPlannerBase::executeTrajectory() {
     }
 
     // Check the first joint configuration to be able to begin trajectory execution
-    firstJointConfig = trajTask.first.joint_trajectory.points[0].positions;
+    firstJointConfig = trajTask.first.joint_trajectory.points.front().positions;
 
     if (!robot_->isAtJointPosition(firstJointConfig)) {
       // Disable laser welding first
@@ -130,7 +129,7 @@ bool IPlannerBase::executeTrajectory() {
     string userMsg =
         "[IPlannerBase] - Execute trajectory at step " + to_string(currentStep) + ". Press Enter to continue.";
 
-    DebugTools::publishTrajectory(*moveGroup_, trajTask.first, pubTrajectory_);
+    DebugTools::publishTrajectory(*moveGroup_->getCurrentState(), trajTask.first, pubTrajectory_);
     DebugTools::waitOnUser(userMsg);
 #endif
 
@@ -156,9 +155,9 @@ bool IPlannerBase::executeTrajectory() {
   return success;
 }
 
-bool IPlannerBase::planCartesianFromJointConfig(const std::vector<double>& startJointConfig,
-                                                const std::vector<geometry_msgs::Pose>& waypoints,
-                                                std::vector<moveit_msgs::RobotTrajectory>& pathPlanned) {
+bool IPlannerBase::planCartesianFromJointConfig(const vector<double>& startJointConfig,
+                                                const vector<geometry_msgs::Pose>& waypoints,
+                                                vector<moveit_msgs::RobotTrajectory>& pathPlanned) {
   bool success = false;
 
   // Reset the move group interface
@@ -168,7 +167,7 @@ bool IPlannerBase::planCartesianFromJointConfig(const std::vector<double>& start
   // setOrientationConstraints_();
 
   const double eef_step = 0.01;
-  const std::string robotGroup = "manipulator";
+  const string robotGroup = "manipulator";
   moveit_msgs::RobotTrajectory planTrajectory;
 
   // Create a RobotState object and set it to the desired starting joint configuration
@@ -221,65 +220,71 @@ bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
   return success;
 }
 
-bool IPlannerBase::saveTrajectory_(const moveit_msgs::RobotTrajectory& trajectory, const std::string& filename) {
-  std::ofstream file(filename);
+bool IPlannerBase::saveTrajectory_(const moveit_msgs::RobotTrajectory& trajectory, const string& filename) {
+  YAML::Emitter out;
+  out << YAML::BeginSeq;
+  for (const auto& point : trajectory.joint_trajectory.points) {
+    out << YAML::BeginMap;
+    out << YAML::Key << "positions" << YAML::Value << YAML::Flow << point.positions;
+    out << YAML::Key << "velocities" << YAML::Value << YAML::Flow << point.velocities;
+    out << YAML::Key << "accelerations" << YAML::Value << YAML::Flow << point.accelerations;
+    out << YAML::Key << "effort" << YAML::Value << YAML::Flow << point.effort;
+    out << YAML::Key << "time_from_start" << YAML::Value << point.time_from_start.toSec();
+    out << YAML::EndMap;
+  }
+  out << YAML::EndSeq;
+
+  ofstream file(filename);
   if (!file.is_open()) {
     ROS_ERROR_STREAM("[IPlannerBase] - Failed to open file: " << filename);
     return false;
   }
 
-  for (const auto& point : trajectory.joint_trajectory.points) {
-    for (const auto& position : point.positions) {
-      file << position << " ";
-    }
-    file << std::endl;
-  }
-
+  file << out.c_str();
   file.close();
   ROS_INFO_STREAM("[IPlannerBase] - Trajectory saved to: " << filename);
   return true;
 }
 
-bool IPlannerBase::loadTrajectory_(moveit_msgs::RobotTrajectory& trajectory, const std::string& filename) {
-  std::ifstream file(filename);
+bool IPlannerBase::loadTrajectory_(moveit_msgs::RobotTrajectory& trajectory, const string& filename) {
+  ifstream file(filename);
   if (!file.is_open()) {
     ROS_ERROR_STREAM("[IPlannerBase] - Failed to open file: " << filename);
     return false;
   }
 
+  YAML::Node node = YAML::Load(file);
+  file.close();
+
   trajectory.joint_trajectory.header.frame_id = robot_->getReferenceFrame();
   trajectory.joint_trajectory.joint_names = moveGroup_->getVariableNames();
 
-  std::string line;
-  while (std::getline(file, line)) {
-    std::istringstream iss(line);
+  for (const auto& j_point : node) {
     trajectory_msgs::JointTrajectoryPoint point;
-    double position;
-
-    while (iss >> position) {
-      point.positions.push_back(position);
-    }
+    point.positions = j_point["positions"].as<vector<double>>();
+    point.velocities = j_point["velocities"].as<vector<double>>();
+    point.accelerations = j_point["accelerations"].as<vector<double>>();
+    point.effort = j_point["effort"].as<vector<double>>();
+    point.time_from_start = ros::Duration(j_point["time_from_start"].as<double>());
 
     trajectory.joint_trajectory.points.push_back(point);
   }
 
-  file.close();
   ROS_INFO_STREAM("[IPlannerBase] - Trajectory loaded from: " << filename);
   return true;
 }
 
-bool IPlannerBase::loadAllTrajectories_(const std::string& directory) {
+bool IPlannerBase::loadAllTrajectories_(const string& directory) {
   bool success = false;
   bool weldingState = false;
 
   for (const auto& entry : fs::directory_iterator(directory)) {
-    if (entry.is_regular_file() && entry.path().extension() == ".txt") {
+    if (entry.is_regular_file() && entry.path().extension() == ".yaml") {
       moveit_msgs::RobotTrajectory trajectory;
       success = loadTrajectory_(trajectory, entry.path().string());
 
       // If the trajectory contains "welding", put the welding state to true
       weldingState = entry.path().string().find("welding") != string::npos;
-      weldingState = false; // TODO(lmunier) : Remove this line when the welding state is correctly set
 
       if (success) {
         trajTaskToExecute_.emplace_back(trajectory, weldingState);
@@ -293,7 +298,7 @@ bool IPlannerBase::loadAllTrajectories_(const std::string& directory) {
 }
 
 bool IPlannerBase::extractJointConfig_(const moveit_msgs::RobotTrajectory& trajectory,
-                                       std::vector<double>& jointConfig,
+                                       vector<double>& jointConfig,
                                        const ConfigPosition position) {
   jointConfig.clear();
   if (trajectory.joint_trajectory.points.empty()) {
@@ -312,7 +317,7 @@ double IPlannerBase::computeTotalJerk_(const moveit_msgs::RobotTrajectory& traje
   const int MIN_POINTS = 3;
   double totalJerk = 0.0;
 
-  const std::vector<trajectory_msgs::JointTrajectoryPoint>& points = trajectory.joint_trajectory.points;
+  const vector<trajectory_msgs::JointTrajectoryPoint>& points = trajectory.joint_trajectory.points;
   if (points.size() < MIN_POINTS) {
     ROS_WARN_STREAM("[IPlannerBase] - Not enough points to compute jerk : current size of " << points.size());
     return totalJerk;
@@ -342,7 +347,7 @@ double IPlannerBase::computeTotalJerk_(const moveit_msgs::RobotTrajectory& traje
   return totalJerk;
 }
 
-void IPlannerBase::sortTrajectoriesByJerk_(std::vector<moveit_msgs::RobotTrajectory>& trajectories) {
+void IPlannerBase::sortTrajectoriesByJerk_(vector<moveit_msgs::RobotTrajectory>& trajectories) {
   std::sort(sortedWeldingPaths_.begin(),
             sortedWeldingPaths_.end(),
             [this](const moveit_msgs::RobotTrajectory& a, const moveit_msgs::RobotTrajectory& b) {
@@ -352,10 +357,10 @@ void IPlannerBase::sortTrajectoriesByJerk_(std::vector<moveit_msgs::RobotTraject
 
 void IPlannerBase::reverseTrajectory_(moveit_msgs::RobotTrajectory& trajectory) {
   // Reverse the joint trajectory points
-  std::vector<trajectory_msgs::JointTrajectoryPoint>& points = trajectory.joint_trajectory.points;
+  vector<trajectory_msgs::JointTrajectoryPoint>& points = trajectory.joint_trajectory.points;
 
   // Copy the time_from_start values
-  std::vector<ros::Duration> time_from_start_values;
+  vector<ros::Duration> time_from_start_values;
   time_from_start_values.reserve(points.size());
   for (const auto& point : points) {
     time_from_start_values.push_back(point.time_from_start);
@@ -370,12 +375,12 @@ void IPlannerBase::reverseTrajectory_(moveit_msgs::RobotTrajectory& trajectory) 
   }
 }
 
-std::vector<trajectory_msgs::JointTrajectoryPoint> IPlannerBase::interpolatePoints_(
+vector<trajectory_msgs::JointTrajectoryPoint> IPlannerBase::interpolatePoints_(
     const trajectory_msgs::JointTrajectoryPoint& prevPoint,
     const trajectory_msgs::JointTrajectoryPoint& currPoint,
     double timeStep,
     double timeInterval) {
-  std::vector<trajectory_msgs::JointTrajectoryPoint> interpolatedPoints;
+  vector<trajectory_msgs::JointTrajectoryPoint> interpolatedPoints;
 
   for (double t = timeStep; t < timeInterval; t += timeStep) {
     const double alpha = t / timeInterval;
@@ -517,7 +522,7 @@ bool IPlannerBase::move_() {
     string userMsg = "[IPlannerBase] - Path succes : " + to_string(success) + " Press Enter to continue.";
     const moveit_msgs::RobotTrajectory& robotTrajectory = currentPlan.trajectory_;
 
-    DebugTools::publishTrajectory(*moveGroup_, robotTrajectory, pubTrajectory_);
+    DebugTools::publishTrajectory(*moveGroup_->getCurrentState(), robotTrajectory, pubTrajectory_);
     DebugTools::waitOnUser(userMsg);
 #endif
 

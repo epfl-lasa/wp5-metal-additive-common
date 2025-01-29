@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh_private("~");
 
   bool valid = false;
-  double rosFreq = 125;
+  double rosFreq = 500;
   ros::Rate loopRate(rosFreq);
 
   // Check for the taskType parameter

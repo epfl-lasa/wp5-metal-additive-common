@@ -145,11 +145,11 @@ void publishPath(const std::string& frameId,
  * This function takes a moveit_msgs::RobotTrajectory object and a ROS publisher, and publishes
  * the trajectory to the topic associated with the publisher.
  *
- * @param moveGroup The MoveGroupInterface object associated with the trajectory.
+ * @param robotState The robot state associated with the trajectory.
  * @param trajectory The trajectory to be published.
  * @param pub The ROS publisher to publish the trajectory to.
  */
-void publishTrajectory(const moveit::planning_interface::MoveGroupInterface& moveGroup,
+void publishTrajectory(const moveit::core::RobotState& robotState,
                        const moveit_msgs::RobotTrajectory& trajectory,
                        const ros::Publisher& pub);
 

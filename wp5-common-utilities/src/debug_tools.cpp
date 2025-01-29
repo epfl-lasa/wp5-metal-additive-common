@@ -108,12 +108,16 @@ void publishPath(const std::string& frameId,
   }
 }
 
-void publishTrajectory(const moveit::planning_interface::MoveGroupInterface& moveGroup,
+void publishTrajectory(const moveit::core::RobotState& robotState,
                        const moveit_msgs::RobotTrajectory& trajectory,
                        const ros::Publisher& pub) {
-  moveit_msgs::DisplayTrajectory displayTrajectory;
-  moveit::core::robotStateToRobotStateMsg(*moveGroup.getCurrentState(), displayTrajectory.trajectory_start);
+  moveit_msgs::DisplayTrajectory displayTrajectory{};
+  moveit::core::robotStateToRobotStateMsg(robotState, displayTrajectory.trajectory_start);
+
+  displayTrajectory.trajectory_start.joint_state.header.frame_id = "base_link";
+  displayTrajectory.trajectory_start.joint_state.header.stamp = ros::Time::now();
   displayTrajectory.trajectory.push_back(trajectory);
+
   pub.publish(displayTrajectory);
 }
 

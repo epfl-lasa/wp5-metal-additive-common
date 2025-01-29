@@ -17,7 +17,7 @@
     <!-- Add strategy to store / read / plan the trajectory -->
     <arg name="trajectories_strategy"
         doc="Parameter to decide if the trajectories have to be : [read, store, plan]"
-        default="read"/>
+        default="plan"/>
     <param name="trajectories_strategy" value="$(arg trajectories_strategy)" />
 
     <arg name="trajectories_filename"
