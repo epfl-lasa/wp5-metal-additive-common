@@ -4,16 +4,16 @@
 # - ur10e_robot
 #
 # Possible pose to set :
-# - ee_pose_scan : Pose to scan the environment in the robot frame
 # - ee_pose_work_offset : Position offset to work in the environment in the robot frame
 # - ee_pose_offset : Position offset to apply to the pose
+# - ee_pose_scan : Pose to scan the environment in the robot frame
 #
 # Louis Munier : 2024-12-04
 
 welding:
   robot_name: "ur10e_robot"
   ros_version: "noetic"
-  home_configuration: [0, -1.57, 0, -1.57, 0, 0] # [rad] j1, j2, j3, j4, j5, j6
+  home_configuration: [1.57, -1.57, 0, -1.57, 0, 0] # [rad] j1, j2, j3, j4, j5, j6
   working_angle: 0.3491 # [rad]
   working_speed: 0.1 # [m/s]
   ee_pos_work_offset: [0, 0, -0.1] # [m] xyz

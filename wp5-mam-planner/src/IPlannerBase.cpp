@@ -551,15 +551,3 @@ bool IPlannerBase::manageLaser_(bool enable) {
 
   return msgLaser.response.success;
 }
-
-//TODO(lmunier) to implement the following function
-// void publishContinuously(ros::Publisher& publisher, std::atomic<bool>& running) {
-//   ros::Rate rate(10.0); // 10 Hz
-//   std_msgs::Bool msg;
-//   msg.data = true;
-
-//   while (running.load() && ros::ok()) {
-//     publisher.publish(msg);
-//     rate.sleep();
-//   }
-// }
