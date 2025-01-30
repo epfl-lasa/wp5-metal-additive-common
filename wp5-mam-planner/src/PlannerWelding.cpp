@@ -24,7 +24,7 @@ bool PlannerWelding::planTrajectoryTask_(const vector<geometry_msgs::Pose>& wayp
   int currentStep = 0;
   int failedStep = -1;
   const int MIN_WAYPOINTS = 4;
-  const int STEP_FAILURE = -1;
+  const int NO_STEP_FAILURE = -1;
   const int FIRST_STEP = 1;
 
   if (waypoints.size() != MIN_WAYPOINTS) {
@@ -34,7 +34,7 @@ bool PlannerWelding::planTrajectoryTask_(const vector<geometry_msgs::Pose>& wayp
 
   currentStep++;
   success = computeWeldingPossiblePaths_(waypoints[1], waypoints[2]);
-  failedStep = failedStep != STEP_FAILURE ? failedStep : (success ? STEP_FAILURE : currentStep);
+  failedStep = failedStep != NO_STEP_FAILURE ? failedStep : (success ? NO_STEP_FAILURE : currentStep);
 
   for (auto& plan : sortedWeldingPaths_) {
     currentStep = FIRST_STEP;
@@ -43,16 +43,16 @@ bool PlannerWelding::planTrajectoryTask_(const vector<geometry_msgs::Pose>& wayp
     // Compute first transition path in reverse direction
     currentStep++;
     success = computeTransitionPath_(plan, waypoints.front(), MotionDir::BACKWARD, ConfigPosition::FIRST);
-    failedStep = failedStep != STEP_FAILURE ? failedStep : (success ? STEP_FAILURE : currentStep);
+    failedStep = failedStep != NO_STEP_FAILURE ? failedStep : (success ? NO_STEP_FAILURE : currentStep);
 
     // Compute last transition path in forward direction
     currentStep++;
     success = computeTransitionPath_(plan, waypoints.back(), MotionDir::FORWARD, ConfigPosition::LAST);
-    failedStep = failedStep != STEP_FAILURE ? failedStep : (success ? STEP_FAILURE : currentStep);
+    failedStep = failedStep != NO_STEP_FAILURE ? failedStep : (success ? NO_STEP_FAILURE : currentStep);
 
     // If all the paths are computed, store them and break the loop
-    if (failedStep == STEP_FAILURE) {
-      retimeTrajectory_(plan, workingSpeed_, 1);
+    if (failedStep == NO_STEP_FAILURE) {
+      retimeTrajectory_(plan, workingSpeed_);
 
       vector<pair<moveit_msgs::RobotTrajectory, bool>>::iterator insertPosition = trajTaskToExecute_.begin() + 1;
       trajTaskToExecute_.insert(insertPosition, make_pair(plan, true));
@@ -90,10 +90,7 @@ bool PlannerWelding::computeWeldingPossiblePaths_(const geometry_msgs::Pose& sta
 
     int test = 0;
     for (auto& ikSol : ikSolutions) {
-      ROS_INFO_STREAM("[PlannerWelding] - IK solution found " << test++);
-      ROS_INFO_STREAM("[PlannerWelding] - IK solution : " << DebugTools::getVecString<double>(ikSol));
       adaptConfigToLimitMoves_(ikSol);
-      ROS_INFO_STREAM("[PlannerWelding] - IK solution : " << DebugTools::getVecString<double>(ikSol));
       isPathComputed = planCartesianFromJointConfig(ikSol, weldingTarget, sortedWeldingPaths_);
       success = success || isPathComputed;
     }
@@ -117,6 +114,7 @@ bool PlannerWelding::computeTransitionPath_(const moveit_msgs::RobotTrajectory& 
                                             const geometry_msgs::Pose& targetWaypoint,
                                             const MotionDir direction,
                                             const ConfigPosition position) {
+  const double transitionSpeed = 0.1; // [m/s]
   vector<double> startConfig{};
   vector<moveit_msgs::RobotTrajectory> transitionPath{};
 
@@ -135,6 +133,7 @@ bool PlannerWelding::computeTransitionPath_(const moveit_msgs::RobotTrajectory& 
       reverseTrajectory_(transitionPath.front());
     }
 
+    retimeTrajectory_(transitionPath.front(), transitionSpeed);
     trajTaskToExecute_.emplace_back(transitionPath.front(), false);
   }
 

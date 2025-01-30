@@ -113,7 +113,7 @@ protected:
       double timeStep,
       double timeInterval);
 
-  bool retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, double cartesianSpeed, double robotFrequency);
+  bool retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, const double cartesianSpeed);
 
 private:
   void initMoveit_();
