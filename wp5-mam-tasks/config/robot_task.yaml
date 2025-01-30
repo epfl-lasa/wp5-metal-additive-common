@@ -18,7 +18,8 @@ welding:
   working_speed: 0.012 # [m/s]
   ee_pos_work_offset: [0, 0, -0.1] # [m] xyz
   ee_pos_offset: [0, 0, -0.02] # [m] xyz
-  ee_pose_scan: [-0.704627, -0.0401188, -0.00946144, 0.70838, -0.2, 0.0, 1.33] # [rad] xyzw, [m] xyz
+  # ee_pose_scan: [-0.704627, -0.0401188, -0.00946144, 0.70838, -0.2, 0.0, 1.33] # [rad] xyzw, [m] xyz 1st demo
+  ee_pose_scan: [-0.723872, -0.00649415, 0.0475479, 0.688263, 0.350873, 0.41826, 0.817229] # [rad] xyzw, [m] xyz 1st demo rebars
 cleaning:
   robot_name: "ur5_robot"
   ros_version: "noetic"
