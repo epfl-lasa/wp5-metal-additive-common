@@ -100,13 +100,12 @@ protected:
   std::unique_ptr<Subtask> subtask_ = nullptr;      ///< Subtask
   std::unique_ptr<IPlannerBase> planner_ = nullptr; ///< Pointer to MAMPlanner instance.
 
-  const std::vector<double> homeConfig_{};      ///< Home joint configuration.
-  const double workingAngle_{};                 ///< Working angle for the task.
-  const double workingSpeed_{};                 ///< Working speed for the task.
-  const Eigen::Vector3d eePosOffset_{};         ///< End effector pose offset.
-  const Eigen::Vector3d eePosWorkOffset_{};     ///< End effector  working pose offset.
-  const std::vector<double> eePoseScan_{};      ///< End effector scanning pose.
-  const std::vector<double> jointConfigScan_{}; ///< End effector scanning jointconfig.
+  const std::vector<double> homeConfig_{};  ///< Home joint configuration.
+  const double workingAngle_{};             ///< Working angle for the task.
+  const double workingSpeed_{};             ///< Working speed for the task.
+  const Eigen::Vector3d eePosOffset_{};     ///< End effector pose offset.
+  const Eigen::Vector3d eePosWorkOffset_{}; ///< End effector  working pose offset.
+  const std::vector<double> eePoseScan_{};  ///< End effector scanning pose.
 
   const geometry_msgs::Transform transform_; ///< Transform between two frames.
 

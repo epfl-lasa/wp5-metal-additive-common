@@ -88,7 +88,12 @@ bool PlannerWelding::computeWeldingPossiblePaths_(const geometry_msgs::Pose& sta
   if (ikSuccess) {
     ROS_INFO_STREAM("[PlannerWelding] - Found " << ikSolutions.size() << " IK solutions");
 
-    for (const auto& ikSol : ikSolutions) {
+    int test = 0;
+    for (auto& ikSol : ikSolutions) {
+      ROS_INFO_STREAM("[PlannerWelding] - IK solution found " << test++);
+      ROS_INFO_STREAM("[PlannerWelding] - IK solution : " << DebugTools::getVecString<double>(ikSol));
+      adaptConfigToLimitMoves_(ikSol);
+      ROS_INFO_STREAM("[PlannerWelding] - IK solution : " << DebugTools::getVecString<double>(ikSol));
       isPathComputed = planCartesianFromJointConfig(ikSol, weldingTarget, sortedWeldingPaths_);
       success = success || isPathComputed;
     }

@@ -59,6 +59,8 @@ public:
                                     const std::vector<geometry_msgs::Pose>& waypoints,
                                     std::vector<moveit_msgs::RobotTrajectory>& pathPlanned);
 
+  bool goToScanArea(const std::vector<double>& eePoseScan);
+
   bool goToJointConfig(const std::vector<double>& jointConfig);
 
   bool goToPose(const geometry_msgs::Pose& targetPose);
@@ -89,6 +91,7 @@ protected:
   moveit::core::RobotStatePtr robotState_ = nullptr;
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
 
+  void adaptConfigToLimitMoves_(std::vector<double>& jointConfig);
   bool saveTrajectory_(const moveit_msgs::RobotTrajectory& trajectory, const std::string& filename);
   bool loadTrajectory_(moveit_msgs::RobotTrajectory& trajectory, const std::string& filename);
   bool loadAllTrajectories_(const std::string& directory);
@@ -111,9 +114,6 @@ protected:
       double timeInterval);
 
   bool retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, double cartesianSpeed, double robotFrequency);
-
-  // TODO(lmunier): Check if the orientation constraints are necessary
-  void setOrientationConstraints_();
 
 private:
   void initMoveit_();

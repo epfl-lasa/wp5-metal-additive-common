@@ -163,9 +163,6 @@ bool IPlannerBase::planCartesianFromJointConfig(const vector<double>& startJoint
   // Reset the move group interface
   cleanMoveGroup_();
 
-  // TODO(lmunier): Check if the orientation constraints are necessary
-  // setOrientationConstraints_();
-
   const double eef_step = 0.01;
   const string robotGroup = "manipulator";
   moveit_msgs::RobotTrajectory planTrajectory;
@@ -188,6 +185,23 @@ bool IPlannerBase::planCartesianFromJointConfig(const vector<double>& startJoint
   }
 
   return success;
+}
+
+bool IPlannerBase::goToScanArea(const std::vector<double>& eePoseScan) {
+  vector<vector<double>> ikSolutions{};
+  std::pair<Eigen::Quaterniond, Eigen::Vector3d> scanEigenPair = ConversionTools::vectorToEigenQuatPose(eePoseScan);
+  bool ikSuccess = robot_->getIKGeo(scanEigenPair.first, scanEigenPair.second, ikSolutions);
+
+  if (!ikSuccess) {
+    ROS_ERROR("[IPlannerBase] - Failed to get IK solutions for scanning pose.");
+    return false;
+  }
+
+  sort(ikSolutions.begin(), ikSolutions.end(), [](const vector<double>& a, const vector<double>& b) {
+    return a.front() < b.front();
+  });
+
+  return goToJointConfig(ikSolutions.back());
 }
 
 bool IPlannerBase::goToJointConfig(const vector<double>& jointConfig) {
@@ -218,6 +232,18 @@ bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
   }
 
   return success;
+}
+
+void IPlannerBase::adaptConfigToLimitMoves_(vector<double>& jointConfig) {
+  vector<double> currentConfig = get<0>(robot_->getState());
+
+  for (size_t i = 0; i < jointConfig.size(); ++i) {
+    if (jointConfig[i] - currentConfig[i] > M_PI) {
+      jointConfig[i] -= 2 * M_PI;
+    } else if (jointConfig[i] - currentConfig[i] < -M_PI) {
+      jointConfig[i] += 2 * M_PI;
+    }
+  }
 }
 
 bool IPlannerBase::saveTrajectory_(const moveit_msgs::RobotTrajectory& trajectory, const string& filename) {
@@ -487,34 +513,8 @@ void IPlannerBase::cleanMoveGroup_() {
   moveGroup_->setStartStateToCurrentState();
 }
 
-// TODO(lmunier): Check if the orientation constraints are necessary
-void IPlannerBase::setOrientationConstraints_() {
-  moveit_msgs::OrientationConstraint ocm;
-
-  ocm.link_name = "tool0";                           // The link to which the constraint is applied
-  ocm.header.frame_id = robot_->getReferenceFrame(); // The reference frame for the orientation
-
-  ocm.orientation.x = -0.707;
-  ocm.orientation.y = 0.0;
-  ocm.orientation.z = 0.0;
-  ocm.orientation.w = 0.707;
-
-  ocm.absolute_x_axis_tolerance = 2.8798; // Allowed deviation in radians for x-axis
-  ocm.absolute_y_axis_tolerance = 2.8798; // Allowed deviation in radians for y-axis
-  ocm.absolute_z_axis_tolerance = 2.8798; // Allowed deviation in radians for z-axis
-  ocm.weight = 1.0;                       // Importance of this constraint
-
-  moveit_msgs::Constraints constraints;
-  constraints.orientation_constraints.push_back(ocm);
-
-  moveGroup_->setPathConstraints(constraints);
-}
-
 bool IPlannerBase::move_() {
   moveit::planning_interface::MoveGroupInterface::Plan currentPlan;
-
-  // TODO(lmunier): Check if the orientation constraints are necessary
-  // setOrientationConstraints_();
   bool success = (moveGroup_->plan(currentPlan) == moveit::core::MoveItErrorCode::SUCCESS);
 
   if (success) {
