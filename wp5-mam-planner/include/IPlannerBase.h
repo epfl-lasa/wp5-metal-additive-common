@@ -107,12 +107,6 @@ protected:
 
   void reverseTrajectory_(moveit_msgs::RobotTrajectory& trajectory);
 
-  std::vector<trajectory_msgs::JointTrajectoryPoint> interpolatePoints_(
-      const trajectory_msgs::JointTrajectoryPoint& prevPoint,
-      const trajectory_msgs::JointTrajectoryPoint& currPoint,
-      double timeStep,
-      double timeInterval);
-
   bool retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, const double cartesianSpeed);
 
 private:

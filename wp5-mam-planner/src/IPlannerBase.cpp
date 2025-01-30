@@ -402,30 +402,6 @@ void IPlannerBase::reverseTrajectory_(moveit_msgs::RobotTrajectory& trajectory) 
   }
 }
 
-vector<trajectory_msgs::JointTrajectoryPoint> IPlannerBase::interpolatePoints_(
-    const trajectory_msgs::JointTrajectoryPoint& prevPoint,
-    const trajectory_msgs::JointTrajectoryPoint& currPoint,
-    double timeStep,
-    double timeInterval) {
-  vector<trajectory_msgs::JointTrajectoryPoint> interpolatedPoints;
-
-  for (double t = timeStep; t < timeInterval; t += timeStep) {
-    const double alpha = t / timeInterval;
-    trajectory_msgs::JointTrajectoryPoint interpolatedPoint;
-    interpolatedPoint.positions.resize(prevPoint.positions.size());
-
-    std::transform(prevPoint.positions.begin(),
-                   prevPoint.positions.end(),
-                   currPoint.positions.begin(),
-                   interpolatedPoint.positions.begin(),
-                   [alpha](double prev, double curr) { return prev + alpha * (curr - prev); });
-
-    interpolatedPoint.time_from_start = ros::Duration(t);
-    interpolatedPoints.push_back(std::move(interpolatedPoint));
-  }
-
-  return interpolatedPoints;
-}
 bool IPlannerBase::retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, const double cartesianSpeed) {
   const string PLANNING_GROUP = "manipulator";
 
@@ -446,61 +422,6 @@ bool IPlannerBase::retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory, c
 
   return true;
 }
-
-// bool IPlannerBase::retimeTrajectory_(moveit_msgs::RobotTrajectory& trajectory,
-//                                      double cartesianSpeed,
-//                                      double robotFrequency) {
-//   // Ensure the trajectory has points
-//   if (trajectory.joint_trajectory.points.empty()) {
-//     ROS_WARN("[IPlannerBase] - Trajectory has no points to retime.");
-//     return false;
-//   }
-
-//   // Calculate the desired time step based on the robot's frequency
-//   const double timeStep = 1.0 / robotFrequency; // TODO(lmunier) : Check if needed or if Moveit! already does it
-
-//   // Create a new trajectory to store the interpolated points
-//   moveit_msgs::RobotTrajectory newTrajectory;
-//   newTrajectory.joint_trajectory.joint_names = trajectory.joint_trajectory.joint_names;
-
-//   // Add the first point to the new trajectory
-//   newTrajectory.joint_trajectory.points.push_back(trajectory.joint_trajectory.points.front());
-
-//   // Linearly interpolate between each pair of points
-//   for (size_t i = 1; i < trajectory.joint_trajectory.points.size(); ++i) {
-//     const auto& prevPoint = trajectory.joint_trajectory.points[i - 1];
-//     const auto& currPoint = trajectory.joint_trajectory.points[i];
-
-//     // Calculate the Euclidean distance between waypoints
-//     tf2::Vector3 prevPosition(prevPoint.positions[0], prevPoint.positions[1], prevPoint.positions[2]);
-//     tf2::Vector3 currPosition(currPoint.positions[0], currPoint.positions[1], currPoint.positions[2]);
-//     const double distance = prevPosition.distance(currPosition);
-
-//     // Calculate the time interval for the desired speed
-//     const double timeInterval = distance / cartesianSpeed;
-
-//     // Interpolate points at the desired time step
-//     auto interpolatedPoints = interpolatePoints_(prevPoint, currPoint, timeStep, timeInterval);
-//     for (auto& point : interpolatedPoints) {
-//       point.time_from_start += newTrajectory.joint_trajectory.points.back().time_from_start;
-//       newTrajectory.joint_trajectory.points.push_back(std::move(point));
-//     }
-
-//     // Add the current point to the new trajectory
-//     auto currPointCopy = currPoint;
-//     currPointCopy.time_from_start =
-//         newTrajectory.joint_trajectory.points.back().time_from_start + ros::Duration(timeInterval);
-//     newTrajectory.joint_trajectory.points.push_back(std::move(currPointCopy));
-//   }
-
-//   // Replace the original trajectory with the new trajectory
-//   trajectory = std::move(newTrajectory);
-
-//   ROS_INFO_STREAM("[IPlannerBase] - Trajectory retimed and interpolated successfully to match the robot frequency of "
-//                   << robotFrequency << " Hz and achieve a constant Cartesian speed of " << cartesianSpeed << " m/s.");
-
-//   return true;
-// }
 
 void IPlannerBase::initMoveit_() {
   const string robotGroup = "manipulator";
