@@ -35,8 +35,10 @@ void Subtask::parseROI_(const string& str) {
   const size_t MSG_POS_SIZE = 6;
 
   string waypointID = "";
+  string refFrame = "";
   vector<double> waypointsPos{};
-  bool unpackedSuccess = waypointParser_.unpackWaypoint(str, ',', waypointID, waypointsPos);
+  vector<double> roiNormal{};
+  bool unpackedSuccess = waypointParser_.unpackWaypoint(str, waypointID, refFrame, waypointsPos, roiNormal);
 
   if (unpackedSuccess && waypointsPos.size() != MSG_POS_SIZE) {
     ROS_ERROR_STREAM("[Subtask] - Waypoint ROS message " << str << " doesn't have the correct size, should be "
@@ -47,19 +49,16 @@ void Subtask::parseROI_(const string& str) {
   if (!isROIStored_(waypointID)) {
     ROI roi(waypointID);
 
-    // Compute quaternion to restrain the orientation in the plane defined by the 3 points
     Eigen::Vector3d posStart(waypointsPos[0], waypointsPos[1], waypointsPos[2]);
     Eigen::Vector3d posEnd(waypointsPos[3], waypointsPos[4], waypointsPos[5]);
+    Eigen::Vector3d normal(roiNormal[0], roiNormal[1], roiNormal[2]);
 
-    //TODO(lmunier) - Add normal to the plan from DTU
-    Eigen::Vector3d normal(0, -1, 0);
-
-    roi.emplaceBackPose("base_link", posStart, normal);
-    roi.emplaceBackPose("base_link", posEnd, normal);
-
+    roi.emplaceBackPose(refFrame, posStart, normal);
+    roi.emplaceBackPose(refFrame, posEnd, normal);
     dequeROI_.push_back(roi);
 
-    ROS_INFO_STREAM("[Subtask] - Waypoint registered, key : " << waypointID);
+    ROS_INFO_STREAM("[Subtask] - Waypoint registered");
+    roi.print();
   } else {
     ROS_INFO_STREAM("[Subtask] - Waypoint received previously, already registered, key : " << waypointID);
   }
@@ -78,7 +77,7 @@ void Subtask::parseROI_(const string& str) {
     }
   }
 
-  DebugTools::publishWaypoints("base_link", waypoints, waypointsPub_, color);
+  DebugTools::publishWaypoints(refFrame, waypoints, waypointsPub_, color);
 #endif
 }
 

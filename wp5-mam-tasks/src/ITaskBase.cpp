@@ -45,8 +45,6 @@ bool ITaskBase::scanArea() {
   nh_.getParam("/" + robotType + "/wp5_task_node/toyWaypoints", toyWaypoints);
   nh_.getParam("/" + robotType + "/wp5_task_node/waypointsFile", waypointsFile);
 
-  ROS_INFO_STREAM("[ITaskBase] - toWaypoints: " << toyWaypoints << " waypointsFile: " << waypointsFile);
-
   //TODO(lmunier) - Add scanning logic
   // Open camera lid
   // Scan area if any scan pattern

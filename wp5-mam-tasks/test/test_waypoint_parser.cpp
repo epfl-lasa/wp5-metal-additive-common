@@ -26,50 +26,92 @@ protected:
   static void SetUpTestSuite() { waypointParser_ = new WaypointParser(); }
 
   static void TearDownTestSuite() { delete waypointParser_; }
+
+  void testUnpackWaypoint(const string& str,
+                          const string& expectedId,
+                          const string& expectedRefFrame,
+                          const vector<double>& expectedPos,
+                          const vector<double>& expectedNormal) {
+    string id = "";
+    string refFrame = "";
+    vector<double> pos;
+    vector<double> normal;
+
+    bool result = waypointParser_->unpackWaypoint(str, id, refFrame, pos, normal);
+
+    EXPECT_EQ(result, !expectedId.empty() && !expectedRefFrame.empty() && !expectedPos.empty());
+    EXPECT_EQ(id, expectedId);
+    EXPECT_EQ(refFrame, expectedRefFrame);
+    EXPECT_EQ(pos.size(), expectedPos.size());
+    EXPECT_EQ(pos, expectedPos);
+    EXPECT_EQ(normal.size(), expectedNormal.size());
+    EXPECT_EQ(normal, expectedNormal);
+  }
 };
 
 WaypointParser* WaypointParserTest::waypointParser_ = nullptr;
 
 TEST_F(WaypointParserTest, TestWellPackedWaypoint) {
-  string id = "";
-  vector<double> pos;
-
-  // Test unpack a well formatted waypoint
-  string str = "waypoint1,1,2,3,4,5,6";
+  string str = "waypoint1,base_link,1,2,3,4,5,6,0.1,0.2,0.3";
   vector<double> waypointUnpacked = {1, 2, 3, 4, 5, 6};
-  waypointParser_->unpackWaypoint(str, ',', id, pos);
-
-  EXPECT_EQ(id, "waypoint1");
-  EXPECT_EQ(pos.size(), waypointUnpacked.size());
-  EXPECT_EQ(pos, waypointUnpacked);
+  vector<double> normalUnpacked = {0.1, 0.2, 0.3};
+  testUnpackWaypoint(str, "waypoint1", "base_link", waypointUnpacked, normalUnpacked);
 }
 
-TEST_F(WaypointParserTest, TestMissingValueWaypoint) {
-  string id = "";
-  vector<double> pos;
-
-  // Test unpack a waypoint with a missing value
-  string str = "waypoint2,1,2,,4,5";
-  vector<double> waypointUnpacked = {1, 2, 4, 5};
-  waypointParser_->unpackWaypoint(str, ',', id, pos);
-
-  EXPECT_EQ(id, "waypoint2");
-  EXPECT_EQ(pos.size(), waypointUnpacked.size());
-  EXPECT_EQ(pos, waypointUnpacked);
+TEST_F(WaypointParserTest, TestNotWellPackedWaypoint) {
+  string str = "waypoint1,base_link,1,2,3,4,5,f,0.1,0.2,0.3";
+  vector<double> waypointUnpacked = {};
+  vector<double> normalUnpacked = {};
+  testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
 }
 
 TEST_F(WaypointParserTest, TestMissingIDWaypoint) {
-  string id = "";
-  vector<double> pos;
-
-  // Test unpack a waypoint with a missing id
-  string str = "2,1,2,,4,5";
+  string str = "base_link,2,1,2,,4,5,0.1,0.2,0.3";
   vector<double> waypointUnpacked = {};
-  waypointParser_->unpackWaypoint(str, ',', id, pos);
+  vector<double> normalUnpacked = {};
+  testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
+}
 
-  EXPECT_EQ(id, "");
-  EXPECT_EQ(pos.size(), waypointUnpacked.size());
-  EXPECT_EQ(pos, waypointUnpacked);
+TEST_F(WaypointParserTest, TestNumberOnlyIDWaypoint) {
+  string str = "1,base_link,2,1,2,,4,5,0.1,0.2,0.3";
+  vector<double> waypointUnpacked = {};
+  vector<double> normalUnpacked = {};
+  testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
+}
+
+TEST_F(WaypointParserTest, TestMissingRefFrameWaypoint) {
+  string str = "waypoint2,1,2,3,4,5,6,0.1,0.2,0.3";
+  vector<double> waypointUnpacked = {};
+  vector<double> normalUnpacked = {};
+  testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
+}
+
+TEST_F(WaypointParserTest, TestMissingValueWaypoint) {
+  string str = "waypoint2,base_link,1,2,,4,5,0.1,0.2,0.3";
+  vector<double> waypointUnpacked = {};
+  vector<double> normalUnpacked = {};
+  testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
+}
+
+TEST_F(WaypointParserTest, TestExtraValueWaypoint) {
+  string str = "waypoint2,base_link,1,2,3,4,5,6,7,0.1,0.2,0.3";
+  vector<double> waypointUnpacked = {};
+  vector<double> normalUnpacked = {};
+  testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
+}
+
+TEST_F(WaypointParserTest, TestExtraCommaWaypoint) {
+  string str = "waypoint2,base_link,1,2,3,4,5,6,0.1,0.2,0.3,";
+  vector<double> waypointUnpacked = {1, 2, 3, 4, 5, 6};
+  vector<double> normalUnpacked = {0.1, 0.2, 0.3};
+  testUnpackWaypoint(str, "waypoint2", "base_link", waypointUnpacked, normalUnpacked);
+}
+
+TEST_F(WaypointParserTest, TestExtraCommasWaypoint) {
+  string str = "waypoint2,base_link,1,2,3,4,5,6,0.1,0.2,0.3,,,";
+  vector<double> waypointUnpacked = {};
+  vector<double> normalUnpacked = {};
+  testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
 }
 
 int main(int argc, char** argv) {

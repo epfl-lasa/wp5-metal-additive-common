@@ -13,6 +13,7 @@
 #include "ROI.h"
 
 #include "conversion_tools.h"
+#include "debug_tools.h"
 
 using namespace std;
 
@@ -31,8 +32,8 @@ void ROI::print() const {
 
     ROS_INFO_STREAM("[ROI] - Pose ID " << idx++);
     ROS_INFO_STREAM("[ROI] - Reference Frame: " << pose.getFrameRef());
-    ROS_INFO_STREAM("[ROI] - Position xyz: " << pos.x() << pos.y() << pos.z());
-    ROS_INFO_STREAM("[ROI] - Normal xyz: " << normal.x() << normal.y() << normal.z());
+    ROS_INFO_STREAM("[ROI] - Position xyz: " << DebugTools::getEigenString(pos));
+    ROS_INFO_STREAM("[ROI] - Normal xyz: " << DebugTools::getEigenString(normal));
   }
 }
 

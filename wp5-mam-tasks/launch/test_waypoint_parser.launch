@@ -1,5 +1,5 @@
 <launch>
-    <node name="test_waypoint_parser" pkg="wp5_mam_planner" type="test_waypoint_parser"
+    <node name="test_waypoint_parser" pkg="wp5_mam_tasks" type="test_waypoint_parser"
         output="screen">
     </node>
 </launch>

@@ -16,13 +16,19 @@
 
 class WaypointParser {
 public:
-  bool packWaypoint(const std::vector<std::string>& strToPack,
-                    const char delimiter,
-                    std::string& waypointID,
-                    std::vector<double>& waypointsPos);
+  enum class ParseStatus { NOT_STARTED = -1, ID_TAKEN, REF_FRAME_TAKEN, POS_TAKEN, NORMAL_TAKEN };
+
+  void packWaypoint(const std::string& waypointID,
+                    const std::string& refFrame,
+                    const std::vector<double>& waypointsPos,
+                    const std::vector<double>& normal,
+                    std::string& waypointPacked,
+                    const char delimiter = ',');
 
   bool unpackWaypoint(const std::string& strToUnpack,
-                      const char delimiter,
                       std::string& waypointID,
-                      std::vector<double>& waypointsPos);
+                      std::string& refFrame,
+                      std::vector<double>& waypointsPos,
+                      std::vector<double>& normal,
+                      const char delimiter = ',');
 };

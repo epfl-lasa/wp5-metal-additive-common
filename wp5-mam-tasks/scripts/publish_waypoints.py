@@ -4,7 +4,7 @@
 # The waypoints are read from a file and published one by one as damage areas.
 
 # Author: Louis Munier
-# Last update: 2024-10-20
+# Last update: 2025-01-30
 
 import rospy
 import yaml
@@ -44,9 +44,13 @@ def read_waypoints(filename: str) -> dict:
 def pack_waypoint(waypoint: dict, id_damage: int) -> str:
     """Create a waypoint message from a waypoint."""
     msg = String()
-    msg.data = f"{id_damage}{waypoint['type']},"
+    msg.data = f"{id_damage}{waypoint['type']},{waypoint['frame']},"
 
-    positions = [waypoint["positions"]["start"], waypoint["positions"]["stop"]]
+    positions = [
+        waypoint["positions"]["start"],
+        waypoint["positions"]["stop"],
+        waypoint["normal"],
+    ]
 
     for coord in itertools.chain(*positions):
         msg.data += f"{coord},"

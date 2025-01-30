@@ -20,68 +20,116 @@
 
 using namespace std;
 
-bool WaypointParser::packWaypoint(const vector<string>& strToPack,
-                                  const char delimiter,
-                                  string& waypointID,
-                                  vector<double>& waypointsPos) {
-  string token = "";
+void WaypointParser::packWaypoint(const string& waypointID,
+                                  const string& refFrame,
+                                  const vector<double>& waypointsPos,
+                                  const vector<double>& normal,
+                                  string& waypointPacked,
+                                  const char delimiter) {
+  waypointPacked = waypointID + "," + refFrame;
 
-  // Clear previous values
-  waypointID = "";
-  waypointsPos.clear();
-
-  for (const auto& str : strToPack) {
-    if (waypointID.empty()) {
-      if (MathTools::isNumber(str)) {
-        ROS_ERROR_STREAM("[Subtask] - Invalid ID: " << str << " should not only be a number.");
-        return false;
-      }
-
-      waypointID = str;
-    } else {
-      if (MathTools::isNumber(str)) {
-        waypointsPos.push_back(stod(str));
-      } else {
-        ROS_ERROR_STREAM("[Subtask] - Invalid argument: " << str << " should be a number.");
-        return false;
-      }
-    }
+  for (const auto& pos : waypointsPos) {
+    waypointPacked += "," + to_string(pos);
   }
-
-  return true;
 }
 
 bool WaypointParser::unpackWaypoint(const string& strToUnpack,
-                                    const char delimiter,
                                     string& waypointID,
-                                    vector<double>& waypointsPos) {
-  bool idTaken = false;
+                                    string& refFrame,
+                                    vector<double>& waypointsPos,
+                                    vector<double>& normal,
+                                    const char delimiter) {
+  bool waypointValid = true;
+  ParseStatus idState = ParseStatus::NOT_STARTED;
+
   string token = "";
   stringstream ss(strToUnpack);
 
   // Clear previous values
   waypointID = "";
+  refFrame = "";
   waypointsPos.clear();
 
-  while (getline(ss, token, delimiter)) {
-    if (idTaken) {
-      if (MathTools::isNumber(token)) {
-        waypointsPos.push_back(stod(token));
-      } else {
-        ROS_ERROR_STREAM("[Subtask] - Invalid argument: " << token << " it should be a number.");
-      }
-    } else {
-      if (MathTools::isNumber(token)) {
-        ROS_ERROR_STREAM("[Subtask] - Invalid ID: " << token << " it should not only be a number.");
-        waypointID = "";
-        waypointsPos.clear();
-        return false;
-      } else {
-        waypointID = token;
-        idTaken = true;
-      }
+  while (getline(ss, token, delimiter) && waypointValid) {
+    switch (idState) {
+      // Get the waypoint ID if it is well packed
+      case ParseStatus::NOT_STARTED:
+        if (MathTools::isNumber(token)) {
+          ROS_ERROR_STREAM("[Subtask] - Invalid ID: " << token << " it should not only be a number.");
+          waypointValid = false;
+        } else {
+          waypointID = token;
+          idState = ParseStatus::ID_TAKEN;
+        }
+
+        break;
+
+      // Get the reference frame if it is well packed
+      case ParseStatus::ID_TAKEN:
+        if (MathTools::isNumber(token)) {
+          ROS_ERROR_STREAM("[Subtask] - Invalid refFrame: " << token << " it should be a string.");
+          waypointValid = false;
+        } else {
+          refFrame = token;
+          idState = ParseStatus::REF_FRAME_TAKEN;
+        }
+
+        break;
+
+      // Get the positions if they are well packed
+      case ParseStatus::REF_FRAME_TAKEN:
+        if (MathTools::isNumber(token)) {
+          waypointsPos.push_back(stod(token));
+        } else {
+          ROS_ERROR_STREAM("[Subtask] - Invalid position member argument: " << token << " it should be a number.");
+          waypointValid = false;
+        }
+
+        if (waypointsPos.size() == 6) {
+          idState = ParseStatus::POS_TAKEN;
+        }
+
+        break;
+
+      // Get the normal if it is well packed
+      case ParseStatus::POS_TAKEN:
+        if (MathTools::isNumber(token)) {
+          normal.push_back(stod(token));
+        } else {
+          ROS_ERROR_STREAM("[Subtask] - Invalid normal member argument: " << token << " it should be a number.");
+          waypointValid = false;
+        }
+
+        if (normal.size() == 3) {
+          idState = ParseStatus::NORMAL_TAKEN;
+        }
+
+        break;
+
+      // Too many arguments
+      case ParseStatus::NORMAL_TAKEN:
+        ROS_ERROR_STREAM("[Subtask] - Too many arguments in the waypoint: " << token);
+        waypointValid = false;
+        break;
+
+      default:
+        break;
     }
   }
 
-  return true;
+  // Check if the waypoint is valid
+  if (idState != ParseStatus::NORMAL_TAKEN && waypointValid) {
+    ROS_ERROR_STREAM("[Subtask] - Not enough arguments in the waypoint: " << strToUnpack);
+    waypointValid = false;
+  }
+
+  // Clear values if the waypoint is not valid
+  if (!waypointValid) {
+    waypointID = "";
+    refFrame = "";
+    waypointsPos.clear();
+    normal.clear();
+  }
+
+  return waypointValid;
 }
