@@ -3,17 +3,21 @@
  * @brief Declaration of the TaskCleaning class
  *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @version 0.2
- * @date 2025-01-26
+ * @version 0.3
+ * @date 2025-01-30
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
 
 #include "ITaskBase.h"
 
+#include <cstdlib>
+#include <thread>
+
 #include "RoboticArmFactory.h"
 #include "conversion_tools.h"
 #include "math_tools.h"
+#include "std_srvs/Trigger.h"
 #include "yaml_tools.h"
 
 using namespace std;
@@ -31,23 +35,58 @@ ITaskBase::ITaskBase(ros::NodeHandle& nh, const YAML::Node& config) :
     transform_(getTransform_("ee_tool", "virtual_link")) {}
 
 bool ITaskBase::scanArea() {
+  string robotType = "";
+  string waypointsFile = "";
+  bool toyWaypoints = false;
   bool success = planner_->goToScanArea(eePoseScan_);
+
+  // Get ROS param
+  nh_.getParam("/robot_type", robotType);
+  nh_.getParam("/" + robotType + "/wp5_task_node/toyWaypoints", toyWaypoints);
+  nh_.getParam("/" + robotType + "/wp5_task_node/waypointsFile", waypointsFile);
+
+  ROS_INFO_STREAM("[ITaskBase] - toWaypoints: " << toyWaypoints << " waypointsFile: " << waypointsFile);
 
   //TODO(lmunier) - Add scanning logic
   // Open camera lid
   // Scan area if any scan pattern
   // Close camera lid
-  // for now, just a simple pause to publish the toy data
-  ros::Duration(5.0).sleep();
+
+  // Publish waypoints from handwritten file or call DTU ros service to detect them
+  if (toyWaypoints) {
+    ROS_INFO_STREAM("[ITaskBase] - Using toy data waypoints");
+
+    // Start the toy data publisher in a separate thread and wait for it to finish
+    std::string command = "roslaunch wp5_mam_tasks publish_waypoints.launch yaml_file:=" + waypointsFile;
+    std::thread launch_thread([this, command]() { this->launchRosLaunchFile_(command); });
+    launch_thread.join();
+  } else {
+    ROS_INFO_STREAM("[ITaskBase] - Using waypoints from DTU detection");
+
+    // Call DTU service to detect waypoints
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("/ransac_node/execution/enable");
+    std_srvs::Trigger srv;
+
+    success = client.call(srv);
+    if (!success) {
+      ROS_ERROR_STREAM("[ITaskBase] - Failed to call service to detect waypoints");
+    }
+  }
+
+  ROS_INFO_STREAM("[ITaskBase] - Scanning area DONE");
 
   return success;
 }
 
 bool ITaskBase::goHomingConfiguration() { return planner_->goToJointConfig(homeConfig_); }
 
-bool ITaskBase::goWorkingPosition() {
-  cout << "Go Working Position" << endl;
-  return true;
+bool ITaskBase::launchRosLaunchFile_(const std::string command) {
+  bool success = std::system(command.c_str()) == 0;
+  if (!success) {
+    ROS_ERROR_STREAM("[ITaskBase] - Failed to publish waypoints");
+  }
+
+  return success;
 }
 
 const geometry_msgs::Transform ITaskBase::getTransform_(const std::string& sourceFrame,

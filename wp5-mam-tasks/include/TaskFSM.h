@@ -100,37 +100,6 @@ public:
   }
 
   /**
-   * @brief Action functor class for the goWorkingPosition event in the TaskFSM.
-   */
-  class goWorkingPosition {
-  public:
-    /**
-     * @brief Operator overload for handling the goWorkingPosition event.
-     *
-     * This operator is called when the goWorkingPosition event is triggered in the FSM.
-     * It checks if the current task can go to the working position and updates the FSM accordingly.
-     * If the task is successful, it sets the FSM to ready state. Otherwise, it sets an error message
-     * and triggers the ErrorTrigger event in the FSM.
-     *
-     * @param evt The event object.
-     * @param fsm The finite state machine object.
-     * @param src The source state object.
-     * @param tgt The target state object.
-     */
-    template <class EVT, class FSM, class SourceState, class TargetState>
-    void operator()(EVT const& evt, FSM& fsm, SourceState& src, TargetState& tgt) {
-      bool feedback = fsm.getCurrentTask()->goWorkingPosition();
-
-      if (feedback) {
-        fsm.setReady(true);
-      } else {
-        fsm.reachError("[FSM] - Error: Task goWorkingPosition failed");
-        fsm.process_event(ErrorTrigger());
-      }
-    }
-  };
-
-  /**
    * @brief Guard condition functor used to check if the FSM is ready to transition from the source state to the target
    * state.
    */
@@ -223,7 +192,7 @@ public:
       msmf::Row<Scanning, AreaEmpty, Homing, msmf::none, msmf::none>,
 
       // Planning ---------------------------------------------
-      msmf::Row<Planning, PathComputed, Ready, goWorkingPosition, msmf::none>,
+      msmf::Row<Planning, PathComputed, Ready, msmf::none, msmf::none>,
 
       // Ready ------------------------------------------------
       msmf::Row<Ready, Start, Executing, msmf::none, isReady>,
@@ -374,6 +343,7 @@ public:
   template <class Event, class FSM>
   void on_entry(Event const& event, FSM& fsm) {
     ROS_INFO("[FSM] - Entering: TaskFSM - Ready");
+    fsm.setReady(true);
   }
 
   /**

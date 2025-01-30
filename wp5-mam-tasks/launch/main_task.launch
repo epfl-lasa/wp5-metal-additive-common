@@ -3,6 +3,9 @@
     <arg name="task_planner_notify_end"     default="true"/>
     <arg name="simu" doc="Simulation or real robot : [ON, OFF]" default="ON" />
 
+    <arg name="toyWaypoints" doc="Publish hand written waypoints to help debugging / testing : [true, false]" default="true"/>
+    <arg name="waypointsFile" doc="File containing waypoints, check wp5-mam-tasks/config folder" default="$(find wp5_mam_tasks)/config/waypoints.yaml"/>
+
     <arg name="robot_type" doc="Which robot to use : [ur5, ur10e]" default="ur10e"/>
     <param name="robot_type" value="$(arg robot_type)" />
 
@@ -13,6 +16,8 @@
               output="screen">
             <param name="taskType" value="$(arg taskType)" />
             <param name="task_planner_notify_end" value="$(arg task_planner_notify_end)"/>
+            <param name="toyWaypoints" value="$(arg toyWaypoints)" />
+            <param name="waypointsFile" value="$(arg waypointsFile)" />
         </node>
     </group>
 </launch>

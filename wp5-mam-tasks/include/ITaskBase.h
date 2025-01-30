@@ -86,12 +86,6 @@ public:
    */
   virtual bool goHomingConfiguration();
 
-  /**
-   * @brief Moves to the working position.
-   * @return True if successful, false otherwise.
-   */
-  virtual bool goWorkingPosition();
-
 protected:
   ros::NodeHandle nh_{};          ///< ROS node handle.
   const std::string robotName_{}; ///< Robot name.
@@ -114,5 +108,6 @@ protected:
 #endif
 
 private:
+  bool launchRosLaunchFile_(const std::string command);
   const geometry_msgs::Transform getTransform_(const std::string& sourceFrame, const std::string& targetFrame);
 };
