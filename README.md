@@ -1,7 +1,7 @@
 # Robetarme T5.3 - IRR - Control
 
 ## Table of Contents
-
+- [Table of Contents](#table-of-contents)
 - [Overview](#overview)
 - [Submodule](#submodule)
 - [Requirements](#requirements)
@@ -23,6 +23,7 @@
   - [X Server issues](#x-server-issues)
 - [License](#license)
 - [Credits](#credits)
+- [TODOs](#todos)
 - [Maintainers](#maintainers)
 
 ## Overview
@@ -268,6 +269,13 @@ This repository use the work of the following repositories:
 - [ROS industrial](https://github.com/ros-industrial/universal_robot)
 - [Universal Robot Driver](https://github.com/UniversalRobots/Universal_Robots_ROS_Driver) - *Apache 2.0*
 - [ROS modbus device driver](https://github.com/epfl-lasa/ros-modbus-device-driver.git) - *MPL-2.0*
+
+## TODOs
+
+- [ ] Update namespaces to fit RobétArmé requirements
+- [ ] Implement RobétArmé guides
+- [ ] Give orders of event to Alex from CERTH
+- [ ] Implement stop / pause / kill behavior on the task, with respect to Moveit!
 
 ## Maintainers
 
