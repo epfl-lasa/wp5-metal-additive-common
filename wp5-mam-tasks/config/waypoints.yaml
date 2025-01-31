@@ -1,6 +1,8 @@
 - frame: base_link
   type: V # V: vertical, H: horizontal
   positions:
-    start: [0.56, 0.837, 0.8] # [m] x,y,z
-    stop: [0.56, 0.837, 0.76] # [m] x,y,z
-  normal: [0, -1, 0] # [m] x,y,z
+    # start: [0.56, 0.837, 0.8] # [m] x,y,z
+    # stop: [0.56, 0.837, 0.76] # [m] x,y,z
+    start: [-0.56, 0.37, 0.8] # [m] x,y,z
+    stop: [-0.56, 0.37, 0.76] # [m] x,y,z
+  normal: [1, 0, 0] # [m] x,y,z

@@ -3,8 +3,8 @@
  * @brief Declaration of the PlannerWelding class
  *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @version 0.2
- * @date 2024-12-05
+ * @version 0.3
+ * @date 2025-01-31
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
@@ -90,7 +90,6 @@ bool PlannerWelding::computeWeldingPossiblePaths_(const geometry_msgs::Pose& sta
 
     int test = 0;
     for (auto& ikSol : ikSolutions) {
-      adaptConfigToLimitMoves_(ikSol);
       isPathComputed = planCartesianFromJointConfig(ikSol, weldingTarget, sortedWeldingPaths_);
       success = success || isPathComputed;
     }

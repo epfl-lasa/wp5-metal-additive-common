@@ -4,8 +4,8 @@
  *
  * @author [Louis Munier] - lmunier@protonmail.com
  * @author [Tristan Bonato] - tristan_bonato@hotmail.com
- * @version 0.2
- * @date 2024-10-01
+ * @version 0.3
+ * @date 2025-01-31
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  *
@@ -62,7 +62,8 @@ const pair<Eigen::Quaterniond, Eigen::Vector3d> RoboticArmUr::getFKGeo(const vec
 
 const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
                                   const Eigen::Vector3d& position,
-                                  vector<vector<double>>& jointPos) {
+                                  vector<vector<double>>& jointPos,
+                                  const bool minJointMovements) {
   // Offset to fix convention between trac-ik (the basic one to use) and ik-geo solvers
   Eigen::Quaterniond offset = Eigen::Quaterniond(0.5, -0.5, -0.5, -0.5);
 
@@ -86,6 +87,13 @@ const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
   }
 
   filterIKGeoSolutions_(jointPos, quaternion, position);
+
+  // Modify the joint positions to minimize the movements on each joints from the current joint positions
+  if (minJointMovements) {
+    for (auto& j : jointPos) {
+      adaptConfigToLimitMoves_(j);
+    }
+  }
 
   // Check wether the number of rejected solutions is not too high
   totSolutions = ikSolutions.size();
@@ -126,6 +134,18 @@ void RoboticArmUr::filterIKGeoSolutions_(vector<vector<double>>& jointPos,
 
     if (!isQuatValid || !isPosValid) {
       jointPos.erase(std::next(it).base());
+    }
+  }
+}
+
+void RoboticArmUr::adaptConfigToLimitMoves_(vector<double>& jointConfig) {
+  vector<double> currentConfig = get<0>(getState());
+
+  for (size_t i = 0; i < jointConfig.size(); ++i) {
+    if (jointConfig[i] - currentConfig[i] > M_PI) {
+      jointConfig[i] -= 2 * M_PI;
+    } else if (jointConfig[i] - currentConfig[i] < -M_PI) {
+      jointConfig[i] += 2 * M_PI;
     }
   }
 }

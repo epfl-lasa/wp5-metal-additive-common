@@ -3,8 +3,8 @@
  * @brief Declaration of the IPlannerBase class
  *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @version 0.2
- * @date 2024-12-05
+ * @version 0.3
+ * @date 2025-01-31
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
@@ -91,7 +91,7 @@ protected:
   moveit::core::RobotStatePtr robotState_ = nullptr;
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
 
-  void adaptConfigToLimitMoves_(std::vector<double>& jointConfig);
+  // void adaptConfigToLimitMoves_(std::vector<double>& jointConfig);
   bool saveTrajectory_(const moveit_msgs::RobotTrajectory& trajectory, const std::string& filename);
   bool loadTrajectory_(moveit_msgs::RobotTrajectory& trajectory, const std::string& filename);
   bool loadAllTrajectories_(const std::string& directory);

@@ -4,8 +4,8 @@
  *
  * @author [Louis Munier] - lmunier@protonmail.com
  * @author [Tristan Bonato] - tristan_bonato@hotmail.com
- * @version 0.2
- * @date 2024-10-01
+ * @version 0.3
+ * @date 2025-01-31
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
@@ -129,11 +129,13 @@ public:
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
    * @param jointPos Vector of joint positions of the robotic arm.
+   * @param minJointMovements Flag to minimize joint movements from the current joint positions.
    * @return Pair of the return code and the next joint positions.
    */
   virtual const bool getIKGeo(const Eigen::Quaterniond& quaternion,
                               const Eigen::Vector3d& position,
-                              std::vector<std::vector<double>>& jointPos) {
+                              std::vector<std::vector<double>>& jointPos,
+                              const bool minJointMovements = true) {
     ROS_ERROR("[IRoboticArmBase] - This function is not implemented for this robotic arm.");
 
     jointPos.clear();

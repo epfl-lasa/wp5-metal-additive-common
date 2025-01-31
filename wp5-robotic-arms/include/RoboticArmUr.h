@@ -3,8 +3,8 @@
  * @brief Declaration of the RoboticArmUr class
  *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @version 0.1
- * @date 2024-09-09
+ * @version 0.2
+ * @date 2025-01-31
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  *
@@ -59,11 +59,13 @@ public:
    * @param quaternion Quaternion of the end effector.
    * @param position Position of the end effector.
    * @param jointPos Vector of joint positions of the robotic arm.
+   * @param minJointMovements Flag to minimize joint movements from the current joint positions.
    * @return Pair of the return code and the next joint positions.
    */
   const bool getIKGeo(const Eigen::Quaterniond& quaternion,
                       const Eigen::Vector3d& position,
-                      std::vector<std::vector<double>>& jointPos) override;
+                      std::vector<std::vector<double>>& jointPos,
+                      const bool minJointMovements = true) override;
 
   /**
    * @brief Get the current state of the robotic arm.
@@ -78,6 +80,8 @@ protected:
   void filterIKGeoSolutions_(std::vector<std::vector<double>>& jointPos,
                              const Eigen::Quaterniond& quaternion,
                              const Eigen::Vector3d& position) override;
+
+  void adaptConfigToLimitMoves_(std::vector<double>& jointConfig);
 
 private:
   const std::array<double, 18> UR_H_MATRIX{}; ///< H matrix for the UR robot, size 3*6

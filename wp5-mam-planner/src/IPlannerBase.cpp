@@ -3,8 +3,8 @@
  * @brief Declaration of the IPlannerBase class
  *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @version 0.2
- * @date 2025-01-24
+ * @version 0.3
+ * @date 2025-01-31
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
@@ -24,7 +24,7 @@
 #include "yaml_tools.h"
 
 using namespace std;
-namespace fs = std::filesystem;
+namespace fs = filesystem;
 
 /**
  * TODO(lmunier) : Clean store / read / plan configuration
@@ -188,21 +188,39 @@ bool IPlannerBase::planCartesianFromJointConfig(const vector<double>& startJoint
   return success;
 }
 
-bool IPlannerBase::goToScanArea(const std::vector<double>& eePoseScan) {
+bool IPlannerBase::goToScanArea(const vector<double>& eePoseScan) {
+  bool success = false;
   vector<vector<double>> ikSolutions{};
-  std::pair<Eigen::Quaterniond, Eigen::Vector3d> scanEigenPair = ConversionTools::vectorToEigenQuatPose(eePoseScan);
-  bool ikSuccess = robot_->getIKGeo(scanEigenPair.first, scanEigenPair.second, ikSolutions);
+  pair<Eigen::Quaterniond, Eigen::Vector3d> scanEigenPair = ConversionTools::vectorToEigenQuatPose(eePoseScan);
+  success = robot_->getIKGeo(scanEigenPair.first, scanEigenPair.second, ikSolutions);
 
-  if (!ikSuccess) {
+  if (!success) {
     ROS_ERROR("[IPlannerBase] - Failed to get IK solutions for scanning pose.");
     return false;
   }
 
+  // Partition configurations to move non-positive base joint positions to the end
+  auto partitionPoint = partition(
+      ikSolutions.begin(), ikSolutions.end(), [](const vector<double>& config) { return config.front() > 0; });
+
+  // Remove the invalid configurations
+  ikSolutions.erase(partitionPoint, ikSolutions.end());
+
+  // Sort the valid configurations
   sort(ikSolutions.begin(), ikSolutions.end(), [](const vector<double>& a, const vector<double>& b) {
-    return a.front() < b.front();
+    return a.front() > b.front();
   });
 
-  return goToJointConfig(ikSolutions.back());
+  // Loop backward over the IK solutions and find the one that is not colliding with obstacles and has a positive base joint position
+  for (auto& sol : ikSolutions) {
+    success = goToJointConfig(sol);
+
+    if (success) {
+      break;
+    }
+  }
+
+  return success;
 }
 
 bool IPlannerBase::goToJointConfig(const vector<double>& jointConfig) {
@@ -233,18 +251,6 @@ bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
   }
 
   return success;
-}
-
-void IPlannerBase::adaptConfigToLimitMoves_(vector<double>& jointConfig) {
-  vector<double> currentConfig = get<0>(robot_->getState());
-
-  for (size_t i = 0; i < jointConfig.size(); ++i) {
-    if (jointConfig[i] - currentConfig[i] > M_PI) {
-      jointConfig[i] -= 2 * M_PI;
-    } else if (jointConfig[i] - currentConfig[i] < -M_PI) {
-      jointConfig[i] += 2 * M_PI;
-    }
-  }
 }
 
 bool IPlannerBase::saveTrajectory_(const moveit_msgs::RobotTrajectory& trajectory, const string& filename) {
@@ -375,11 +381,11 @@ double IPlannerBase::computeTotalJerk_(const moveit_msgs::RobotTrajectory& traje
 }
 
 void IPlannerBase::sortTrajectoriesByJerk_(vector<moveit_msgs::RobotTrajectory>& trajectories) {
-  std::sort(sortedWeldingPaths_.begin(),
-            sortedWeldingPaths_.end(),
-            [this](const moveit_msgs::RobotTrajectory& a, const moveit_msgs::RobotTrajectory& b) {
-              return computeTotalJerk_(a) < computeTotalJerk_(b);
-            });
+  sort(sortedWeldingPaths_.begin(),
+       sortedWeldingPaths_.end(),
+       [this](const moveit_msgs::RobotTrajectory& a, const moveit_msgs::RobotTrajectory& b) {
+         return computeTotalJerk_(a) < computeTotalJerk_(b);
+       });
 }
 
 void IPlannerBase::reverseTrajectory_(moveit_msgs::RobotTrajectory& trajectory) {
@@ -394,7 +400,7 @@ void IPlannerBase::reverseTrajectory_(moveit_msgs::RobotTrajectory& trajectory) 
   }
 
   // Reverse the points
-  std::reverse(points.begin(), points.end());
+  reverse(points.begin(), points.end());
 
   // Reassign the time_from_start values in ascending order
   for (size_t i = 0; i < points.size(); ++i) {

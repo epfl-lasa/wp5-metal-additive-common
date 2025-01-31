@@ -1,5 +1,5 @@
 <launch>
-    <arg name="jointSet" default="exp1_scan_joints" />
+    <arg name="jointSet" default="rebars_scan_joints" />
     <arg name="robot_model" default="ur10e" doc="Has to be one of the following : [ur5, ur10e]" />
     <arg name="robotName" value="$(arg robot_model)_robot" />
     <arg name="rosVersion" default="noetic" />

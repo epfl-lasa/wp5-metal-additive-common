@@ -3,8 +3,8 @@
  * @brief Declaration of the TaskWelding class
  *
  * @author [Louis Munier] - lmunier@protonmail.com
- * @version 0.2
- * @date 2024-12-05
+ * @version 0.3
+ * @date 2025-01-31
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  */
@@ -51,12 +51,10 @@ bool TaskWelding::computeTrajectory(const std::vector<ROI::Pose>& waypoints) {
 }
 
 const geometry_msgs::Pose TaskWelding::getPoseOffset_(const ROI::Pose waypoint,
-                                                      const Eigen::Vector3d wpVector,
+                                                      const Eigen::Vector3d rotVector,
                                                       const Eigen::Vector3d offset) {
   const Eigen::Vector3d offsetDir = waypoint.getNormal();
-  const Eigen::Vector3d rotVector = offsetDir.cross(wpVector).normalized();
-
-  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-wpVector, workingAngle_);
+  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-rotVector, workingAngle_);
   const Eigen::Quaterniond rotQuaternion = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), -offsetDir);
 
   // Add offsets from both tools size and welding needs
