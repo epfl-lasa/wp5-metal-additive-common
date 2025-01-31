@@ -188,7 +188,7 @@ The task, wp5-mam-tasks ROS package in the code, is mainly implemented using the
 **Robotic Arm -** Based on the input parameter from the roslaunch, by default it is a UR10e robot.
 **ObstacleManagement -** An object managing the Moveit! scene and all the obstacles to avoid during planning.
 
-All of this will only run if the correct *taskType* parameter is set, currently it can be one of the following: [welding, cleaning], it is welding by default.
+All of this will only run if the correct *task_type* parameter is set, currently it can be one of the following: [welding, cleaning], it is welding by default.
 
 To set up the code, wait for a service call enabling all these instantiation and enable the TaskFSM, run the following script:
 

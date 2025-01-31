@@ -228,11 +228,11 @@ void TaskManager::entrypointWrapper() {
 void TaskManager::executeTask() {
   // Check for the taskType parameter
   std::string taskType = "";
-  ros::param::get("~taskType", taskType);
+  ros::param::get("~task_type", taskType);
 
   // Create a unique pointer for the instance of TaskFSM
-  ROS_INFO("[MainTask] - Creating Task - %s", taskType.c_str());
-  std::shared_ptr<ITaskBase> task = TaskFactory::createTask(taskType, nh_, std::string("robot_task.yaml"));
+  ROS_INFO("[MainTask] - Creating Task - %s", task_type.c_str());
+  std::shared_ptr<ITaskBase> task = TaskFactory::createTask(task_type, nh_, std::string("robot_task.yaml"));
 
   taskFsm_ internalFSM_(task, nh_);
 

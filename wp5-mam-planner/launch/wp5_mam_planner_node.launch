@@ -9,6 +9,10 @@
     <param name="robot_type" value="$(arg robot_type)" />
 
     <arg name="calibration_filename" default="ur10e_default" />
+    <arg name="obstacles_filename"
+         doc="The name of the obstacles file to take into account for the planning, located in config folder."
+         default="obstacles_anima.yaml"/>
+    <param name="obstacles_filename" value="$(arg obstacles_filename)" />
 
     <arg name="ee_tool"
         doc="Type of the tool attached to the end effector : [none, welding_laser]"

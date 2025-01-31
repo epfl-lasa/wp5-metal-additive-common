@@ -4,7 +4,7 @@
  *
  * @author [Louis Munier] - lmunier@protonmail.com
  * @version 0.1
- * @date 2024-09-09
+ * @date 2025-01-31
  *
  * @copyright Copyright (c) 2025 - EPFL - LASA. All rights reserved.
  *
@@ -30,13 +30,16 @@ ObstaclesManagement::ObstaclesManagement(ros::NodeHandle nh, string frameID) : n
 
 void ObstaclesManagement::addStaticObstacles() {
   string name{}, type{};
+  string obstaclesFilename = "";
 
   moveit_msgs::CollisionObject collisionObject;
   vector<moveit_msgs::CollisionObject> collisionObjects;
   collisionObject.header.frame_id = frameID_;
 
   // Get obstacles from the config file
-  string yamlPath = YamlTools::getYamlPath("obstacles.yaml", string(WP5_MAM_PLANNER_DIR));
+  nh_.getParam("/obstacles_filename", obstaclesFilename);
+  string yamlPath = YamlTools::getYamlPath(obstaclesFilename, string(WP5_MAM_PLANNER_DIR));
+
   YAML::Node config = YAML::LoadFile(yamlPath);
   vector<YAML::Node> obstacles = config["obstacles"].as<vector<YAML::Node>>();
 

@@ -1,0 +1,32 @@
+# Add obstacles like the following examples:
+# obstacles:
+#   - name: obstacle_box
+#     type: box
+#     size: [0.1, 0.1, 0.1] # xyz [m]
+#     pose: [0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+#   - name: obstacle_sphere
+#     type: sphere
+#     radius: 0.1 # [m]
+#     pose: [0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+#   - name: obstacle_cylinder
+#     type: cylinder
+#     radius: 0.1 # [m]
+#     height: 0.2 # [m]
+#     pose: [0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+#   - name: obstacle_mesh
+#     type: mesh
+#     path: /home/ros/catkin_ws/src/anima_ros/laser_description/meshes/collision/laser_holder_collision.stl
+#     pose: [0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+obstacles:
+  - name: ground
+    type: box
+    size: [2.0, 2.0, 0.2] # xyz [m]
+    pose: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -0.1] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+  - name: virtual_wall_gas_tank
+    type: box
+    size: [0.2, 1.0, 2.0] # xyz [m]
+    pose: [0.0, 0.0, 0.0, 1.0, 0.71, -0.5, 1.0] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+  - name: welding_controller
+    type: box
+    size: [0.85, 0.44, 0.96] # xyz [m]
+    pose: [0.0, 0.0, 0.0, 1.0, 0.425, -0.66, 0.48] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]

@@ -10,7 +10,7 @@
             "request": "launch",
             "target": "/home/${ROS_USER}/catkin_ws/src/wp5-mam-tasks/launch/main_task.launch",
             "arguments": [
-                "taskType:=welding",
+                "task_type:=welding",
                 "robot_type:=ur10e",
                 "simu:=ON"
             ],

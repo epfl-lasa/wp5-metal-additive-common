@@ -23,6 +23,11 @@ class PlannerCleaning : public IPlannerBase {
 public:
   /**
    * @brief Constructor.
+   *
+   * @param rosVersion The ROS version used
+   * @param nh The ROS node handle
+   * @param robotName The name of the robot to plan the trajectory for
+   * @param workingSpeed The working speed of the robot when performing the task [m/s]
    */
   PlannerCleaning(ROSVersion rosVersion, ros::NodeHandle& nh, std::string robotName, double workingSpeed);
 
@@ -33,7 +38,10 @@ public:
 
 protected:
   /**
-   * @brief Plans the welding trajectory of the robot.
+   * @brief Plans the task trajectory of the robot.
+   *
+   * @param waypoints The waypoints to plan the trajectory for
+   * @return true if the trajectory was planned successfully, false otherwise
    */
   bool planTrajectoryTask_(const std::vector<geometry_msgs::Pose>& waypoints) override;
 };

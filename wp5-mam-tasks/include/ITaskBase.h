@@ -104,10 +104,25 @@ protected:
   const geometry_msgs::Transform transform_; ///< Transform between two frames.
 
 #ifdef DEBUG_MODE
+  // Publish the trajectory for debugging purposes
   ros::Publisher pathPub_{nh_.advertise<nav_msgs::Path>("/debug_path", 10)};
 #endif
 
 private:
+  /**
+   * @brief Launch a ROS launch file using the given command
+   *
+   * @param command The command to launch the ROS launch file
+   * @return true if the launch file was launched successfully, false otherwise
+   */
   bool launchRosLaunchFile_(const std::string command);
+
+  /**
+   * @brief Get the transform between two frames
+   *
+   * @param sourceFrame The source frame
+   * @param targetFrame The target frame
+   * @return The transform between the source frame and the target frame
+   */
   const geometry_msgs::Transform getTransform_(const std::string& sourceFrame, const std::string& targetFrame);
 };

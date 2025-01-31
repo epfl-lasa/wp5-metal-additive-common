@@ -18,23 +18,11 @@
 #     path: /home/ros/catkin_ws/src/anima_ros/laser_description/meshes/collision/laser_holder_collision.stl
 #     pose: [0.0, 0.0, 0.0, 1.0, 0.5, 0.5, 0.5] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
 obstacles:
-#  - name: ridgeback_platform
-#    type: box
-#    size: [0.97, 0.77, 0.3] # xyz [m]
-#    pose: [0.0, 0.0, 0.0, 1.0, -0.185, 0, -0.15] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
-#  - name: ridgeback_arch
-#    type: box
-#    size: [0.15, 0.55, 0.85] # xyz [m]
-#    pose: [0.0, 0.0, 0.0, 1.0, -0.62, 0.0, 0.425] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
-  - name: ground
+  - name: ridgeback_platform
     type: box
-    size: [2.0, 2.0, 0.2] # xyz [m]
-    pose: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -0.1] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
-  - name: virtual_wall_gas_tank
+    size: [0.97, 0.77, 0.3] # xyz [m]
+    pose: [0.0, 0.0, 0.0, 1.0, -0.185, 0, -0.15] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+  - name: ridgeback_arch
     type: box
-    size: [0.2, 1.0, 2.0] # xyz [m]
-    pose: [0.0, 0.0, 0.0, 1.0, 0.71, -0.5, 1.0] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
-  - name: welding_controller
-    type: box
-    size: [0.85, 0.44, 0.96] # xyz [m]
-    pose: [0.0, 0.0, 0.0, 1.0, 0.425, -0.66, 0.48] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+    size: [0.15, 0.55, 0.85] # xyz [m]
+    pose: [0.0, 0.0, 0.0, 1.0, -0.62, 0.0, 0.425] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]

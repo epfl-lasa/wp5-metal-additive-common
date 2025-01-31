@@ -4,9 +4,11 @@
 # - ur10e_robot
 #
 # Possible pose to set :
-# - ee_pose_work_offset : Position offset to work in the environment in the robot frame
-# - ee_pose_offset : Position offset to apply to the pose
-# - ee_pose_scan : Pose to scan the environment in the robot frame
+# - ee_pose_work_offset : Position offset as a safe position to engage / disengage
+#   the task in the environment in the robot base_link frame
+# - ee_pose_offset : Position offset to perform the task in the environment in the
+#   robot base_link frame
+# - ee_pose_scan : Pose to scan the environment, in the robot base_link frame
 #
 # Louis Munier : 2024-12-04
 
@@ -18,8 +20,7 @@ welding:
   working_speed: 0.012 # [m/s]
   ee_pos_work_offset: [0, 0, -0.1] # [m] xyz
   ee_pos_offset: [0, 0, -0.02] # [m] xyz
-  # ee_pose_scan: [-0.704627, -0.0401188, -0.00946144, 0.70838, -0.2, 0.0, 1.33] # [rad] xyzw, [m] xyz 1st demo
-  ee_pose_scan: [-0.702306, -0.0164152, 0.0117277, 0.711589, -0.00866204, 0.510377, 0.632986] # [rad] xyzw, [m] xyz 1st demo rebars
+  ee_pose_scan: [-0.702306, -0.0164152, 0.0117277, 0.711589, -0.00866204, 0.510377, 0.632986] # [rad] xyzw, [m] xyz
 cleaning:
   robot_name: "ur5_robot"
   ros_version: "noetic"

@@ -27,6 +27,10 @@ public:
     Pose(const std::string frame, const Eigen::Vector3d& position, const Eigen::Vector3d& normal) :
         frameRef_(frame), position_(position), normal_(normal) {}
 
+    /**
+     * @brief Convert the pose to a vector of doubles
+     * @return A vector containing the position and orientation of the pose
+     */
     std::vector<double> toVector() const {
       return {position_.x(), position_.y(), position_.z(), normal_.x(), normal_.y(), normal_.z()};
     }
@@ -42,10 +46,20 @@ public:
     Eigen::Vector3d normal_;   ///< Orientation of the pose
   };
 
+  /**
+   * @brief Constructor for the ROI class
+   * @param poseID The ID of the ROI
+   */
   ROI(std::string poseID) : id_(poseID) {};
 
+  /**
+   * @brief Clear all poses in the ROI
+   */
   void clear();
 
+  /**
+   * @brief Print the details of the ROI
+   */
   void print() const;
 
   // Getters and setters for the private members
@@ -62,6 +76,6 @@ public:
   void emplaceBackPose(const std::string frame, const Eigen::Vector3d& pos, const Eigen::Vector3d& normal);
 
 private:
-  std::string id_{};
-  std::vector<Pose> poses_{};
+  std::string id_{};          ///< ID of the ROI
+  std::vector<Pose> poses_{}; ///< Poses of the ROI
 };

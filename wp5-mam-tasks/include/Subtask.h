@@ -60,16 +60,25 @@ public:
   const std::optional<ROI> popROI();
 
 private:
-  ros::NodeHandle nh_;
-  ros::Subscriber subROI_;
-  std::deque<ROI> dequeROI_;
+  ros::NodeHandle nh_;       ///< ROS node handle.
+  ros::Subscriber subROI_;   ///< Subscriber to the region of interest topic.
+  std::deque<ROI> dequeROI_; ///< Deque of region of interest.
 
-  const Eigen::Vector3d robotPos_ = Eigen::Vector3d::Zero();
-  static constexpr double theta_ = MathTools::degToRad<int>(0);
+  WaypointParser waypointParser_; ///< Waypoint parser.
 
-  WaypointParser waypointParser_;
-
+  /**
+   * @brief Parse the region of interest string.
+   *
+   * @param str The region of interest string.
+   */
   void parseROI_(const std::string& str);
+
+  /**
+   * @brief Check if the region of interest is already stored to avoid duplicates.
+   *
+   * @param id The region of interest id.
+   * @return bool True if the region of interest is already stored.
+   */
   const bool isROIStored_(const std::string& id) const;
 
   /**
@@ -78,6 +87,7 @@ private:
   void cbkROI_(const std_msgs::String::ConstPtr& msg);
 
 #ifdef DEBUG_MODE
+  // Publisher for the stored waypoints for debugging purposes
   ros::Publisher waypointsPub_{nh_.advertise<visualization_msgs::Marker>("/debug_waypoints", 10)};
 #endif
 };

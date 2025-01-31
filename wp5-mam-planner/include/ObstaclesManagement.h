@@ -27,8 +27,21 @@ public:
    */
   ObstaclesManagement(ros::NodeHandle nh, std::string frameID);
 
+  /**
+   * @brief Add static obstacles to the planning scene
+   */
   void addStaticObstacles();
+
+  /**
+   * @brief Remove obstacles from the planning scene
+   *
+   * @param obstacleIds The IDs of the obstacles to remove
+   */
   void removeObstacles(const std::vector<std::string>& obstacleIds);
+
+  /**
+   * @brief Update the planning scene with the current state of the environment
+   */
   void updatePlanningScene();
 
 private:
@@ -38,7 +51,7 @@ private:
   // Planning scene interface
   std::unique_ptr<moveit::planning_interface::PlanningSceneInterface> planningSceneInterface_ = nullptr;
 
-  // Create new obstacles shape
+  // Create new obstacles shape, each of these function create a new obstacle, based on their needed parameters
   const shape_msgs::SolidPrimitive createBox_(const std::string& name, const std::vector<double>& size) const;
   const shape_msgs::SolidPrimitive createCylinder_(const std::string& name, double height, double radius) const;
   const shape_msgs::SolidPrimitive createSphere_(const std::string& name, double radius) const;

@@ -28,7 +28,7 @@ enum ROSVersion : int8_t {
 class IRosInterfaceBase {
 public:
   /**
-   * @brief Map of task names to TaskType enums.
+   * @brief Map of task names to task_type enums.
    */
   inline static const std::map<std::string, ROSVersion> rosVersionsMap{{"noetic", ROS1_NOETIC},
                                                                        {"humble", ROS2_HUMBLE}};

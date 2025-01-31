@@ -16,10 +16,10 @@ int main(int argc, char** argv) {
   double rosFreq = 500;
   ros::Rate loopRate(rosFreq);
 
-  // Check for the taskType parameter
+  // Check for the task_type parameter to not start the node if it is not set
   string taskType = "";
-  if (!ros::param::get("~taskType", taskType)) {
-    ROS_ERROR("[MainTask] - No taskType argument received");
+  if (!ros::param::get("~task_type", taskType)) {
+    ROS_ERROR("[MainTask] - No task_type argument received");
     return 1;
   }
 
