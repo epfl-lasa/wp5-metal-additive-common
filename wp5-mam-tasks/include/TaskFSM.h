@@ -224,6 +224,12 @@ public:
       // Error ------------------------------------------------
       msmf::Row<AllOk, ErrorTrigger, ErrorMode, msmf::none, msmf::none>,
       msmf::Row<ErrorMode, ErrorAcknowledgement, AllOk, msmf::none, msmf::none>>;
+
+  // Define the no_transition handler
+  template <class FSM, class Event>
+  void no_transition(Event const& e, FSM&, int state) {
+    ROS_WARN_STREAM("[TaskFSM] - No transition defined for event " << typeid(e).name() << " in state " << state);
+  }
 };
 
 typedef msm::back::state_machine<TaskFSM> taskFsm_;
