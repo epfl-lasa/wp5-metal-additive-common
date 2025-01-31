@@ -27,8 +27,6 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "perform_fk");
   ros::NodeHandle nh;
 
-  // Load the robot name and ROS version from the YAML file
-
   // Get obstacles from the config file
   std::string yamlPath = YamlTools::getYamlPath("fk_joint_config.yaml", std::string(WP5_ROBOTIC_ARMS_DIR));
   YAML::Node config = YAML::LoadFile(yamlPath);

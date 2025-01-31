@@ -2,6 +2,8 @@
 # -*- encoding: utf-8 -*-
 # This script is used to publish waypoints manually on the /damage_string topic.
 # The waypoints are read from a file and published one by one as damage areas.
+# It is automatically called in the scanning process if the toy_waypoints
+# is set to true in the launchfile otherwise DTU's algorithm is called.
 
 # Author: Louis Munier
 # Last update: 2025-01-30

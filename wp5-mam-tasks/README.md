@@ -9,6 +9,7 @@ Implement the task manager with the specificities related to the different tasks
   - [TaskFSM.h](#taskfsmh)
   - [TaskFactory.h](#taskfactoryh)
 - [Architecture](#architecture)
+- [Limitations](#limitations)
 - [Maintainers](#maintainers)
 
 ## Overview
@@ -37,6 +38,11 @@ With the use of some C++ mechanisms such as the deleted constructor, the static 
 - **scripts -** python scripts, for now only a script to publish toy data, given in the config folder
 - **src -** source files
 - **test -** a test file to check if the waypoint parser is giving expected results, based on test data
+
+## Limitations
+
+- Safety and error handling from the laser management FSM
+- As to implement the stop / pause / kill calls from RobétArmé task manager and handle them correctly on the robot side. Currently the robot is firstly finishing its current trajectory which is not the correct behavior when shutting it down.
 
 ## Maintainers
 

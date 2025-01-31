@@ -47,6 +47,20 @@ class ErrorTrigger {};
 class ErrorAcknowledgement {};
 
 /**
+ * TODO(lmunier): Fix the following limitation:
+ *
+ * It appears when entering in a state and calling an external function.
+ * As long as the external function is processing, the FSM does not respond
+ * to new events which is an issue when the RobétArmé taskManager called
+ * stop/pause events. Currently, even when the FSM is killed, the robot will
+ * finish its current trajectory first.
+ *
+ * The safety as also to be handled.
+ *
+ * The current status missed the pause/stop/error handling.
+ */
+
+/**
  * @class TaskFSM
  * @brief Represents a finite state machine for task management.
  *

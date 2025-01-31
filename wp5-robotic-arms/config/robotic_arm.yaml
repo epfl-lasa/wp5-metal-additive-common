@@ -1,3 +1,16 @@
+# These parameters are used to define the robotic arm to used in the controller.
+#
+# It can be usefull to adapt these parameters when performing one of the following
+# manual tasks :
+# - perform_fk: to get the correct pose in the reference frame (especially usefull
+#               when gattering data by hand, from the real robot in freedrive)
+# - perform_ik: to get the correct joint configuration
+# - test_robotic_arm: to be sure both IK-Geo and TracIK algorithms give the same results
+#
+# Do not forget to put them back to the needed parameters for the task after use.
+# /!\ Make sure that the correct chain_start and chain_end parameters are set before running
+# on the real robot since it changes the overall robot configuration if not set correctly (the
+# one estimated by Moveit! and the real one will mismatch).
 ur5_robot:
   controller_frequency: 125 # [Hz]
   path_urdf: "robot_description"

@@ -51,6 +51,7 @@ protected:
 
 WaypointParser* WaypointParserTest::waypointParser_ = nullptr;
 
+// Test to unpack a well packed damage string
 TEST_F(WaypointParserTest, TestWellPackedWaypoint) {
   string str = "waypoint1,base_link,1,2,3,4,5,6,0.1,0.2,0.3";
   vector<double> waypointUnpacked = {1, 2, 3, 4, 5, 6};
@@ -58,6 +59,7 @@ TEST_F(WaypointParserTest, TestWellPackedWaypoint) {
   testUnpackWaypoint(str, "waypoint1", "base_link", waypointUnpacked, normalUnpacked);
 }
 
+// Test to unpack a damage string with a string at a waypoint position
 TEST_F(WaypointParserTest, TestNotWellPackedWaypoint) {
   string str = "waypoint1,base_link,1,2,3,4,5,f,0.1,0.2,0.3";
   vector<double> waypointUnpacked = {};
@@ -65,6 +67,7 @@ TEST_F(WaypointParserTest, TestNotWellPackedWaypoint) {
   testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
 }
 
+// Test to unpack a damage string missing its ID
 TEST_F(WaypointParserTest, TestMissingIDWaypoint) {
   string str = "base_link,2,1,2,,4,5,0.1,0.2,0.3";
   vector<double> waypointUnpacked = {};
@@ -72,6 +75,7 @@ TEST_F(WaypointParserTest, TestMissingIDWaypoint) {
   testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
 }
 
+// Test to unpack a damage string with a wrond ID
 TEST_F(WaypointParserTest, TestNumberOnlyIDWaypoint) {
   string str = "1,base_link,2,1,2,,4,5,0.1,0.2,0.3";
   vector<double> waypointUnpacked = {};
@@ -79,6 +83,7 @@ TEST_F(WaypointParserTest, TestNumberOnlyIDWaypoint) {
   testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
 }
 
+// Test to unpack a damage string missing its reference frame
 TEST_F(WaypointParserTest, TestMissingRefFrameWaypoint) {
   string str = "waypoint2,1,2,3,4,5,6,0.1,0.2,0.3";
   vector<double> waypointUnpacked = {};
@@ -86,6 +91,7 @@ TEST_F(WaypointParserTest, TestMissingRefFrameWaypoint) {
   testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
 }
 
+// Test to unpack a damage string missing one position value
 TEST_F(WaypointParserTest, TestMissingValueWaypoint) {
   string str = "waypoint2,base_link,1,2,,4,5,0.1,0.2,0.3";
   vector<double> waypointUnpacked = {};
@@ -93,6 +99,7 @@ TEST_F(WaypointParserTest, TestMissingValueWaypoint) {
   testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
 }
 
+// Test to unpack a damage string having extra values
 TEST_F(WaypointParserTest, TestExtraValueWaypoint) {
   string str = "waypoint2,base_link,1,2,3,4,5,6,7,0.1,0.2,0.3";
   vector<double> waypointUnpacked = {};
@@ -100,6 +107,7 @@ TEST_F(WaypointParserTest, TestExtraValueWaypoint) {
   testUnpackWaypoint(str, "", "", waypointUnpacked, normalUnpacked);
 }
 
+// Test to unpack a damage string having an extra comma
 TEST_F(WaypointParserTest, TestExtraCommaWaypoint) {
   string str = "waypoint2,base_link,1,2,3,4,5,6,0.1,0.2,0.3,";
   vector<double> waypointUnpacked = {1, 2, 3, 4, 5, 6};
@@ -107,6 +115,7 @@ TEST_F(WaypointParserTest, TestExtraCommaWaypoint) {
   testUnpackWaypoint(str, "waypoint2", "base_link", waypointUnpacked, normalUnpacked);
 }
 
+// Test to unpack a damage string having multiple extra commas
 TEST_F(WaypointParserTest, TestExtraCommasWaypoint) {
   string str = "waypoint2,base_link,1,2,3,4,5,6,0.1,0.2,0.3,,,";
   vector<double> waypointUnpacked = {};

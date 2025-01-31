@@ -90,7 +90,13 @@ private:
     return true;
   }
 
-  // Static member to trigger initialization only once
+  /** @brief Static member to trigger initialization only once thanks to its inline definition
+   *
+   * Due to the inline definition, the initialization is done at the first use of the class.
+   * Since the member is calling the initialize method, the possible robotic arms will be registered.
+   *
+   * @return True if initialization is successful, false otherwise.
+   */
   static inline bool initialized = initialize();
 
   /**
