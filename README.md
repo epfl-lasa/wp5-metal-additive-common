@@ -1,7 +1,7 @@
 # Robetarme T5.3 - IRR - Control
 
 ## Table of Contents
-- [Table of Contents](#table-of-contents)
+
 - [Overview](#overview)
 - [Submodule](#submodule)
 - [Requirements](#requirements)

@@ -56,9 +56,20 @@ private:
    * @param waypoint The waypoint.
    * @param rotVector The rotation vector.
    * @param offset The offset.
-   * @return The waypoint offseted.
+   * @return The waypoint offset.
    */
   const geometry_msgs::Pose getPoseOffset_(const ROI::Pose waypoint,
                                            const Eigen::Vector3d rotVector,
                                            const Eigen::Vector3d offset);
+  /**
+   * @brief Computes the pose offset and add it to the given waypoint.
+   *
+   * @param waypoint The waypoint.
+   * @param wpVector The vector linking both waypoints.
+   * @param offset The offset.
+   * @return The waypoint offset.
+   */
+  const geometry_msgs::Pose getPoseOffsetV2_(const ROI::Pose waypoint,
+                                             const Eigen::Vector3d wpVector,
+                                             const Eigen::Vector3d offset);
 };

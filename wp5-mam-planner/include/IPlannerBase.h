@@ -119,6 +119,19 @@ protected:
   std::unique_ptr<moveit::planning_interface::MoveGroupInterface> moveGroup_ = nullptr; ///< MoveGroup interface
 
   /**
+   * @brief Removes high joint movements from the given joint positions.
+   *
+   * This function iterates through the provided joint positions and removes any
+   * joint movements that exceed the specified limit. The default limit is set to
+   * 3 * π/4.
+   *
+   * @param jointPos A reference to a vector of vectors containing joint positions.
+   * @param limitJointMove (optional) The threshold for joint movement. Any joint movement
+   *        exceeding this limit will be removed. Default value is 3 * π/4.
+   */
+  void removeHighJointMoves(std::vector<std::vector<double>>& jointPos, const double limitJointMove = 3 * M_PI_4);
+
+  /**
    * @brief Save the given trajectory to a file
    *
    * @param trajectory The trajectory to save

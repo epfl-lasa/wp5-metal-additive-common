@@ -50,23 +50,34 @@ bool TaskWelding::computeTrajectory(const std::vector<ROI::Pose>& waypoints) {
   return planner_->planTrajectory(waypointsToPlan);
 }
 
+bool TaskWelding::execute() { return planner_->executeTrajectory(); }
+
+// TODO(lmunier) - Double check the angle offset orientation with ANiMA to ensure the correct end effector orientation
 const geometry_msgs::Pose TaskWelding::getPoseOffset_(const ROI::Pose waypoint,
-                                                      const Eigen::Vector3d rotVector,
+                                                      const Eigen::Vector3d wpVector,
                                                       const Eigen::Vector3d offset) {
-  const Eigen::Vector3d offsetDir = waypoint.getNormal();
-  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(-rotVector, workingAngle_);
-  const Eigen::Quaterniond rotQuaternion = Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d::UnitZ(), -offsetDir);
+  const Eigen::Vector3d offsetDir = waypoint.getNormal().normalized();
+
+  // Define orientation matrix to face the welding direction
+  const Eigen::Vector3d vy = wpVector.normalized();
+  const Eigen::Vector3d vz = -offsetDir;
+  const Eigen::Vector3d vx = vy.cross(vz);
+
+  Eigen::Matrix3d faceMatrix;
+  faceMatrix << vx, vy, vz;
+
+  // Extract quaternions from current settings
+  const Eigen::Quaterniond faceQuaternion(faceMatrix);
+  const Eigen::Quaterniond rotation = MathTools::getQuatFromNormalTheta(vx, workingAngle_);
 
   // Add offsets from both tools size and welding needs
   pair<Eigen::Quaterniond, Eigen::Vector3d> offsetPoseQuatVec = MathTools::addOffset(
       pair<Eigen::Quaterniond, Eigen::Vector3d>(Eigen::Quaterniond::Identity(), waypoint.getPosition()),
-      pair<Eigen::Quaterniond, Eigen::Vector3d>(rotQuaternion, offset));
+      pair<Eigen::Quaterniond, Eigen::Vector3d>(faceQuaternion, offset));
 
   offsetPoseQuatVec = MathTools::addOffset(
       offsetPoseQuatVec,
-      pair<Eigen::Quaterniond, Eigen::Vector3d>(rotation, ConversionTools::extractVector(transform_)));
+      pair<Eigen::Quaterniond, Eigen::Vector3d>(rotation, ConversionTools::extractVector(toolTransform_)));
 
   return ConversionTools::eigenToGeometry(offsetPoseQuatVec.first, offsetPoseQuatVec.second);
 }
-
-bool TaskWelding::execute() { return planner_->executeTrajectory(); }

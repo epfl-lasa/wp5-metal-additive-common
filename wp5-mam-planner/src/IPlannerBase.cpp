@@ -199,19 +199,11 @@ bool IPlannerBase::goToScanArea(const vector<double>& eePoseScan) {
     return false;
   }
 
-  // Partition configurations to move non-positive base joint positions to the end
-  auto partitionPoint = partition(
-      ikSolutions.begin(), ikSolutions.end(), [](const vector<double>& config) { return config.front() > 0; });
+  // Loop over the IK solutions and find the one that is not colliding with obstacles and does not perform a big move
+  bool foundValidConfig = false;
+  const vector<double> currentJointPos = get<0>(robot_->getState());
 
-  // Remove the invalid configurations
-  ikSolutions.erase(partitionPoint, ikSolutions.end());
-
-  // Sort the valid configurations
-  sort(ikSolutions.begin(), ikSolutions.end(), [](const vector<double>& a, const vector<double>& b) {
-    return a.front() > b.front();
-  });
-
-  // Loop backward over the IK solutions and find the one that is not colliding with obstacles and has a positive base joint position
+  removeHighJointMoves(ikSolutions);
   for (auto& sol : ikSolutions) {
     success = goToJointConfig(sol);
 
@@ -251,6 +243,25 @@ bool IPlannerBase::goToPose(const geometry_msgs::Pose& targetPose) {
   }
 
   return success;
+}
+
+void IPlannerBase::removeHighJointMoves(vector<vector<double>>& jointPos, const double limitJointMove) {
+  vector<double> currentConfig = get<0>(robot_->getState());
+
+  for (auto it = jointPos.begin(); it != jointPos.end();) {
+    bool remove = false;
+    for (size_t i = 0; i < it->size(); ++i) {
+      if (abs((*it)[i] - currentConfig[i]) > limitJointMove) {
+        remove = true;
+        break;
+      }
+    }
+    if (remove) {
+      it = jointPos.erase(it); // Remove the element and get the next iterator
+    } else {
+      ++it; // Move to the next element
+    }
+  }
 }
 
 bool IPlannerBase::saveTrajectory_(const moveit_msgs::RobotTrajectory& trajectory, const string& filename) {

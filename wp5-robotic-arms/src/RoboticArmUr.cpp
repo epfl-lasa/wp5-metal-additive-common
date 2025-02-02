@@ -16,6 +16,7 @@
 #include <ros/ros.h>
 
 #include "IRosInterfaceBase.h"
+#include "debug_tools.h"
 #include "math_tools.h"
 #include "yaml_tools.h"
 
@@ -87,6 +88,8 @@ const bool RoboticArmUr::getIKGeo(const Eigen::Quaterniond& quaternion,
   }
 
   filterIKGeoSolutions_(jointPos, quaternion, position);
+
+  ROS_INFO("[IRoboticArmUR] - Number of IK solutions: %lu", jointPos.size());
 
   // Modify the joint positions to minimize the movements on each joints from the current joint positions
   if (minJointMovements) {

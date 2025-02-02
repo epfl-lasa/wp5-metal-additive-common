@@ -101,7 +101,7 @@ protected:
   const Eigen::Vector3d eePosWorkOffset_{}; ///< End effector  working pose offset.
   const std::vector<double> eePoseScan_{};  ///< End effector scanning pose.
 
-  const geometry_msgs::Transform transform_; ///< Transform between two frames.
+  const geometry_msgs::Transform toolTransform_; ///< Transform between two frames.
 
 #ifdef DEBUG_MODE
   // Publish the trajectory for debugging purposes

@@ -32,7 +32,7 @@ ITaskBase::ITaskBase(ros::NodeHandle& nh, const YAML::Node& config) :
     eePosOffset_(YamlTools::loadYamlValue<Eigen::Vector3d>(config, "ee_pos_offset")),
     eePosWorkOffset_(YamlTools::loadYamlValue<Eigen::Vector3d>(config, "ee_pos_work_offset")),
     eePoseScan_(YamlTools::loadYamlValue<vector<double>>(config, "ee_pose_scan")),
-    transform_(getTransform_("ee_tool", "virtual_link")) {}
+    toolTransform_(getTransform_("ee_tool", "virtual_link")) {}
 
 bool ITaskBase::scanArea() {
   string robotType = "";
