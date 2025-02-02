@@ -1,0 +1,92 @@
+# docker-compose.yaml
+#
+# Configuration file for all the different docker to be run for the project.
+# Each container has its own profile to be setup with the right parameters
+# and allowing to only run the necessary containers.
+#
+# Command to run the docker-compose file:
+# Building ros1 noetic docker with nvidia support
+#   docker compose --profile nvidia build
+#
+# Mounting ros1 noetic docker with nvidia support in detached mode
+#   docker compose --profile nvidia up -d
+#
+# @Author [Louis Munier] - lmunier@protonmail.com
+# @version 0.4
+# @Date 2024-11-07
+#
+# Copyright (c) 2024 - EPFL - LASA. All rights reserved.
+
+# Custom key for the common settings used in multiple containers
+x-common-settings: &common_settings
+  environment:
+    - ROS_IP=${ROS_IP:-127.0.0.1}
+    - ROS_MASTER_URI=${ROS_MASTER_URI:-http://127.0.0.1:11311}
+
+    - QT_X11_NO_MITSHM=1
+    - DISPLAY=${DISPLAY}
+
+    # Build the code in debug mode to add extra safety due to the development stage
+    - CMAKE_BUILD_TYPE=Debug # Release : only for production
+
+  network_mode: host
+
+  build:
+    context: ..
+    network: host
+    dockerfile: docker/Dockerfile
+    args:
+      ROS_DISTRO: noetic
+      USER: ros
+
+  volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
+    - ../.clang-format:/home/ros/catkin_ws/.clang-format
+    - ..:/home/ros/catkin_ws/src
+
+  stdin_open: true
+  tty: true
+
+services:
+  # ROS with GPU support from NVIDIA
+  ros:
+    <<: *common_settings
+    profiles: [ nvidia ]
+    user: ros
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+
+  # ROS with GPU support from Intel
+  ros_cpu:
+    <<: *common_settings
+    profiles: [ intel ]
+    user: ros
+    environment:
+      - LIBVA_DRIVER_NAME=i965
+    devices:
+      - /dev/dri:/dev/dri
+
+  # Run docker polyscope for e-series
+  e-ursim:
+    profiles: [ e-series ]
+    extends:
+      file: ../ur-package/docker/docker-compose.yml
+      service: e-ursim
+
+  # Run docker polyscope for cb-series
+  cb-ursim:
+    profiles: [ cb-series ]
+    extends:
+      file: ../ur-package/docker/docker-compose.yml
+      service: cb-ursim
