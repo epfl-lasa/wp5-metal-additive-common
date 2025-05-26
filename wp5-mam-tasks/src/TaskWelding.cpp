@@ -59,7 +59,10 @@ const geometry_msgs::Pose TaskWelding::getPoseOffset_(const ROI::Pose waypoint,
   const Eigen::Vector3d offsetDir = waypoint.getNormal().normalized();
 
   // Define orientation matrix to face the welding direction
-  const Eigen::Vector3d vy = wpVector.normalized();
+  // const Eigen::Vector3d vy = wpVector.normalized();
+  // here set vy always is (0,0,-1)
+  const Eigen::Vector3d vy = Eigen::Vector3d(0, 0, -1);
+
   const Eigen::Vector3d vz = -offsetDir;
   const Eigen::Vector3d vx = vy.cross(vz);
 

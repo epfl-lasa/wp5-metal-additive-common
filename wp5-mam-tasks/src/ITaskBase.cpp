@@ -67,8 +67,12 @@ bool ITaskBase::scanArea() {
 
     success = client.call(srv);
     if (!success) {
-      ROS_ERROR_STREAM("[ITaskBase] - Failed to call service to detect waypoints");
+      ROS_ERROR_STREAM("[ITaskBase] - Failed to call service to detect waypoints"); 
+    } else {
+      ROS_INFO_STREAM("[ITaskBase] - Waypoint detection service called successfully. Pausing for 30 seconds...");
+      // ros::Duration(30.0).sleep();  // <-- Pause here
     }
+
   }
 
   ROS_INFO_STREAM("[ITaskBase] - Scanning area DONE");

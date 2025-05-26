@@ -30,3 +30,7 @@ obstacles:
     type: box
     size: [0.85, 0.44, 0.96] # xyz [m]
     pose: [0.0, 0.0, 0.0, 1.0, 0.425, -0.66, 0.48] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
+  # - name: welding_target
+  #   type: box
+  #   size: [3.0, 0.05, 3.0] # xyz [m]
+  #   pose: [0.0, 0.0, 0.0, 1.0, 0.0, 0.66, 0.48] # World space distance to the obstacle's CoM [xyzw, xyz] in [rad, m]
